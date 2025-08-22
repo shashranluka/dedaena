@@ -1,0 +1,18 @@
+.home-page {
+  text-align: center;
+  margin-top: 50px;
+
+  .letters-btn {
+    font-size: 20px;
+    padding: 10px 20px;
+    background: #2d7ff9;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover {
+      background: #195bb5;
+    }
+  }
+}

@@ -1,0 +1,69 @@
+.letters-page {
+  text-align: center;
+  margin-top: 40px;
+
+  .board {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    gap: 16px;
+  }
+  .board-letters {
+    min-width: 180px;
+    min-height: 48px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f8f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    padding: 8px 24px;
+    margin-right: 8px;
+  }
+  .clear-btn {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 16px;
+    padding: 6px 16px;
+    &:hover {
+      background: #c0392b;
+    }
+  }
+
+  .letters-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .letter-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 24px 32px;
+    min-width: 80px;
+    margin: 8px;
+    background: #fafafa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    font-size: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .letter-symbol {
+      font-weight: bold;
+      font-size: 40px;
+    }
+    .letter-name {
+      font-size: 20px;
+      color: #555;
+    }
+  }
+}

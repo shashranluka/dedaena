@@ -6,7 +6,9 @@ function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="nav-link">მთავარი</Link>
-      <Link to="/letters" className="nav-link">ასოები</Link>
+      <Link to="/letters" className="nav-link">ანბანი</Link>
+      {/* <Link to="/gogebashvili" className="nav-link">გოგებაშვილის დედაენა</Link> */}
+      <Link to="/gamededaena" className="nav-link">თამაში</Link>
     </nav>
   );
 }

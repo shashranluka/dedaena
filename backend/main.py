@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List
 import psycopg2
 import os
+import json
 
 app = FastAPI()
 
@@ -18,7 +19,7 @@ app.add_middleware(
 
 # Database connection
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_NAME = os.getenv("POSTGRES_DB", "alphabet_db")
+DB_NAME = os.getenv("POSTGRES_DB", "dedaena_db")
 DB_USER = os.getenv("POSTGRES_USER", "postgres")
 DB_PASS = os.getenv("POSTGRES_PASSWORD", "postgres")
 
@@ -36,7 +37,7 @@ class Letter(BaseModel):
 @app.get("/letters", response_model=List[Letter])
 def get_letters():
     with conn.cursor() as cur:
-        cur.execute("SELECT symbol, name FROM letters ORDER BY id ASC;")
+        cur.execute("SELECT symbol, name FROM alphabet ORDER BY id ASC;")
         rows = cur.fetchall()
     return [Letter(symbol=row[0], name=row[1]) for row in rows]
 
@@ -46,3 +47,31 @@ def add_letter(letter: Letter):
         cur.execute("INSERT INTO letters (symbol, name) VALUES (%s, %s);", (letter.symbol, letter.name))
         conn.commit()
     return {"status": "success"}
+
+@app.get("/dedaena/{table_name}/{position}")
+def get_table_letters(table_name: str, position: int):
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT letter FROM {table_name} WHERE position <= %s ORDER BY position ASC;", (position,))
+        letters = [row[0] for row in cur.fetchall()]
+        
+        cur.execute(f"SELECT * FROM {table_name} WHERE position = %s;", (position,))
+        current_position_data = cur.fetchone()
+        
+        print(letters)
+        print(f"Position {position} data:", current_position_data)
+    
+    position_info = {}
+    if current_position_data:
+        position_info = {
+            "id": current_position_data[0],
+            "letter": current_position_data[1], 
+            "position": current_position_data[2],
+            "words": json.loads(current_position_data[3]) if current_position_data[3] else [],
+            "sentences": json.loads(current_position_data[4]) if current_position_data[4] else []
+        }
+        print("Position info:", position_info)
+    
+    return {
+        "letters": letters, 
+        "position_info": position_info
+    }

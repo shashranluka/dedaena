@@ -1,0 +1,245 @@
+.registration-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: 'Noto Sans Georgian', sans-serif;
+
+  .registration-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    padding: 40px;
+
+    @media (max-width: 768px) {
+      padding: 30px 20px;
+      border-radius: 12px;
+    }
+  }
+
+  .registration-header {
+    text-align: center;
+    margin-bottom: 30px;
+
+    h1 {
+      color: #333;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+
+      @media (max-width: 768px) {
+        font-size: 1.6rem;
+      }
+    }
+
+    p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+  }
+
+  .registration-form {
+    .form-group {
+      margin-bottom: 20px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.9rem;
+
+        .required {
+          color: #f44336;
+          margin-left: 2px;
+        }
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-family: 'Noto Sans Georgian', sans-serif;
+
+        &:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        &.error {
+          border-color: #f44336;
+
+          &:focus {
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+          }
+        }
+
+        &::placeholder {
+          color: #999;
+        }
+      }
+
+      .password-input {
+        position: relative;
+
+        input {
+          padding-right: 45px;
+        }
+
+        .toggle-password {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 1.2rem;
+          padding: 5px;
+          opacity: 0.6;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
+          }
+
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+
+      .error-message {
+        display: block;
+        color: #f44336;
+        font-size: 0.8rem;
+        margin-top: 5px;
+      }
+
+      &.checkbox-group {
+        .checkbox-label {
+          display: flex;
+          align-items: flex-start;
+          cursor: pointer;
+          font-weight: normal;
+
+          input[type="checkbox"] {
+            margin-right: 8px;
+            margin-top: 3px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+
+            &.error {
+              outline: 2px solid #f44336;
+            }
+          }
+
+          span {
+            font-size: 0.9rem;
+            color: #666;
+
+            a {
+              color: #667eea;
+              text-decoration: none;
+              font-weight: 600;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .submit-error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      border-left: 4px solid #f44336;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Noto Sans Georgian', sans-serif;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+      }
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 20px;
+
+      p {
+        color: #666;
+        font-size: 0.9rem;
+
+        a {
+          color: #667eea;
+          text-decoration: none;
+          font-weight: 600;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.registration-container {
+  animation: fadeIn 0.4s ease-out;
+}

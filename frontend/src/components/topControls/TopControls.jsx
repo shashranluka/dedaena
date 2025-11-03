@@ -5,7 +5,7 @@ const BUTTONS = [
   { view: 'alphabet', class: 'control-button', card: 'control-card', content: (props) => (
     <>
       <span className="card-icon">{props.currentLetter}</span>
-      <span className="card-hint">{props.position}/{props.fullAlphabetLength}</span>
+      <span className="card-hint">{props.position}</span>
     </>
   )},
   { view: 'create', class: 'control-button', card: 'control-card', content: () => (

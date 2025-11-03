@@ -1,0 +1,262 @@
+.alphabet-cards-full {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+
+  .alphabet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+
+    span {
+      font-weight: 600;
+      color: #333;
+      font-size: 1rem;
+    }
+
+    .close-alphabet {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #666;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #e0e0e0;
+        color: #333;
+      }
+    }
+  }
+
+  .alphabet-cards {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      padding: 20px;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+      padding: 25px;
+    }
+
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(11, 1fr);
+      gap: 15px;
+      padding: 30px;
+    }
+
+    .alphabet-card {
+      width: 100%;
+      min-height: 90px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 6px 4px;
+      background: white;
+      position: relative;
+
+      @media (min-width: 768px) {
+        min-height: 100px;
+      }
+
+      @media (min-width: 1024px) {
+        min-height: 120px;
+
+        &:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+      }
+
+      &.current {
+        border-color: #2196F3;
+        background: #E3F2FD;
+        box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
+        transform: scale(1.02);
+      }
+
+      &.learned {
+        background: #E8F5E8;
+        border-color: #4CAF50;
+        
+        .card-letter {
+          color: #2E7D32;
+        }
+      }
+
+      &.unlearned {
+        background: #FFF8E1;
+        border-color: #FFC107;
+        
+        .card-letter {
+          color: #F57F17;
+        }
+      }
+
+      .card-letter {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        transition: color 0.3s ease;
+
+        @media (min-width: 768px) {
+          font-size: 20px;
+        }
+
+        @media (min-width: 1024px) {
+          font-size: 24px;
+        }
+      }
+
+      .card-position {
+        font-size: 9px;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 500;
+
+        @media (min-width: 768px) {
+          font-size: 10px;
+        }
+
+        @media (min-width: 1024px) {
+          font-size: 11px;
+        }
+      }
+
+      .card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 100%;
+        margin-top: auto;
+
+        .content-dot {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 14px;
+          padding: 0 4px;
+          border-radius: 7px;
+          font-size: 8px;
+          font-weight: bold;
+          color: white;
+          background: #95a5a6;
+          position: relative;
+
+          @media (min-width: 768px) {
+            height: 16px;
+            
+            .icon, .count, .prize {
+              font-size: 9px;
+            }
+          }
+
+          @media (min-width: 1024px) {
+            height: 18px;
+            
+            .icon, .count, .prize {
+              font-size: 10px;
+            }
+          }
+
+          .icon {
+            font-size: 8px;
+          }
+
+          .count {
+            font-size: 8px;
+          }
+
+          .prize {
+            font-size: 5px;
+            // animation: prize-shine 2s infinite;
+            filter: drop-shadow(0 0 2px rgb(7, 9, 7));
+            padding: 3px;
+          }
+
+          &.words {
+            background: linear-gradient(45deg, #FFC107, #FF8F00);
+          }
+
+          &.sentences {
+            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+          }
+
+          &.proverbs {
+            &.available {
+              background: linear-gradient(45deg, #FF9800, #F57C00);
+              box-shadow: 0 0 4px rgba(255, 152, 0, 0.5);
+            }
+            
+            &.unavailable {
+              background: #BDC3C7;
+              opacity: 0.6;
+            }
+          }
+
+          &.reading {
+            &.available {
+              background: linear-gradient(45deg, #2196F3, #1976D2);
+              box-shadow: 0 0 4px rgba(33, 150, 243, 0.5);
+            }
+            
+            &.unavailable {
+              background: #BDC3C7;
+              opacity: 0.6;
+            }
+          }
+        }
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+}
+
+@keyframes prize-shine {
+  // 0% {
+    // transform: scale(1);
+    // opacity: 1;
+  // }
+  // 50% {
+  //   transform: scale(1.1);
+  //   opacity: 0.8;
+  // }
+  // 100% {
+  //   transform: scale(1);
+  //   opacity: 1;
+  // }
+}

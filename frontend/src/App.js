@@ -5,6 +5,7 @@ import LettersPage from "./pages/LettersPage/LettersPage.jsx";
 import Gogebashvili from "./pages/Gogebashvili/Gogebashvili";
 import GameDedaena from "./pages/GameDedaena/GameDedaena";
 import Navbar from "./components/Navbar/Navbar.jsx";
+import Registration from "./pages/Registration/Registration.jsx";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/letters" element={<LettersPage />} />
         <Route path="/gogebashvili" element={<Gogebashvili />} />
         <Route path="/gamededaena" element={<GameDedaena />} />
+        <Route path="/registration" element={<Registration />} />
       </Routes>
     </Router>
   );

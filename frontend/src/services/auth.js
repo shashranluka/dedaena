@@ -1,11 +1,17 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// ✅ Webpack/CRA-ისთვის
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 
+
+/**
+ * მომხმარებლის რეგისტრაცია
+ */
 export const registerUser = async (userData) => {
+  console.log("Registering user with data:", userData);
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),
     });
@@ -13,26 +19,27 @@ export const registerUser = async (userData) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'რეგისტრაცია ვერ მოხერხდა');
+      throw new Error(data.detail || "რეგისტრაცია ვერ მოხერხდა");
     }
 
-    return {
-      success: true,
-      user: data.user,
-      message: data.message
-    };
+    return data;
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     throw error;
   }
 };
 
+/**
+ * მომხმარებლის ავტორიზაცია (Login)
+ */
 export const loginUser = async (credentials) => {
+  console.log("🔐 Logging in user:", credentials.username);
+  
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(credentials),
     });
@@ -40,46 +47,83 @@ export const loginUser = async (credentials) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'შესვლა ვერ მოხერხდა');
+      throw new Error(data.detail || "ავტორიზაცია ვერ მოხერხდა");
     }
 
-    // Save token to localStorage
-    if (data.token) {
-      localStorage.setItem('authToken', data.token);
-    }
+    // Token და user-ის შენახვა localStorage-ში
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
-    return {
-      success: true,
-      user: data.user,
-      token: data.token
-    };
+    console.log("✅ Login successful:", data.user);
+    return data;
+    
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("❌ Login error:", error);
     throw error;
   }
 };
 
+/**
+ * Logout
+ */
 export const logoutUser = () => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("user");
+  console.log("👋 User logged out");
 };
 
+/**
+ * მიმდინარე მომხმარებლის მიღება
+ */
 export const getCurrentUser = () => {
-  const token = localStorage.getItem('authToken');
-  if (!token) return null;
+  const userStr = localStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+};
 
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
+/**
+ * Token-ის არსებობის შემოწმება
+ */
+export const isAuthenticated = () => {
+  return !!localStorage.getItem("access_token");
+};
 
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error('Token decode error:', error);
-    return null;
-  }
+/**
+ * Token-ის მიღება
+ */
+export const getToken = () => {
+  return localStorage.getItem("access_token");
+};
+
+/**
+ * შემოწმება: არის თუ არა მომხმარებელი Admin
+ */
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  return user?.is_admin === true;
+};
+
+/**
+ * შემოწმება: არის თუ არა მომხმარებელი Moderator
+ */
+export const isModerator = () => {
+  const user = getCurrentUser();
+  return user?.is_moder === true;
+};
+
+/**
+ * შემოწმება: არის თუ არა მომხმარებელი Admin ან Moderator
+ */
+export const isAdminOrModerator = () => {
+  const user = getCurrentUser();
+  return user?.is_admin === true || user?.is_moder === true;
+};
+
+/**
+ * მომხმარებლის როლის მიღება (string)
+ */
+export const getUserRole = () => {
+  const user = getCurrentUser();
+  if (user?.is_admin) return 'admin';
+  if (user?.is_moder) return 'moderator';
+  return 'user';
 };

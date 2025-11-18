@@ -1,5 +1,6 @@
 // hooks/useGameData.js
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 export const useGameData = (version_data, position) => {
   const [letters, setLetters] = useState([]);
@@ -11,19 +12,17 @@ export const useGameData = (version_data, position) => {
   const [alphabetData, setAlphabetData] = useState({}); // ყველა ასოს დეტალური ინფორმაცია
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  console.log("staticData:", staticData);
   // Full alphabet load
   useEffect(() => {
     const loadStaticData = async () => {
       try {
         setLoading(true);
-        console.log('Loading full alphabet for table:', version_data.dedaena_table);
-        console.log('Fetching full alphabet from:', `http://localhost:8000/dedaena/${version_data.dedaena_table}/static`);
-        const response = await fetch(`http://localhost:8000/dedaena/${version_data.dedaena_table}/static`);
-        console.log('Response status:', response.status);
-        if (!response.ok) throw new Error('Failed to load alphabet');
-        const data = await response.json();
-        setStaticData(data || []);
-        console.log('Full alphabet loaded:', data);
+        const response = await api.get(`/dedaena/${version_data.dedaena_table}/general-info`);
+        // const response = await fetch(`http://localhost:8000/api/dedaena/${version_data.dedaena_table}/general-info`);
+        if (!response.status) throw new Error('Failed to load alphabet');
+        setStaticData(response.data);
+        
       } catch (err) {
         setError(err.message);
       } finally {
@@ -38,15 +37,16 @@ export const useGameData = (version_data, position) => {
     const loadPositionData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/dedaena/${version_data.dedaena_table}/position/${position}`);
-        if (!response.ok) throw new Error('Failed to load position data');
-        const data = await response.json();
+        console.log("Fetching position data from:");
+        const response = await api.get(`/dedaena/${version_data.dedaena_table}/position/${position}`);
+        // const response = await fetch(`http://localhost:8000/api/dedaena/${version_data.dedaena_table}/position/${position}`);
+        if (!response.status) throw new Error('Failed to load position data');
+        const data = response.data;
         setLetters(data.letters || []);
         setWords(data.position_info?.words || []);
         setSentences(data.position_info?.sentences || []);
         setProverbs(data.position_info?.proverbs || []);
         setReadingData(data.position_info?.reading || []);
-        console.log(`Position ${position} data loaded:`, data);
       } catch (err) {
         setError(err.message);
       } finally {

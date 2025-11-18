@@ -1,0 +1,121 @@
+backend/
+│
+├── 📄 run.py                           # Server startup script
+├── 📄 requirements.txt                 # Production dependencies
+├── 📄 requirements-dev.txt             # Development dependencies
+├── 📄 .env                             # Environment variables (SECRET!)
+├── 📄 .env.example                     # Example env file (for Git)
+├── 📄 .gitignore                       # Git ignore rules
+├── 📄 README.md                        # Backend documentation
+├── 📄 Dockerfile                       # Docker image definition
+├── 📄 docker-compose.yml               # Docker services (optional)
+├── 📄 alembic.ini                      # Database migrations config
+│
+├── 📁 venv/                            # Virtual environment (gitignore)
+│
+├── 📁 app/                             # Main application package
+│   │
+│   ├── 📄 __init__.py                 # Package marker
+│   ├── 📄 main.py                     # FastAPI app initialization
+│   ├── 📄 config.py                   # Configuration settings
+│   ├── 📄 dependencies.py             # Dependency injection
+│   │
+│   ├── 📁 api/                        # API layer (endpoints/routes)
+│   │   ├── 📄 __init__.py
+│   │   │
+│   │   ├── 📁 v1/                     # API version 1
+│   │   │   ├── 📄 __init__.py
+│   │   │   ├── 📄 api.py             # Router aggregator
+│   │   │   │
+│   │   │   └── 📁 endpoints/         # Individual endpoint files
+│   │   │       ├── 📄 __init__.py
+│   │   │       ├── 📄 auth.py        # Authentication endpoints
+│   │   │       ├── 📄 users.py       # User management
+│   │   │       ├── 📄 game.py        # Game data endpoints
+│   │   │       └── 📄 lessons.py     # Lesson endpoints
+│   │   │
+│   │   └── 📁 v2/                     # API version 2 (future)
+│   │       └── ...
+│   │
+│   ├── 📁 core/                       # Core functionality
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 security.py            # Password hashing, JWT
+│   │   ├── 📄 middleware.py          # Custom middleware
+│   │   └── 📄 exceptions.py          # Custom exceptions
+│   │
+│   ├── 📁 models/                     # Database models (ORM)
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 user.py                # User model
+│   │   ├── 📄 lesson.py              # Lesson model
+│   │   ├── 📄 progress.py            # User progress model
+│   │   └── 📄 game.py                # Game data model
+│   │
+│   ├── 📁 schemas/                    # Pydantic schemas (validation)
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 user.py                # User schemas (request/response)
+│   │   ├── 📄 lesson.py              # Lesson schemas
+│   │   ├── 📄 progress.py            # Progress schemas
+│   │   ├── 📄 game.py                # Game schemas
+│   │   └── 📄 token.py               # Auth token schemas
+│   │
+│   ├── 📁 services/                   # Business logic layer
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 auth_service.py        # Authentication logic
+│   │   ├── 📄 user_service.py        # User business logic
+│   │   ├── 📄 game_service.py        # Game data logic
+│   │   └── 📄 lesson_service.py      # Lesson logic
+│   │
+│   ├── 📁 repositories/               # Data access layer (Database queries)
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 base.py                # Base repository
+│   │   ├── 📄 user_repository.py     # User database operations
+│   │   ├── 📄 lesson_repository.py   # Lesson database operations
+│   │   └── 📄 game_repository.py     # Game data database operations
+│   │
+│   ├── 📁 database/                   # Database configuration
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 connection.py          # Database connection
+│   │   ├── 📄 session.py             # Database session management
+│   │   └── 📄 base.py                # Base model class
+│   │
+│   └── 📁 utils/                      # Utility functions
+│       ├── 📄 __init__.py
+│       ├── 📄 helpers.py             # Helper functions
+│       ├── 📄 validators.py          # Custom validators
+│       └── 📄 constants.py           # Application constants
+│
+├── 📁 alembic/                        # Database migrations
+│   ├── 📄 env.py                     # Migration environment
+│   ├── 📄 script.py.mako             # Migration template
+│   └── 📁 versions/                  # Migration files
+│       ├── 📄 001_initial.py
+│       └── 📄 002_add_users.py
+│
+├── 📁 tests/                          # Test suite
+│   ├── 📄 __init__.py
+│   ├── 📄 conftest.py                # Pytest configuration
+│   │
+│   ├── 📁 api/                       # API endpoint tests
+│   │   ├── 📄 test_auth.py
+│   │   ├── 📄 test_users.py
+│   │   └── 📄 test_game.py
+│   │
+│   ├── 📁 services/                  # Service layer tests
+│   │   ├── 📄 test_auth_service.py
+│   │   └── 📄 test_user_service.py
+│   │
+│   └── 📁 repositories/              # Repository tests
+│       └── 📄 test_user_repository.py
+│
+├── 📁 scripts/                        # Utility scripts
+│   ├── 📄 seed_database.py           # Database seeding
+│   ├── 📄 create_admin.py            # Create admin user
+│   └── 📄 backup_db.py               # Database backup
+│
+├── 📁 static/                         # Static files (if needed)
+│   ├── 📁 uploads/                   # User uploads
+│   └── 📁 media/                     # Media files
+│
+└── 📁 logs/                           # Application logs (gitignore)
+    ├── 📄 app.log
+    └── 📄 error.log

@@ -1,0 +1,574 @@
+.tour-sentences {
+  animation: fadeIn 0.5s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  // ===== GLOBAL TOGGLE CONTAINER =====
+  .global-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    .btn-toggle-all-words {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2.5rem;
+      background: white;
+      color: #667eea;
+      border: 3px solid #667eea;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'BPG Nino Mtavruli', sans-serif;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+
+      .icon {
+        font-size: 1.3rem;
+        transition: transform 0.3s;
+      }
+
+      .text {
+        letter-spacing: 0.3px;
+      }
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+        background: #f8f9ff;
+
+        .icon {
+          transform: scale(1.2);
+        }
+      }
+
+      &:active {
+        transform: translateY(-2px);
+      }
+
+      // ✅ Active state when words are visible
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+
+        &:hover {
+          background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+          box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+      }
+    }
+  }
+
+  // ===== SENTENCE CONTAINER =====
+  .sentence-container {
+    background: white;
+    border: 2px solid #f0f2f5;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px 16px 0 0;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    &:hover {
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      border-color: #e0e4ea;
+      transform: translateY(-3px);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    // ===== MODERATION HEADER =====
+    .moderation-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.25rem;
+
+      .moderation-actions {
+        display: flex;
+        gap: 0.75rem;
+
+        .btn-edit {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          cursor: pointer;
+          font-size: 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+
+          &:hover {
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+          }
+
+          &:active {
+            transform: translateY(-2px) scale(1.04);
+          }
+        }
+      }
+    }
+
+    // ===== SENTENCE CARD =====
+    .sentence-card {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f8f9fa 0%, #f5f7fa 100%);
+      border-radius: 12px;
+      font-size: 1.2rem;
+      line-height: 2;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      border: 2px solid #e8eaf6;
+      transition: all 0.3s;
+
+      &:hover {
+        border-color: #d0d4e0;
+      }
+    }
+
+    // ===== EDIT MODE =====
+    .edit-mode {
+      margin-bottom: 1.5rem;
+
+      .sentence-editor {
+        width: 100%;
+        padding: 1.25rem;
+        border: 3px solid #667eea;
+        border-radius: 12px;
+        font-size: 1.15rem;
+        font-family: 'BPG Nino Mtavruli', sans-serif;
+        line-height: 1.8;
+        resize: vertical;
+        min-height: 120px;
+        transition: all 0.3s;
+        background: #fafbff;
+
+        &:focus {
+          outline: none;
+          border-color: #5568d3;
+          box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.18);
+          background: white;
+        }
+      }
+
+      .edit-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.25rem;
+
+        button {
+          padding: 1rem 2rem;
+          border: none;
+          border-radius: 12px;
+          font-size: 1.05rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          font-family: 'BPG Nino Mtavruli', sans-serif;
+
+          &.btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+
+            &:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+            }
+
+            &:active {
+              transform: translateY(-1px);
+            }
+          }
+
+          &.btn-cancel {
+            background: white;
+            color: #666;
+            border: 2px solid #e0e4ea;
+
+            &:hover {
+              background: #f8f9fa;
+              border-color: #bbb;
+              transform: translateY(-3px);
+            }
+
+            &:active {
+              transform: translateY(-1px);
+            }
+          }
+        }
+      }
+    }
+
+    // ===== WORDS FROM SENTENCE =====
+    .words-from-sentence {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #f0f2f5;
+      animation: slideDown 0.5s ease-out;
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .word {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        border: 2px solid;
+
+        .word-text {
+          font-family: 'BPG Nino Mtavruli', sans-serif;
+          letter-spacing: 0.3px;
+        }
+
+        .status-icon {
+          font-size: 0.95rem;
+          font-weight: 900;
+        }
+
+        .tour-badge {
+          font-size: 0.8rem;
+          padding: 0.3rem 0.6rem;
+          border-radius: 8px;
+          font-weight: 800;
+          letter-spacing: 0.4px;
+        }
+
+        // ===== VALIDATION STATE: CURRENT =====
+        &.current {
+          background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+          border-color: #4caf50;
+          color: #2e7d32;
+          box-shadow: 0 3px 10px rgba(76, 175, 80, 0.2);
+
+          .status-icon {
+            color: #4caf50;
+          }
+
+          .tour-badge {
+            background: rgba(76, 175, 80, 0.25);
+            color: #1b5e20;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+          }
+
+          &:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.35);
+            transform: translateY(-4px);
+            border-color: #388e3c;
+          }
+        }
+
+        // ===== VALIDATION STATE: PREVIOUS =====
+        &.prev {
+          background: linear-gradient(135deg, #fff3e0 0%, #fff8f0 100%);
+          border-color: #ff9800;
+          color: #e65100;
+          box-shadow: 0 3px 10px rgba(255, 152, 0, 0.2);
+
+          .status-icon {
+            color: #ff9800;
+          }
+
+          .tour-badge {
+            background: rgba(255, 152, 0, 0.25);
+            color: #bf360c;
+            border: 1px solid rgba(255, 152, 0, 0.4);
+          }
+
+          &:hover {
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.35);
+            transform: translateY(-4px);
+            border-color: #f57c00;
+          }
+        }
+
+        // ===== VALIDATION STATE: INVALID =====
+        &.invalid {
+          background: linear-gradient(135deg, #ffebee 0%, #fff5f7 100%);
+          border-color: #f44336;
+          color: #c62828;
+          box-shadow: 0 3px 10px rgba(244, 67, 54, 0.2);
+
+          .status-icon {
+            color: #f44336;
+          }
+
+          &:hover {
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.35);
+            transform: translateY(-3px);
+          }
+
+          // ===== WORD ADD SECTION =====
+          .word-add-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-left: 0.625rem;
+
+            .estimated-tour-info {
+              .estimated-tour {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+                background: rgba(244, 67, 54, 0.18);
+                border-radius: 8px;
+                font-weight: 800;
+                border: 1px solid rgba(244, 67, 54, 0.3);
+              }
+            }
+
+            .btn-add-word {
+              width: 34px;
+              height: 34px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              border: none;
+              border-radius: 10px;
+              cursor: pointer;
+              font-size: 1.15rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 3px 12px rgba(102, 126, 234, 0.35);
+
+              &:hover {
+                transform: scale(1.2);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.55);
+              }
+
+              &:active {
+                transform: scale(1.1);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ===== RESPONSIVE =====
+  @media (max-width: 768px) {
+    .global-toggle-container {
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+
+      .btn-toggle-all-words {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+
+        .icon {
+          font-size: 1.2rem;
+        }
+      }
+    }
+
+    .sentence-container {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 14px;
+
+      .moderation-header .moderation-actions .btn-edit {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+      }
+
+      .sentence-card {
+        font-size: 1.1rem;
+        padding: 1.25rem;
+        line-height: 1.8;
+      }
+
+      .edit-mode {
+        .sentence-editor {
+          font-size: 1.1rem;
+          padding: 1.125rem;
+          min-height: 100px;
+        }
+
+        .edit-actions {
+          gap: 0.875rem;
+
+          button {
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+          }
+        }
+      }
+
+      .words-from-sentence {
+        gap: 0.75rem;
+        padding-top: 1.25rem;
+
+        .word {
+          font-size: 0.95rem;
+          padding: 0.625rem 0.875rem;
+
+          .tour-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+          }
+
+          &.invalid .word-add-section {
+            gap: 0.625rem;
+
+            .estimated-tour-info .estimated-tour {
+              font-size: 0.75rem;
+              padding: 0.25rem 0.5rem;
+            }
+
+            .btn-add-word {
+              width: 32px;
+              height: 32px;
+              font-size: 1.05rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .global-toggle-container {
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+
+      .btn-toggle-all-words {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+
+        .icon {
+          font-size: 1.1rem;
+        }
+
+        .text {
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .sentence-container {
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      border-radius: 12px;
+
+      .moderation-header .moderation-actions .btn-edit {
+        width: 36px;
+        height: 36px;
+        font-size: 1.05rem;
+        border-radius: 9px;
+      }
+
+      .sentence-card {
+        font-size: 1.05rem;
+        padding: 1rem;
+        line-height: 1.7;
+      }
+
+      .edit-mode {
+        .sentence-editor {
+          font-size: 1.05rem;
+          padding: 1rem;
+          min-height: 90px;
+        }
+
+        .edit-actions {
+          flex-direction: column;
+          gap: 0.75rem;
+
+          button {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+          }
+        }
+      }
+
+      .words-from-sentence {
+        gap: 0.625rem;
+
+        .word {
+          font-size: 0.9rem;
+          padding: 0.5rem 0.75rem;
+          gap: 0.5rem;
+
+          .status-icon {
+            font-size: 0.85rem;
+          }
+
+          .tour-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.45rem;
+          }
+
+          &.invalid .word-add-section {
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+
+            .estimated-tour-info .estimated-tour {
+              font-size: 0.7rem;
+              padding: 0.22rem 0.45rem;
+            }
+
+            .btn-add-word {
+              width: 30px;
+              height: 30px;
+              font-size: 1rem;
+              border-radius: 8px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

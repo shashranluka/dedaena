@@ -9,6 +9,7 @@ const TableOfContents = ({
   onCardClick, 
   onClose 
 }) => {
+  console.log("TableOfContents staticData:", staticData);
   return (
     <div className="alphabet-cards-full">
       <div className="alphabet-header">

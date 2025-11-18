@@ -1,0 +1,568 @@
+.tour-words {
+  margin-bottom: 2.5rem;
+
+  // ===== TOGGLE CONTAINER =====
+  .words-toggle-container {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+
+    .btn-toggle-words {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      padding: 1rem 2.5rem;
+      background: white;
+      color: #667eea;
+      border: 3px solid #667eea;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'BPG Nino Mtavruli', sans-serif;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+
+      .icon {
+        font-size: 1.3rem;
+        transition: transform 0.3s;
+      }
+
+      .text {
+        letter-spacing: 0.3px;
+      }
+
+      .badge {
+        background: rgba(102, 126, 234, 0.15);
+        color: #667eea;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        margin-left: 0.25rem;
+      }
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+        background: #f8f9ff;
+
+        .icon {
+          transform: scale(1.2);
+        }
+      }
+
+      &:active {
+        transform: translateY(-2px);
+      }
+
+      // ✅ Active state
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+
+        .badge {
+          background: rgba(255, 255, 255, 0.25);
+          color: white;
+        }
+
+        &:hover {
+          background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+          box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+      }
+    }
+  }
+
+  // ===== WORDS DISPLAY =====
+  .words-display {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    animation: slideDown 0.5s ease-out;
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    // ===== HEADER =====
+    .words-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 3px solid #f0f2f5;
+
+      .words-header-left {
+        flex: 1;
+
+        h3 {
+          margin: 0 0 1rem 0;
+          font-size: 1.6rem;
+          color: #2c3e50;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+
+          .tour-letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          }
+        }
+
+        .words-meta {
+          display: flex;
+          gap: 1.5rem;
+          flex-wrap: wrap;
+
+          .meta-item {
+            font-size: 1rem;
+            color: #666;
+
+            strong {
+              color: #667eea;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+
+      // ✅ ADD WORD BUTTON
+      .words-header-right {
+        display: flex;
+        align-items: center;
+
+        .btn-add-new-word {
+          display: flex;
+          align-items: center;
+          gap: 0.625rem;
+          padding: 0.875rem 1.75rem;
+          background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 700;
+          font-family: 'BPG Nino Mtavruli', sans-serif;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+          white-space: nowrap;
+
+          .icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+          }
+
+          .text {
+            letter-spacing: 0.3px;
+          }
+
+          &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.45);
+            background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+
+            .icon {
+              transform: scale(1.2) rotate(90deg);
+            }
+          }
+
+          &:active {
+            transform: translateY(-1px);
+          }
+        }
+      }
+    }
+
+    // ===== WORDS GRID =====
+    .words-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+
+      .word-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #f5f7fa 100%);
+        border: 2px solid #e8eaf6;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .word-number {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          font-weight: 800;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+          flex-shrink: 0;
+        }
+
+        .word-text {
+          flex: 1;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #2c3e50;
+          font-family: 'BPG Nino Mtavruli', sans-serif;
+          letter-spacing: 0.2px;
+        }
+
+        // ✅ WORD ACTIONS (EDIT & DELETE BUTTONS)
+        .word-actions {
+          display: flex;
+          gap: 0.5rem;
+          opacity: 0;
+          transition: opacity 0.3s;
+
+          button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            &.btn-edit-word {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+
+              &:hover {
+                transform: scale(1.15);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+              }
+            }
+
+            &.btn-delete-word {
+              background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+              color: white;
+              box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+
+              &:hover {
+                transform: scale(1.15);
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.5);
+              }
+            }
+
+            &:active {
+              transform: scale(1.05);
+            }
+          }
+        }
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          border-color: #667eea;
+
+          .word-number {
+            transform: scale(1.1);
+          }
+
+          .word-actions {
+            opacity: 1;
+          }
+        }
+
+        // ✅ EDIT MODE
+        .word-edit-mode {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          width: 100%;
+
+          .word-edit-input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-family: 'BPG Nino Mtavruli', sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            background: white;
+            transition: all 0.3s;
+
+            &:focus {
+              outline: none;
+              border-color: #5568d3;
+              box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            }
+          }
+
+          .word-edit-actions {
+            display: flex;
+            gap: 0.5rem;
+
+            button {
+              width: 34px;
+              height: 34px;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+              &.btn-save-word {
+                background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+
+                &:hover {
+                  transform: scale(1.15);
+                  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+                }
+              }
+
+              &.btn-cancel-word {
+                background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+
+                &:hover {
+                  transform: scale(1.15);
+                  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.5);
+                }
+              }
+
+              &:active {
+                transform: scale(1.05);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ===== RESPONSIVE =====
+  @media (max-width: 968px) {
+    .words-display {
+      .words-header {
+        flex-direction: column;
+        gap: 1.5rem;
+
+        .words-header-left {
+          h3 {
+            font-size: 1.5rem;
+
+            .tour-letter {
+              width: 46px;
+              height: 46px;
+              font-size: 1.7rem;
+            }
+          }
+
+          .words-meta {
+            gap: 1.25rem;
+
+            .meta-item {
+              font-size: 0.95rem;
+            }
+          }
+        }
+
+        .words-header-right {
+          width: 100%;
+
+          .btn-add-new-word {
+            width: 100%;
+            justify-content: center;
+            padding: 1rem 1.5rem;
+            font-size: 1.05rem;
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+
+    .words-toggle-container {
+      padding: 1.25rem;
+
+      .btn-toggle-words {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+
+        .icon {
+          font-size: 1.2rem;
+        }
+
+        .badge {
+          font-size: 0.85rem;
+          padding: 0.2rem 0.6rem;
+        }
+      }
+    }
+
+    .words-display {
+      padding: 1.5rem;
+
+      .words-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.25rem;
+
+        .words-header-left {
+          h3 {
+            font-size: 1.4rem;
+
+            .tour-letter {
+              width: 44px;
+              height: 44px;
+              font-size: 1.6rem;
+              border-radius: 10px;
+            }
+          }
+
+          .words-meta {
+            gap: 1rem;
+
+            .meta-item {
+              font-size: 0.95rem;
+            }
+          }
+        }
+
+        .words-header-right {
+          .btn-add-new-word {
+            padding: 0.875rem 1.5rem;
+            font-size: 0.95rem;
+
+            .icon {
+              font-size: 1.1rem;
+            }
+          }
+        }
+      }
+
+      .words-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 0.875rem;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 1.5rem;
+
+    .words-toggle-container {
+      padding: 1rem;
+
+      .btn-toggle-words {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+
+        .icon {
+          font-size: 1.1rem;
+        }
+
+        .text {
+          font-size: 0.9rem;
+        }
+
+        .badge {
+          font-size: 0.8rem;
+          padding: 0.18rem 0.5rem;
+        }
+      }
+    }
+
+    .words-display {
+      padding: 1.25rem;
+
+      .words-header {
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+
+        .words-header-left {
+          h3 {
+            font-size: 1.2rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+
+            .tour-letter {
+              width: 40px;
+              height: 40px;
+              font-size: 1.4rem;
+              border-radius: 8px;
+            }
+          }
+
+          .words-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+
+            .meta-item {
+              font-size: 0.9rem;
+            }
+          }
+        }
+
+        .words-header-right {
+          .btn-add-new-word {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+
+            .icon {
+              font-size: 1rem;
+            }
+
+            .text {
+              font-size: 0.85rem;
+            }
+          }
+        }
+      }
+
+      .words-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+    }
+  }
+}

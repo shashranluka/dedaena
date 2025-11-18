@@ -8,7 +8,9 @@ import WordCreator from "../../components/WordCreator/WordCreator";
 import SentenceList from "../../components/SentenceList/SentenceList";
 import SentenceCreator from "../../components/SentenceCreator/SentenceCreator";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
-import { getPositionProverbs } from "../../utils/getData";
+// import { getPositionData } from "../../utils/getData";
+// import { getGeneralInfo, getPositionData } from "../../utils/getData";
+// import { useGameData } from "../../utils/getData";
 
 const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1" };
 
@@ -23,12 +25,18 @@ function GameDedaena() {
   const [position, setPosition] = useState(2);
 
   const { letters, words, sentences, staticData, loading, error } = useGameData(version_data, position);
+  // console.log('GameDedaena loaded data:', { letters, words, sentences, staticData, loading, error });
+  // const generalInfo = useMemo(() => getGeneralInfo(version_data), []);
+  // const positionData = useMemo(() => getPositionData(version_data, position), [version_data, position]);
+  // const positionData = getPositionData(version_data, position);
+  // console.log('General info loaded:', generalInfo);
+  // console.log('Position data loaded:', positionData);
 
-  useEffect(() => {
-    if (error) {
-      setMessage(`შეცდომა: ${error}`);
-    }
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) {
+  //     setMessage(`შეცდომა: ${error}`);
+  //   }
+  // }, [error]);
 
   // Computed values
   const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
@@ -160,10 +168,10 @@ function GameDedaena() {
     setPosition(position + 1);
   }, [position]);
 
-  if (loading) {
-    return <div className="loading">იტვირთება...</div>;
-  }
-
+  // if (loading) {
+  //   return <div className="loading">იტვირთება...</div>;
+  // }
+  console.log(staticData, position, foundWordsByPosition, foundSentencesByPosition);
   return (
     <div className="gamededaena-page">
       <h2>{version_data.name}ს დედაენა</h2>

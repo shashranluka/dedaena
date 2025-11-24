@@ -4,148 +4,410 @@ import api from "../../services/api";
 import TourWords from "../../components/TourWords/TourWords";
 import TourSentences from "../../components/TourSentences/TourSentences";
 import WordModal from "../../components/WordModal/WordModal";
+import TourProverbs from "../../components/TourProverbs/TourProverbs";
+import ModeratorFullData from "../../components/ModeratorFullData/ModeratorFullData";
 import "./ModeratorDashboard.scss";
 
-const version_data = {
+// ✅ 1. Constants extraction
+const VERSION_DATA = {
   name: "იაკობ გოგებაშვილი",
-  dedaena_table: "gogebashvili_1"
+  dedaena_table: "gogebashvili_1_test"
+};
+
+const CONTENT_TYPES = {
+  WORD: 'word',
+  SENTENCE: 'sentence',
+  PROVERB: 'proverb',
+  READING: 'reading'
+};
+
+// ✅ 2. Helper functions
+const normalizeWord = (word) => word.toLowerCase().replace(/-/g, '');
+
+const showSuccessMessage = (type, action = 'დაემატა') => {
+  alert(`✅ ${type} წარმატებით ${action}!`);
+};
+
+const showErrorMessage = (error) => {
+  const message = error.response?.data?.detail || error.message;
+  alert(`❌ შეცდომა: ${message}`);
 };
 
 const ModeratorDashboard = () => {
+  // ✅ 3. Group related state
   const [user, setUser] = useState(null);
   const [dedaenaData, setDedaenaData] = useState(null);
+  const [currentTourData, setCurrentTourData] = useState(null);
+  const [currentLetterIndex, setCurrentLetterIndex] = useState(null);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentTourData, setCurrentTourData] = useState(null);
-  const [currentLetterIndex, setCurrentLetterIndex] = useState();
+  const [showFullData, setShowFullData] = useState(false);
   
+  // Edit states
   const [editingSentences, setEditingSentences] = useState(new Set());
   const [editedTexts, setEditedTexts] = useState({});
-
+  
+  // Modal states
   const [isWordModalOpen, setIsWordModalOpen] = useState(false);
   const [wordModalTourInfo, setWordModalTourInfo] = useState(null);
   const [wordModalInitialData, setWordModalInitialData] = useState(null);
   const [addingWord, setAddingWord] = useState(false);
 
-  console.log("ModeratorDashboard Rendered", dedaenaData);
-
-  const allPrevWords = useMemo(() => {
-    if (!dedaenaData || !currentTourData) return [];
-    console.log("🔄 Calculating allPrevWords...");
-    const currentIndex = dedaenaData.findIndex(tour => tour.id === currentTourData.id);
-    const prevWords = [];
-    for (let i = 0; i < currentIndex; i++) {
-      const tourWords = dedaenaData[i].words.map(w => 
-        w.toLowerCase().replace(/-/g, '')
-      );
-      tourWords.forEach(tourWord => {
-        prevWords.push({
-          word: tourWord,
-          originalWord: dedaenaData[i].words.find(w => 
-            w.toLowerCase().replace(/-/g, '') === tourWord
-          ),
-          tourIndex: i,
-          tourNumber: i + 1,
-          tourLetter: dedaenaData[i].letter,
-          tourPosition: dedaenaData[i].position
-        });
-      });
-    }
-    console.log(`✅ allPrevWords calculated: ${prevWords.length} words`);
-    return prevWords;
-  }, [dedaenaData, currentTourData]);
-
-  const currentWords = useMemo(() => {
-    if (!currentTourData) return [];
-    return currentTourData.words.map(w => w.toLowerCase().replace(/-/g, ''));
-  }, [currentTourData]);
-
+  // ✅ 4. Memoized computed values
   const currentIndex = useMemo(() => {
     if (!dedaenaData || !currentTourData) return -1;
     return dedaenaData.findIndex(tour => tour.id === currentTourData.id);
   }, [dedaenaData, currentTourData]);
 
+  const allPrevWords = useMemo(() => {
+    if (!dedaenaData || currentIndex === -1) return [];
+    
+    const words = [];
+    for (let i = 0; i < currentIndex; i++) {
+      const tour = dedaenaData[i];
+      tour.words.forEach(word => {
+        const normalized = normalizeWord(word);
+        words.push({
+          word: normalized,
+          originalWord: word,
+          tourIndex: i,
+          tourNumber: i + 1,
+          tourLetter: tour.letter,
+          tourPosition: tour.position
+        });
+      });
+    }
+    return words;
+  }, [dedaenaData, currentIndex]);
+
+  const currentWords = useMemo(() => {
+    if (!currentTourData) return [];
+    return currentTourData.words.map(normalizeWord);
+  }, [currentTourData]);
+
+  // ✅ 5. Data fetching - ONLY for initial load
   const fetchDedaenaData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log("Fetching moderator dedaena data...");
-      
-      const response = await api.get(`/moderator/dedaena/${version_data.dedaena_table}`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        }
-      });
+
+      const response = await api.get(
+        `/moderator/dedaena/${VERSION_DATA.dedaena_table}`,
+        { headers: { 'Authorization': `Bearer ${getToken()}` } }
+      );
 
       setDedaenaData(response.data.data);
-      
-      if (currentTourData) {
-        const updatedTour = response.data.data.find(
-          tour => tour.position === currentTourData.position
-        );
-        if (updatedTour) {
-          setCurrentTourData(updatedTour);
-        }
-      }
 
-      console.log("✅ Data refreshed successfully!");
+      // Set first tour as default if none selected
+      if (!currentTourData && response.data.data.length > 0) {
+        setCurrentTourData(response.data.data[0]);
+        setCurrentLetterIndex(0);
+      }
     } catch (error) {
-      console.error("❌ Error:", error);
+      console.error("❌ Fetch error:", error);
       setError(error.response?.data?.detail || error.message);
     } finally {
       setLoading(false);
     }
+  }, []); // ✅ Empty dependencies - only initial load
+
+  // ✅ 6. Optimistic update helper - UPDATED
+  const updateTourData = useCallback((position, updateFn) => {
+    setDedaenaData(prevData => 
+      prevData.map(tour => 
+        tour.position === position ? updateFn(tour) : tour
+      )
+    );
+
+    if (currentTourData?.position === position) {
+      setCurrentTourData(prev => updateFn(prev));
+    }
   }, [currentTourData]);
 
-  useEffect(() => {
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-  }, []);
-
-  useEffect(() => {
-    fetchDedaenaData();
-  }, []);
-
-  const tourClickHandler = (item, index) => {
-    console.log("🎯 Tour clicked:", item.letter);
-    setCurrentTourData(item);
-    setCurrentLetterIndex(index);
-  };
-
-  // ===== WORD MODAL HANDLERS =====
-
-  const openWordModal = (wordKey, pureWord, originalWord, estimatedTour) => {
-    setWordModalTourInfo(estimatedTour);
-    setWordModalInitialData({
-      normalized: pureWord,
-      original: originalWord,
-      partOfSpeech: ''
-    });
-    setIsWordModalOpen(true);
-  };
-
-  const openAddWordModal = (tourData) => {
-    setWordModalTourInfo({
-      position: tourData.position,
-      letter: tourData.letter
-    });
-    setWordModalInitialData(null);
-    setIsWordModalOpen(true);
-  };
-
-  const closeWordModal = () => {
-    setIsWordModalOpen(false);
-    setWordModalTourInfo(null);
-    setWordModalInitialData(null);
-  };
-
-  // ✅ Save word - Optimistic Update (no page refresh)
-  const handleSaveWord = async (formData) => {
+  // ✅ 7. Generic CRUD handlers - REMOVE fetchDedaenaData() calls
+  const handleContentAdd = useCallback(async (type, data) => {
     try {
       const token = getToken();
-      setAddingWord(true);
+      const payload = {
+        position: data.position,
+        content: data.content,
+        table_name: VERSION_DATA.dedaena_table,
+        added_by: user?.username || 'unknown',
+        added_at: new Date().toISOString()
+      };
 
-      console.log("➕ Adding word:", formData);
+      const fieldMap = {
+        [CONTENT_TYPES.WORD]: 'word',
+        [CONTENT_TYPES.SENTENCE]: 'sentence',
+        [CONTENT_TYPES.PROVERB]: 'proverb',
+        [CONTENT_TYPES.READING]: 'reading_text'
+      };
+
+      payload[fieldMap[type]] = data.content;
+
+      const response = await api.post(
+        `/moderator/${type}/add`,
+        payload,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      // ✅ Optimistic update instead of fetchDedaenaData()
+      updateTourData(data.position, tour => {
+        const updatedTour = { ...tour };
+        
+        if (type === CONTENT_TYPES.WORD) {
+          updatedTour.words = [...(tour.words || []), data.content];
+        } else if (type === CONTENT_TYPES.SENTENCE) {
+          updatedTour.sentences = [...(tour.sentences || []), data.content];
+        } else if (type === CONTENT_TYPES.PROVERB) {
+          updatedTour.proverbs = [...(tour.proverbs || []), data.content];
+        } else if (type === CONTENT_TYPES.READING) {
+          updatedTour.reading = [...(tour.reading || []), data.content];
+        }
+        
+        return updatedTour;
+      });
+
+      showSuccessMessage(type);
+
+    } catch (error) {
+      console.error('❌ Add error:', error);
+      showErrorMessage(error);
+      throw error;
+    }
+  }, [user, updateTourData]);
+
+  const handleContentUpdate = useCallback(async (type, data) => {
+    try {
+      const token = getToken();
+      const payload = {
+        position: data.position,
+        table_name: VERSION_DATA.dedaena_table,
+        edited_by: user?.username || 'unknown',
+        edited_at: new Date().toISOString()
+      };
+
+      const fieldMap = {
+        [CONTENT_TYPES.WORD]: { index: 'word_index', content: 'new_word' },
+        [CONTENT_TYPES.SENTENCE]: { index: 'sentence_index', content: 'new_sentence' },
+        [CONTENT_TYPES.PROVERB]: { index: 'proverb_index', content: 'new_proverb' },
+        [CONTENT_TYPES.READING]: { index: 'reading_index', content: 'new_reading' }
+      };
+
+      const fields = fieldMap[type];
+      payload[fields.index] = data.index;
+      payload[fields.content] = data.content;
+
+      await api.patch(
+        `/moderator/${type}/update`,
+        payload,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      // ✅ Optimistic update instead of fetchDedaenaData()
+      updateTourData(data.position, tour => {
+        const updatedTour = { ...tour };
+        
+        if (type === CONTENT_TYPES.WORD && updatedTour.words) {
+          updatedTour.words = [...updatedTour.words];
+          updatedTour.words[data.index] = data.content;
+        } else if (type === CONTENT_TYPES.SENTENCE && updatedTour.sentences) {
+          updatedTour.sentences = [...updatedTour.sentences];
+          updatedTour.sentences[data.index] = data.content;
+        } else if (type === CONTENT_TYPES.PROVERB && updatedTour.proverbs) {
+          updatedTour.proverbs = [...updatedTour.proverbs];
+          updatedTour.proverbs[data.index] = data.content;
+        } else if (type === CONTENT_TYPES.READING && updatedTour.reading) {
+          updatedTour.reading = [...updatedTour.reading];
+          updatedTour.reading[data.index] = data.content;
+        }
+        
+        return updatedTour;
+      });
+
+      showSuccessMessage(type, 'განახლდა');
+
+    } catch (error) {
+      console.error('❌ Update error:', error);
+      showErrorMessage(error);
+      throw error;
+    }
+  }, [user, updateTourData]);
+
+  const handleContentDelete = useCallback(async (type, data) => {
+    try {
+      const token = getToken();
+      const payload = {
+        position: data.position,
+        table_name: VERSION_DATA.dedaena_table,
+        deleted_by: user?.username || 'unknown',
+        deleted_at: new Date().toISOString()
+      };
+
+      const indexFieldMap = {
+        [CONTENT_TYPES.WORD]: 'word_index',
+        [CONTENT_TYPES.SENTENCE]: 'sentence_index',
+        [CONTENT_TYPES.PROVERB]: 'proverb_index',
+        [CONTENT_TYPES.READING]: 'reading_index'
+      };
+
+      payload[indexFieldMap[type]] = data.index;
+
+      await api.delete(
+        `/moderator/${type}/delete`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          data: payload
+        }
+      );
+
+      // ✅ Optimistic update instead of fetchDedaenaData()
+      updateTourData(data.position, tour => {
+        const updatedTour = { ...tour };
+        
+        if (type === CONTENT_TYPES.WORD && updatedTour.words) {
+          updatedTour.words = [...updatedTour.words];
+          updatedTour.words.splice(data.index, 1);
+        } else if (type === CONTENT_TYPES.SENTENCE && updatedTour.sentences) {
+          updatedTour.sentences = [...updatedTour.sentences];
+          updatedTour.sentences.splice(data.index, 1);
+        } else if (type === CONTENT_TYPES.PROVERB && updatedTour.proverbs) {
+          updatedTour.proverbs = [...updatedTour.proverbs];
+          updatedTour.proverbs.splice(data.index, 1);
+        } else if (type === CONTENT_TYPES.READING && updatedTour.reading) {
+          updatedTour.reading = [...updatedTour.reading];
+          updatedTour.reading.splice(data.index, 1);
+        }
+        
+        return updatedTour;
+      });
+
+      showSuccessMessage(type, 'წაიშალა');
+
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+      showErrorMessage(error);
+      throw error;
+    }
+  }, [user, updateTourData]);
+
+  // ✅ 8. Word-specific handlers - ALREADY HAVE updateTourData (keep as is)
+  const handleUpdateWord = useCallback(async (wordIndex, newWord) => {
+    if (!currentTourData) return;
+
+    try {
+      const token = getToken();
+      await api.patch(
+        `/moderator/word/update`,
+        {
+          position: currentTourData.position,
+          word_index: wordIndex,
+          new_word: newWord,
+          table_name: VERSION_DATA.dedaena_table,
+          edited_by: user?.username || 'unknown',
+          edited_at: new Date().toISOString()
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      const normalized = normalizeWord(newWord.trim());
+      updateTourData(currentTourData.position, tour => {
+        const newWords = [...tour.words];
+        newWords[wordIndex] = normalized;
+        return { ...tour, words: newWords };
+      });
+
+      showSuccessMessage('სიტყვა', 'განახლდა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [currentTourData, user, updateTourData]);
+
+  const handleDeleteWord = useCallback(async (wordIndex) => {
+    if (!currentTourData) return;
+
+    try {
+      const token = getToken();
+      await api.delete(
+        `/moderator/word/delete`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          data: {
+            position: currentTourData.position,
+            word_index: wordIndex,
+            table_name: VERSION_DATA.dedaena_table,
+            deleted_by: user?.username || 'unknown',
+            deleted_at: new Date().toISOString()
+          }
+        }
+      );
+
+      updateTourData(currentTourData.position, tour => {
+        const newWords = [...tour.words];
+        newWords.splice(wordIndex, 1);
+        return { ...tour, words: newWords };
+      });
+
+      showSuccessMessage('სიტყვა', 'წაიშალა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [currentTourData, user, updateTourData]);
+
+  const addWordRelevantTour = useCallback(async (pureWord, originalWord, estimatedTour, partOfSpeech) => {
+    if (!estimatedTour) return;
+
+    try {
+      const token = getToken();
+      const normalized = normalizeWord(pureWord.trim());
+
+      // ✅ შევამოწმოთ, სიტყვა უკვე ხომ არ არსებობს ტურში
+      const targetTour = dedaenaData.find(tour => tour.position === estimatedTour.position);
+      if (targetTour && targetTour.words.some(w => normalizeWord(w) === normalized)) {
+        alert(`ℹ️ სიტყვა "${normalized}" უკვე არსებობს "${estimatedTour.letter}" ტურში.`);
+        return;
+      }
+
+      // ✅ ვიძახებთ endpoint-ს, რომელიც ამატებს სიტყვას მხოლოდ კონკრეტულ ტურში
+      await api.post(
+        `/moderator/tour/add-word`,
+        {
+          word_data: {
+            normalized_word: normalized,
+            original_word: originalWord.trim(),
+            part_of_speech: partOfSpeech,
+          },
+          position: estimatedTour.position,
+          table_name: VERSION_DATA.dedaena_table,
+          added_by: user?.username || 'unknown',
+          added_at: new Date().toISOString()
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      // ✅ ოპტიმისტური განახლება
+      updateTourData(estimatedTour.position, tour => {
+        // ვქმნით ახალ მასივს, რომ React-მა ცვლილება აღიქვას
+        const newWords = [...(tour.words || []), normalized];
+        return { ...tour, words: newWords };
+      });
+
+      alert(
+        `✅ სიტყვა "${normalized}" წარმატებით დაემატა "${estimatedTour.letter}" ტურს!`
+      );
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [user, updateTourData, dedaenaData]);
+
+  const handleSaveWord = useCallback(async (formData) => {
+    try {
+      setAddingWord(true);
+      const token = getToken();
 
       const response = await api.post(
         `/moderator/word/add`,
@@ -154,53 +416,21 @@ const ModeratorDashboard = () => {
           original_word: formData.original.trim(),
           part_of_speech: formData.partOfSpeech,
           position: wordModalTourInfo.position,
-          table_name: version_data.dedaena_table,
+          table_name: VERSION_DATA.dedaena_table,
           added_by: user?.username || 'unknown',
           added_at: new Date().toISOString()
         },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      console.log("✅ Response:", response.data);
+      const normalized = normalizeWord(formData.normalized.trim());
 
-      // ✅ Optimistic Update - განაახლე state პირდაპირ
-      const normalizedWord = formData.normalized.trim().toLowerCase();
-
-      // ✅ 1. განაახლე dedaenaData
-      setDedaenaData(prevData => {
-        return prevData.map(tour => {
-          if (tour.position === wordModalTourInfo.position) {
-            // ✅ შეამოწმე დუბლიკატი
-            const wordExists = tour.words.some(w => 
-              w.toLowerCase() === normalizedWord
-            );
-
-            if (!wordExists) {
-              return {
-                ...tour,
-                words: [...tour.words, normalizedWord]
-              };
-            }
-          }
+      updateTourData(wordModalTourInfo.position, tour => {
+        if (tour.words.some(w => normalizeWord(w) === normalized)) {
           return tour;
-        });
-      });
-
-      // ✅ 2. განაახლე currentTourData
-      if (currentTourData && currentTourData.position === wordModalTourInfo.position) {
-        const wordExists = currentTourData.words.some(w => 
-          w.toLowerCase() === normalizedWord
-        );
-
-        if (!wordExists) {
-          setCurrentTourData(prev => ({
-            ...prev,
-            words: [...prev.words, normalizedWord]
-          }));
         }
-      }
+        return { ...tour, words: [...tour.words, normalized] };
+      });
 
       alert(
         `✅ სიტყვა დაემატა:\n` +
@@ -212,17 +442,155 @@ const ModeratorDashboard = () => {
       closeWordModal();
 
     } catch (error) {
-      console.error('❌ Error:', error);
-      alert(`❌ შეცდომა: ${error.response?.data?.detail || error.message}`);
+      showErrorMessage(error);
     } finally {
       setAddingWord(false);
     }
-  };
+  }, [wordModalTourInfo, user, updateTourData]);
 
-  // ===== SENTENCE HANDLERS =====
+  // ✅ 9. Proverb handlers - ALREADY HAVE updateTourData (keep as is)
+  const handleAddProverb = useCallback(async (proverbText) => {
+    if (!currentTourData) return;
 
-  const toggleEditMode = (sentenceId, sentenceText) => {
+    try {
+      const token = getToken();
+      await api.post(
+        `/moderator/proverb/add`,
+        {
+          position: currentTourData.position,
+          proverb: proverbText,
+          table_name: VERSION_DATA.dedaena_table,
+          added_by: user?.username || 'unknown',
+          added_at: new Date().toISOString()
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      updateTourData(currentTourData.position, tour => ({
+        ...tour,
+        proverbs: [...(tour.proverbs || []), proverbText]
+      }));
+
+      showSuccessMessage('ანდაზა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [currentTourData, user, updateTourData]);
+
+  const handleUpdateProverb = useCallback(async (proverbIndex, newText) => {
+    if (!currentTourData) return;
+
+    try {
+      const token = getToken();
+      await api.patch(
+        `/moderator/proverb/update`,
+        {
+          position: currentTourData.position,
+          proverb_index: proverbIndex,
+          new_proverb: newText,
+          table_name: VERSION_DATA.dedaena_table,
+          edited_by: user?.username || 'unknown',
+          edited_at: new Date().toISOString()
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      updateTourData(currentTourData.position, tour => {
+        const newProverbs = [...(tour.proverbs || [])];
+        newProverbs[proverbIndex] = newText;
+        return { ...tour, proverbs: newProverbs };
+      });
+
+      showSuccessMessage('ანდაზა', 'განახლდა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [currentTourData, user, updateTourData]);
+
+  const handleDeleteProverb = useCallback(async (proverbIndex) => {
+    if (!currentTourData) return;
+
+    try {
+      const token = getToken();
+      await api.delete(
+        `/moderator/proverb/delete`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          data: {
+            position: currentTourData.position,
+            proverb_index: proverbIndex,
+            table_name: VERSION_DATA.dedaena_table,
+            deleted_by: user?.username || 'unknown',
+            deleted_at: new Date().toISOString()
+          }
+        }
+      );
+
+      updateTourData(currentTourData.position, tour => {
+        const newProverbs = [...(tour.proverbs || [])];
+        newProverbs.splice(proverbIndex, 1);
+        return { ...tour, proverbs: newProverbs };
+      });
+
+      showSuccessMessage('ანდაზა', 'წაიშალა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [currentTourData, user, updateTourData]);
+
+  // ✅ 10. Sentence handlers - ALREADY HAVE updateTourData (keep as is)
+  const handleSaveSentence = useCallback(async (sentenceId) => {
+    try {
+      const token = getToken();
+      const sentenceIndex = sentenceId.startsWith("sentence-")
+        ? parseInt(sentenceId.split("-")[1])
+        : parseInt(sentenceId);
+
+      await api.patch(
+        `/moderator/sentence/${sentenceId}`,
+        {
+          content: editedTexts[sentenceId],
+          info: {
+            position: currentTourData.position,
+            letter: currentTourData.letter,
+            table_name: VERSION_DATA.dedaena_table,
+            edited_by: user?.username || 'unknown',
+            edited_at: new Date().toISOString()
+          }
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      updateTourData(currentTourData.position, tour => {
+        const newSentences = [...tour.sentences];
+        newSentences[sentenceIndex] = editedTexts[sentenceId];
+        return { ...tour, sentences: newSentences };
+      });
+
+      setEditingSentences(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(sentenceId);
+        return newSet;
+      });
+
+      setEditedTexts(prev => {
+        const { [sentenceId]: _, ...rest } = prev;
+        return rest;
+      });
+
+      showSuccessMessage('წინადადება', 'შეინახა');
+
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  }, [editedTexts, currentTourData, user, updateTourData]);
+
+  const toggleEditMode = useCallback((sentenceId, sentenceText) => {
     setEditingSentences(prev => {
+      console.log(prev,"ewwww");
       const newSet = new Set(prev);
       if (newSet.has(sentenceId)) {
         newSet.delete(sentenceId);
@@ -235,214 +603,72 @@ const ModeratorDashboard = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const updateEditedText = (sentenceId, text) => {
+  const updateEditedText = useCallback((sentenceId, text) => {
     setEditedTexts(prev => ({ ...prev, [sentenceId]: text }));
-  };
+  }, []);
 
-  const handleSaveSentence = async (sentenceId) => {
-    try {
-      const token = getToken();
-      
-      // ✅ Extract sentence index
-      const sentenceIndex = sentenceId.startsWith("sentence-") 
-        ? parseInt(sentenceId.split("-")[1]) 
-        : parseInt(sentenceId);
-
-      const response = await api.patch(
-        `/moderator/sentence/${sentenceId}`, 
-        {
-          content: editedTexts[sentenceId],
-          info: {
-            position: currentTourData.position,
-            letter: currentTourData.letter,
-            table_name: version_data.dedaena_table,
-            edited_by: user?.username || 'unknown',
-            edited_at: new Date().toISOString()
-          }
-        }, 
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-
-      // ✅ Optimistic Update - განაახლე state პირდაპირ
-      
-      // ✅ 1. განაახლე dedaenaData
-      setDedaenaData(prevData => {
-        return prevData.map(tour => {
-          if (tour.position === currentTourData.position) {
-            const newSentences = [...tour.sentences];
-            newSentences[sentenceIndex] = editedTexts[sentenceId];
-            return {
-              ...tour,
-              sentences: newSentences
-            };
-          }
-          return tour;
-        });
-      });
-
-      // ✅ 2. განაახლე currentTourData
-      if (currentTourData) {
-        const newSentences = [...currentTourData.sentences];
-        newSentences[sentenceIndex] = editedTexts[sentenceId];
-        setCurrentTourData(prev => ({
-          ...prev,
-          sentences: newSentences
-        }));
-      }
-
-      // ✅ 3. Clear editing state
-      setEditingSentences(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(sentenceId);
-        return newSet;
-      });
-
-      setEditedTexts(prev => {
-        const newTexts = { ...prev };
-        delete newTexts[sentenceId];
-        return newTexts;
-      });
-
-      alert('✅ წინადადება წარმატებით შეინახა!');
-      
-    } catch (error) {
-      alert(`❌ შეცდომა: ${error.response?.data?.detail || error.message}`);
-    }
-  };
-
-  const handleCancelEdit = (sentenceId) => {
+  const handleCancelEdit = useCallback((sentenceId) => {
     setEditingSentences(prev => {
       const newSet = new Set(prev);
       newSet.delete(sentenceId);
       return newSet;
     });
     setEditedTexts(prev => {
-      const newTexts = { ...prev };
-      delete newTexts[sentenceId];
-      return newTexts;
+      const { [sentenceId]: _, ...rest } = prev;
+      return rest;
     });
-  };
+  }, []);
 
-  // ===== WORD UPDATE/DELETE HANDLERS =====
+  // ✅ 11. Modal handlers
+  const openWordModal = useCallback((wordKey, pureWord, originalWord, estimatedTour) => {
+    setWordModalTourInfo(estimatedTour);
+    setWordModalInitialData({
+      normalized: pureWord,
+      original: originalWord,
+      partOfSpeech: ''
+    });
+    setIsWordModalOpen(true);
+  }, []);
 
-  const handleUpdateWord = useCallback(async (wordIndex, newWord) => {
-    if (!currentTourData) return;
-    
-    try {
-      const token = getToken();
-      
-      const response = await api.patch(
-        `/moderator/word/update`,
-        {
-          position: currentTourData.position,
-          word_index: wordIndex,
-          new_word: newWord,
-          table_name: version_data.dedaena_table,
-          edited_by: user?.username || 'unknown',
-          edited_at: new Date().toISOString()
-        },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
+  const openAddWordModal = useCallback((tourData) => {
+    setWordModalTourInfo({
+      position: tourData.position,
+      letter: tourData.letter
+    });
+    setWordModalInitialData(null);
+    setIsWordModalOpen(true);
+  }, []);
 
-      // ✅ Optimistic Update
-      const normalizedNewWord = newWord.trim().toLowerCase();
+  const closeWordModal = useCallback(() => {
+    setIsWordModalOpen(false);
+    setWordModalTourInfo(null);
+    setWordModalInitialData(null);
+  }, []);
 
-      // ✅ 1. განაახლე dedaenaData
-      setDedaenaData(prevData => {
-        return prevData.map(tour => {
-          if (tour.position === currentTourData.position) {
-            const newWords = [...tour.words];
-            newWords[wordIndex] = normalizedNewWord;
-            return {
-              ...tour,
-              words: newWords
-            };
-          }
-          return tour;
-        });
-      });
+  // ✅ 12. Tour navigation
+  const tourClickHandler = useCallback((item, index) => {
+    setCurrentTourData(item);
+    setCurrentLetterIndex(index);
+  }, []);
 
-      // ✅ 2. განაახლე currentTourData
-      setCurrentTourData(prev => {
-        const newWords = [...prev.words];
-        newWords[wordIndex] = normalizedNewWord;
-        return {
-          ...prev,
-          words: newWords
-        };
-      });
+  // ✅ 13. Effects
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
-      alert('✅ სიტყვა წარმატებით განახლდა!');
-      
-    } catch (error) {
-      alert(`❌ შეცდომა: ${error.response?.data?.detail || error.message}`);
-    }
-  }, [currentTourData, user]);
+  useEffect(() => {
+    fetchDedaenaData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleDeleteWord = useCallback(async (wordIndex) => {
-    if (!currentTourData) return;
-    
-    try {
-      const token = getToken();
-      
-      const response = await api.delete(
-        `/moderator/word/delete`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` },
-          data: {
-            position: currentTourData.position,
-            word_index: wordIndex,
-            table_name: version_data.dedaena_table,
-            deleted_by: user?.username || 'unknown',
-            deleted_at: new Date().toISOString()
-          }
-        }
-      );
-
-      // ✅ Optimistic Update
-
-      // ✅ 1. განაახლე dedaenaData
-      setDedaenaData(prevData => {
-        return prevData.map(tour => {
-          if (tour.position === currentTourData.position) {
-            const newWords = [...tour.words];
-            newWords.splice(wordIndex, 1);
-            return {
-              ...tour,
-              words: newWords
-            };
-          }
-          return tour;
-        });
-      });
-
-      // ✅ 2. განაახლე currentTourData
-      setCurrentTourData(prev => {
-        const newWords = [...prev.words];
-        newWords.splice(wordIndex, 1);
-        return {
-          ...prev,
-          words: newWords
-        };
-      });
-
-      alert('✅ სიტყვა წარმატებით წაიშალა!');
-      
-    } catch (error) {
-      alert(`❌ შეცდომა: ${error.response?.data?.detail || error.message}`);
-    }
-  }, [currentTourData, user]);
-
+  // ✅ 14. Loading & Error states
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="spinner"></div>
+        <div className="spinner" />
         <p>იტვირთება...</p>
       </div>
     );
@@ -453,30 +679,68 @@ const ModeratorDashboard = () => {
       <div className="error-screen">
         <h2>შეცდომა</h2>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>თავიდან ცდა</button>
+        <button onClick={() => window.location.reload()}>
+          თავიდან ცდა
+        </button>
       </div>
     );
   }
 
+  // ✅ 15. Main render
   return (
     <div className="moderator-dashboard">
       <header className="dashboard-header">
-        <h1>Moderator Dashboard</h1>
-        <p>მოგესალმებით, {user?.username}!</p>
+        <div className="header-content">
+          <div className="header-left">
+            <h1>📊 Moderator Dashboard</h1>
+            <p>მოგესალმებით, {user?.username}!</p>
+          </div>
+          
+          <div className="header-actions">
+            <button 
+              className={`btn-toggle-full-data ${showFullData ? 'active' : ''}`}
+              onClick={() => setShowFullData(prev => !prev)}
+              title={showFullData ? 'სრული ბაზის დამალვა' : 'სრული ბაზის ჩვენება'}
+            >
+              <span className="icon">{showFullData ? '🔼' : '🔽'}</span>
+              <span className="text">
+                {showFullData ? 'სრული ბაზის დამალვა' : 'სრული ბაზის ჩვენება'}
+              </span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {dedaenaData && (
-        <div>
-          <div className="tour-buttons-container flex-wrap">
-            {dedaenaData.map((item, index) => (
-              <div 
-                className={`tour-button ${currentLetterIndex === index ? 'selected' : ''}`} 
-                key={item.id} 
-                onClick={() => tourClickHandler(item, index)}
-              >
-                {item.letter}
-              </div>
-            ))}
+        <>
+          {/* {showFullData && (
+            <div className="general-data">
+              <ModeratorFullData 
+                dedaenaData={dedaenaData}
+                allPrevWords={allPrevWords}
+                currentWords={currentWords}
+                currentUser={user}
+                tableName={VERSION_DATA.dedaena_table}
+                onContentAdd={handleContentAdd}
+                onContentUpdate={handleContentUpdate}
+                onContentDelete={handleContentDelete}
+                addWordRelevantTour={addWordRelevantTour}
+              />
+            </div>
+          )} */}
+
+          <div className="tour-container">
+            <div className="tour-buttons-container flex-wrap">
+              {dedaenaData.map((item, index) => (
+                <div
+                  className={`tour-button ${currentLetterIndex === index ? 'selected' : ''}`}
+                  key={item.id}
+                  onClick={() => tourClickHandler(item, index)}
+                >
+                  {item.letter}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="tour-data-display">
@@ -500,19 +764,28 @@ const ModeratorDashboard = () => {
               onSave={handleSaveSentence}
               onCancel={handleCancelEdit}
               onOpenWordModal={openWordModal}
+              handleSaveWord={handleSaveWord}
+              addWordRelevantTour={addWordRelevantTour}
+            />
+
+            <TourProverbs
+              currentTourData={currentTourData}
+              onAddProverb={handleAddProverb}
+              onUpdateProverb={handleUpdateProverb}
+              onDeleteProverb={handleDeleteProverb}
             />
           </div>
-        </div>
+        </>
       )}
 
-      <WordModal
+      {/* <WordModal
         isOpen={isWordModalOpen}
         onClose={closeWordModal}
         onSave={handleSaveWord}
         tourInfo={wordModalTourInfo}
         initialData={wordModalInitialData}
         isSubmitting={addingWord}
-      />
+      /> */}
     </div>
   );
 };

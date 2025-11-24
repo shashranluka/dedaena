@@ -12,7 +12,7 @@ import StatsPanel from "../../components/StatsPanel/StatsPanel";
 // import { getGeneralInfo, getPositionData } from "../../utils/getData";
 // import { useGameData } from "../../utils/getData";
 
-const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1" };
+const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_test" };
 
 function GameDedaena() {
   const [selected, setSelected] = useState([]);
@@ -259,7 +259,7 @@ function GameDedaena() {
             {staticData[position - 1].has_proverbs && (
               <button 
                 className="artifact-btn proverb-btn"
-                onClick={() => getPositionProverbs(position)}
+                // onClick={() => getPositionProverbs(position)}
                 title="ანდაზების ნახვა"
               >
                 <span className="artifact-icon">📜</span>
@@ -270,7 +270,7 @@ function GameDedaena() {
             {staticData[position - 1].has_reading && (
               <button 
                 className="artifact-btn reading-btn"
-                onClick={() => getPositionReading(position)}
+                // onClick={() => getPositionReading(position)}
                 title="საკითხავი მასალის ნახვა"
               >
                 <span className="artifact-icon">📖</span>

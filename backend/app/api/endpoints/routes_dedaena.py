@@ -28,7 +28,7 @@ async def dedaena_root():
 def get_general_info(table_name: str):
     """Get all letters"""
     
-    allowed_tables = ["gogebashvili_1", "gogebashvili_test1"]
+    allowed_tables = ["gogebashvili_1", "gogebashvili_1_test"]
     if table_name not in allowed_tables:
         raise HTTPException(status_code=400, detail="Invalid table")
     

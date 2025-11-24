@@ -1,0 +1,409 @@
+.tour-proverbs {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 20px;
+
+  // ✅ HEADER
+  .proverbs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .count {
+        background: #3498db;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-toggle-all,
+    .btn-add-proverb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #495057;
+      transition: all 0.2s ease;
+
+      .icon {
+        font-size: 1rem;
+      }
+
+      &:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
+      }
+
+      &.active {
+        background: #3498db;
+        border-color: #3498db;
+        color: white;
+
+        &:hover {
+          background: #2980b9;
+          border-color: #2980b9;
+        }
+      }
+    }
+
+    .btn-add-proverb {
+      background: #27ae60;
+      border-color: #27ae60;
+      color: white;
+
+      &:hover {
+        background: #229954;
+        border-color: #229954;
+      }
+    }
+  }
+
+  // ✅ ADD NEW FORM
+  .add-proverb-form {
+    background: #f8f9fa;
+    border: 2px dashed #3498db;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+
+    .form-header {
+      margin-bottom: 12px;
+
+      h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #2c3e50;
+      }
+    }
+
+    .proverb-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+
+      &:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn-save,
+    .btn-cancel {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-save {
+      background: #27ae60;
+      color: white;
+
+      &:hover {
+        background: #229954;
+      }
+    }
+
+    .btn-cancel {
+      background: #e74c3c;
+      color: white;
+
+      &:hover {
+        background: #c0392b;
+      }
+    }
+
+    .hint {
+      display: block;
+      margin-top: 8px;
+      color: #6c757d;
+      font-size: 0.85rem;
+    }
+  }
+
+  // ✅ NO DATA
+  .no-data,
+  .no-proverbs {
+    text-align: center;
+    padding: 60px 20px;
+    color: #95a5a6;
+
+    p {
+      margin: 0 0 16px 0;
+      font-size: 1.1rem;
+    }
+
+    .btn-add-first {
+      padding: 12px 24px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #229954;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+      }
+    }
+  }
+
+  // ✅ PROVERBS LIST
+  .proverbs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .proverb-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
+      }
+
+      &.expanded {
+        background: #fff;
+        border-color: #3498db;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+      }
+
+      &.editing {
+        background: #fff;
+        border-color: #f39c12;
+        box-shadow: 0 2px 8px rgba(243, 156, 18, 0.15);
+      }
+
+      // ✅ NUMBER
+      .proverb-number {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #3498db;
+        color: white;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      // ✅ CONTENT
+      .proverb-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .proverb-text {
+          margin: 0;
+          font-size: 1rem;
+          line-height: 1.6;
+          color: #2c3e50;
+          word-wrap: break-word;
+        }
+
+        // ✅ EDIT MODE
+        .edit-mode {
+          .proverb-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f39c12;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+
+            &:focus {
+              outline: none;
+              border-color: #e67e22;
+            }
+          }
+
+          .edit-actions {
+            display: flex;
+            gap: 12px;
+          }
+
+          .btn-save,
+          .btn-cancel {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+          }
+
+          .btn-save {
+            background: #27ae60;
+            color: white;
+
+            &:hover {
+              background: #229954;
+            }
+          }
+
+          .btn-cancel {
+            background: #e74c3c;
+            color: white;
+
+            &:hover {
+              background: #c0392b;
+            }
+          }
+
+          .hint {
+            color: #6c757d;
+            font-size: 0.85rem;
+          }
+        }
+
+        // ✅ ACTIONS
+        .proverb-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .btn-expand,
+        .btn-edit,
+        .btn-delete {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 12px;
+          background: transparent;
+          border: 1px solid #dee2e6;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.85rem;
+          color: #6c757d;
+          transition: all 0.2s ease;
+
+          span {
+            font-size: 0.9rem;
+          }
+
+          &:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+            color: #495057;
+          }
+        }
+
+        .btn-edit {
+          border-color: #f39c12;
+          color: #f39c12;
+
+          &:hover {
+            background: #fef5e7;
+            border-color: #e67e22;
+            color: #e67e22;
+          }
+        }
+
+        .btn-delete {
+          border-color: #e74c3c;
+          color: #e74c3c;
+
+          &:hover {
+            background: #fadbd8;
+            border-color: #c0392b;
+            color: #c0392b;
+          }
+        }
+      }
+    }
+  }
+
+  // ✅ RESPONSIVE
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .proverbs-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      .header-actions {
+        width: 100%;
+
+        .btn-toggle-all,
+        .btn-add-proverb {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    }
+
+    .proverbs-list {
+      .proverb-item {
+        flex-direction: column;
+        gap: 12px;
+
+        .proverb-number {
+          align-self: flex-start;
+        }
+      }
+    }
+  }
+}

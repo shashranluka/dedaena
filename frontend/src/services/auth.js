@@ -76,7 +76,9 @@ export const logoutUser = () => {
  * მიმდინარე მომხმარებლის მიღება
  */
 export const getCurrentUser = () => {
+  console.log("Getting current user from localStorage");
   const userStr = localStorage.getItem("user");
+  console.log("User string from localStorage:", userStr);
   return userStr ? JSON.parse(userStr) : null;
 };
 

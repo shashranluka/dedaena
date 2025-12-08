@@ -123,15 +123,16 @@ function AdminDashboard() {
     console.log(`Changing user ${userId} role: ${field} = ${value}`);
 
     try {
-      const response = await api.patch(`/admin/users/${userId}/role`, null, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          // 'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          [field]: value
-        })
-      });
+      const response = await api.patch(`/admin/users/${userId}/role`, 
+        { [field]: value }, // Body/Data მეორე პარამეტრად
+        {
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
 
       if (!response.status) {
         throw new Error('Failed to update role');
@@ -212,7 +213,7 @@ function AdminDashboard() {
       </div>
     );
   }
-
+  console.log("User state at render:", user);
   if (!user || !isAdmin()) {
     console.warn("Access denied: User is not admin");
     return <Navigate to="/" replace />;

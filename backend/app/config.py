@@ -1,12 +1,16 @@
 import os
 import psycopg2
+from dotenv import load_dotenv
 
-# Database configuration
-DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_PORT = os.getenv("POSTGRES_PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_DB", "dedaena_db")
-DB_USER = os.getenv("POSTGRES_USER", "postgres")
-DB_PASS = os.getenv("POSTGRES_PASSWORD", "postgres")
+# ✅ .env ფაილის ჩატვირთვა
+load_dotenv()
+
+# Database configuration (ყველა მნიშვნელობა .env-დან, default-ების გარეშე)
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_PORT = os.getenv("POSTGRES_PORT")
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASS = os.getenv("POSTGRES_PASSWORD")
 
 
 def get_db_connection():

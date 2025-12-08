@@ -3,14 +3,21 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
+from dotenv import load_dotenv
+
+# ✅ .env ფაილის ჩატვირთვა
+load_dotenv()
 
 # ✅ Password hashing context (bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ✅ JWT settings
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production-min-32-characters")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+# ✅ JWT settings .env-დან
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY or len(SECRET_KEY) < 32:
+    raise RuntimeError("SECRET_KEY must be set in .env and be at least 32 characters long for security.")
+
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 def get_password_hash(password: str) -> str:

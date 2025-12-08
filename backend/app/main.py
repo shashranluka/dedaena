@@ -6,32 +6,42 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import routes_dedaena, auth, admin, moderator  # ✅
+from dotenv import load_dotenv
 
+# ✅ .env ფაილის ჩატვირთვა
+load_dotenv()
 
 # FastAPI App
 app = FastAPI(
     title="Dedaena API",
     description="Georgian Learning Platform API",
     version="1.0.0",
-    docs_url="/api/docs",
+    docs_url=None,
 )
 
 # CORS Middleware
+origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_credentials=True,       # credentials (cookies, auth headers) ნებადართულია
-    allow_methods=["*"],          # ყველა HTTP მეთოდი ნებადართულია (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],          # ყველა header ნებადართულია
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
-@app.post("/api/health")
-def health_check():
-    """Health check endpoint"""
-    print("Health check requested")
-    return {"status": "healthy"}
+# @app.post("/api/health")
+# def health_check():
+#     """Health check endpoint"""
+#     print("Health check requested")
+#     return {"status": "healthy"}
 
+@app.get("/docs")
+def custom_swagger_ui():
+    """Custom Swagger UI endpoint"""
+    print("Swagger UI requested")
+    return {"message": "Swagger UI is disabled in this deployment."}
 
 # ✅ Routes Registration
 # Auth routes - ავტორიზაცია/რეგისტრაცია
@@ -48,11 +58,11 @@ app.include_router(moderator.router, prefix="/api/moderator", tags=["Moderator"]
 app.include_router(routes_dedaena.router, prefix="/api/dedaena", tags=["Dedaena"])
 
 
-# Database კავშირის პარამეტრები გარემოს ცვლადებიდან ან default მნიშვნელობებით
-DB_HOST = os.getenv("POSTGRES_HOST", "localhost")      # PostgreSQL სერვერის მისამართი
-DB_NAME = os.getenv("POSTGRES_DB", "dedaena_db")       # მონაცემთა ბაზის სახელი
-DB_USER = os.getenv("POSTGRES_USER", "postgres")       # მომხმარებლის სახელი
-DB_PASS = os.getenv("POSTGRES_PASSWORD", "postgres")   # პაროლი
+# ✅ Database კავშირის პარამეტრები .env-დან
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASS = os.getenv("POSTGRES_PASSWORD")
 
 
 @app.get("/api/moderator")

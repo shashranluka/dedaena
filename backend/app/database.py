@@ -2,38 +2,38 @@
 Database connection და Session management
 """
 
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 
-# ✅ Database URL გარემოს ცვლადებიდან
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    f"postgresql://{os.getenv('POSTGRES_USER', 'postgres')}:"
-    f"{os.getenv('POSTGRES_PASSWORD', 'postgres')}@"
-    f"{os.getenv('POSTGRES_HOST', 'localhost')}:"
-    f"{os.getenv('POSTGRES_PORT', '5432')}/"
-    f"{os.getenv('POSTGRES_DB', 'dedaena_db')}"
-)
+# ✅ .env ფაილის ჩატვირთვა
+load_dotenv()
+
+# ✅ Database URL მხოლოდ .env-დან (hardcoded default-ების გარეშე)
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise RuntimeError("DATABASE_URL must be set in .env for database connection.")
 
 print(f"📊 Database URL: {SQLALCHEMY_DATABASE_URL}")
 
 # ✅ SQLAlchemy Engine (Database connection pool)
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    pool_pre_ping=True,  # ამოწმებს connection-ის სიცოცხლეს
-    echo=False           # SQL queries-ის logging (True = დაბეჭდავს ყველა query-ს)
+    pool_pre_ping=True,
+    echo=False
 )
 
-# ✅ Session Factory (Database session-ების შესაქმნელად)
+# ✅ Session Factory
 SessionLocal = sessionmaker(
-    autocommit=False,    # არ შეინახოს ავტომატურად
-    autoflush=False,     # არ გააგზავნოს ავტომატურად
+    autocommit=False,
+    autoflush=False,
     bind=engine
 )
 
-# ✅ Base Class (ყველა Model-ის მშობელი კლასი)
+# ✅ Base Class
 Base = declarative_base()
 
 

@@ -556,7 +556,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
   border-bottom: 1px solid #eee;
   margin-bottom: 12px;
   position: sticky;
-  top: 75px;
+  top: -15px;
   z-index: 100;
 }
 // --- NEW: Tour Letter Button Styles ---
@@ -609,6 +609,32 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
   align-items: center;
   min-width: 2em;
 
+  .tour-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+    width: 100%;
+    justify-content: center;
+
+    .tour-count {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      background: #e0e0e0; // default ფერი (ნულისთვის)
+    }
+    .tour-count.words-count.active      { background: #1976d2; }
+    .tour-count.sentences-count.active  { background: #43a047; }
+    .tour-count.proverbs-count.active   { background: #fbc02d; color: #444; }
+    .tour-count.reading-count.active    { background: #8e24aa; }
+  }
   .tour-position-label {
     font-size: 0.8em;
     color: #888;
@@ -668,4 +694,11 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
     cursor: not-allowed;
     opacity: 0.7;
   }
+}
+
+.items-list .selected,
+.words-grid .selected {
+  border: 2px solid #1976d2;
+  background: #e3f2fd;
+  /* შეგიძლია ფერი შეცვალო სურვილისამებრ */
 }

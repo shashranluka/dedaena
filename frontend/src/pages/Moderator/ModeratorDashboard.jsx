@@ -37,6 +37,7 @@ const ModeratorDashboard = () => {
   const [detectedTour, setDetectedTour] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState([]);
+  const [showAllAnalysis, setShowAllAnalysis] = useState(false);
   console.log("ModeratorDashboard render: ", { activeTab, searchQuery, tourFilter, editingItem, isAdding, formData, detectedTour });
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
@@ -375,11 +376,12 @@ const ModeratorDashboard = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
             <button className="btn-add" onClick={startAdd} disabled={actionLoading}>➕ დამატება</button>
+            {/* მონიშნულების გასუფთავება ღილაკი */}
             <button
               className="btn-clear-selected"
               onClick={clearSelectedWords}
               disabled={selectedWordIds.length === 0}
-              title="ბაზიდან არ წაიშლება"
+              title="მონიშნულების წაშლა"
             >
               🗑️ მონიშნულების გასუფთავება
             </button>
@@ -415,6 +417,42 @@ const ModeratorDashboard = () => {
               } else if (selectedIdx > -1 && idx > selectedIdx) {
                 btnClass += " after-selected";
               }
+              // ✅ დამატებულია ინფორმაცია ტურის კონტენტზე ღილაკის ზემოთ
+              return (
+                <div key={tour.position} className="tour-letter-btn-wrapper">
+                  <div className="tour-info">
+                    <span className={`tour-count words-count${tour.words?.length > 0 ? ' active' : ''}`}>{tour.words?.length || 0}</span>
+                    <span className={`tour-count sentences-count${tour.sentences?.length > 0 ? ' active' : ''}`}>{tour.sentences?.length || 0}</span>
+                    <span className={`tour-count proverbs-count${tour.proverbs?.length > 0 ? ' active' : ''}`}>{tour.proverbs?.length || 0}</span>
+                    <span className={`tour-count reading-count${tour.reading?.length > 0 ? ' active' : ''}`}>{tour.reading?.length || 0}</span>
+                  </div>
+                  <button
+                    className={btnClass}
+                    onClick={() => setTourFilter(String(tour.position))}
+                    title={`ტური ${tour.position} (${tour.letter})`}
+                  >
+                    {tour.letter}
+                  </button>
+                  <span className="tour-position-label">
+                    {tour.position}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {/* <div className="tour-letter-buttons">
+            {Array.from({ length: 33 }).map((_, idx) => {
+              const tour = dedaenaData[idx];
+              if (!tour) return null;
+              let btnClass = "tour-letter-btn";
+              const selectedIdx = dedaenaData.findIndex(t => String(t.position) === tourFilter);
+              if (selectedIdx === idx) {
+                btnClass += " active";
+              } else if (selectedIdx > -1 && idx < selectedIdx) {
+                btnClass += " before-selected";
+              } else if (selectedIdx > -1 && idx > selectedIdx) {
+                btnClass += " after-selected";
+              }
               return (
                 <div key={tour.position} className="tour-letter-btn-wrapper">
                   <button
@@ -430,10 +468,113 @@ const ModeratorDashboard = () => {
                 </div>
               );
             })}
-          </div>
+          </div> */}
         </div>
 
         <div className="content-cards">
+          {/* ✅ ანალიზის საერთო ღილაკი */}
+          {activeTab !== 'words' && currentData.length > 0 && (
+            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <button
+                className="btn-toggle-analysis"
+                onClick={() => setShowAllAnalysis((prev) => !prev)}
+                style={{
+                  background: '#e3f2fd',
+                  color: '#1976d2',
+                  border: '1px solid #90caf9',
+                  borderRadius: '4px',
+                  padding: '6px 18px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                {showAllAnalysis ? '📝 ყველა ანალიზის დამალვა' : '📝 ყველა სიტყვების ანალიზი'}
+              </button>
+            </div>
+          )}
+
+          {/* წინადადებები, ანდაზები, კითხვა (items-list) */}
+          {activeTab !== 'words' && (
+            <div className="items-list">
+              {currentData.map((item, idx) => {
+                const isSelected = selectedWordIds.includes(item.id);
+                return (
+                  <div
+                    key={item.id}
+                    className={`${item.type.slice(0, -1)}-card${isSelected ? ' selected' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      // მონიშვნა/მოხსნა
+                      setSelectedWordIds((prev) =>
+                        prev.includes(item.id)
+                          ? prev.filter((wid) => wid !== item.id)
+                          : [...prev, item.id]
+                      );
+                    }}
+                  >
+                    <div className="card-header">
+                      <div className="tour-badge">
+                        <span className="tour-letter">{item.tourLetter}</span>
+                        <span className="tour-position">ტური #{item.tourPosition}</span>
+                      </div>
+                      <div className="header-right">
+                        <span className="item-number">#{idx + 1}</span>
+                        <div className="card-actions">
+                          <button onClick={(e) => { e.stopPropagation(); startEdit(item); }} className="btn-edit" disabled={actionLoading || !!editingItem}>✏️</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(item); }} className="btn-delete" disabled={actionLoading || !!editingItem}>🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-content">
+                      <p className="item-text">{item.content}</p>
+                      {item.wordAnalysis && showAllAnalysis && (
+                        <div className="word-analysis">
+                          <h4 className="analysis-title">📝 სიტყვების ანალიზი:</h4>
+                          <div className="word-cards">
+                            {item.wordAnalysis.map((wordInfo, wordIdx) => (
+                              <div key={wordIdx} className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}>
+                                <span className="word-text">{wordInfo.word}</span>
+                                {wordInfo.existsInTours.length > 0 ? (
+                                  <span className="word-tours">
+                                    ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
+                                  </span>
+                                ) : (
+                                  <div className="word-missing-info">
+                                    {wordInfo.estimatedTour ? (
+                                      <>
+                                        <span className="estimated-tour">
+                                          📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
+                                        </span>
+                                        <button
+                                          className="btn-add-word"
+                                          onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
+                                          disabled={actionLoading}
+                                        >
+                                          ➕ დამატება
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {currentData.length === 0 && !isAdding && !editingItem && (
+                <div className="no-results">
+                  <p>{searchQuery || tourFilter !== 'all' ? '🔍 შედეგები არ მოიძებნა' : '📭 ამ კატეგორიაში კონტენტი არ არის'}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* სიტყვების ბარათები (words-grid) */}
           {activeTab === 'words' && (
             <div className="words-grid">
@@ -474,87 +615,19 @@ const ModeratorDashboard = () => {
               )}
             </div>
           )}
-
-          {/* წინადადებები, ანდაზები, კითხვა (items-list) */}
-          {activeTab !== 'words' && (
-            <div className="items-list">
-              {currentData.map((item, idx) => (
-                <div key={item.id} className={`${item.type.slice(0, -1)}-card`}>
-                  <div className="card-header">
-                    <div className="tour-badge">
-                      <span className="tour-letter">{item.tourLetter}</span>
-                      <span className="tour-position">ტური #{item.tourPosition}</span>
-                    </div>
-                    <div className="header-right">
-                      <span className="item-number">#{idx + 1}</span>
-                      <div className="card-actions">
-                        <button onClick={() => startEdit(item)} className="btn-edit" disabled={actionLoading || !!editingItem}>✏️</button>
-                        <button onClick={() => handleDelete(item)} className="btn-delete" disabled={actionLoading || !!editingItem}>🗑️</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="card-content">
-                    <p className="item-text">{item.content}</p>
-                    {/* ✅ სიტყვებად დაშლა და ანალიზი */}
-                    {item.wordAnalysis && (
-                      <div className="word-analysis">
-                        <h4 className="analysis-title">📝 სიტყვების ანალიზი:</h4>
-                        <div className="word-cards">
-                          {item.wordAnalysis.map((wordInfo, wordIdx) => (
-                            <div key={wordIdx} className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}>
-                              <span className="word-text">{wordInfo.word}</span>
-                              {wordInfo.existsInTours.length > 0 ? (
-                                <span className="word-tours">
-                                  ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
-                                </span>
-                              ) : (
-                                <div className="word-missing-info">
-                                  {wordInfo.estimatedTour ? (
-                                    <>
-                                      <span className="estimated-tour">
-                                        📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
-                                      </span>
-                                      <button
-                                        className="btn-add-word"
-                                        onClick={() => handleAddWordToTour(wordInfo)}
-                                        disabled={actionLoading}
-                                      >
-                                        ➕ დამატება
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {currentData.length === 0 && !isAdding && !editingItem && (
-                <div className="no-results">
-                  <p>{searchQuery || tourFilter !== 'all' ? '🔍 შედეგები არ მოიძებნა' : '📭 ამ კატეგორიაში კონტენტი არ არის'}</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
         {/* // ...existing code... */}
 
         {/* ...content-cards და სხვა კოდი... */}
 
-        {/* მონიშნულების ბაზიდან წაშლის ღილაკი გვერდის ბოლოში */}
+        {/* მონიშნულების ბაზიდან წაშლის ღილაკი გვერდის ბოლოზე */}
         {selectedWordIds.length > 0 && (
           <div style={{ marginTop: '32px', textAlign: 'center' }}>
             <button
               className="btn-delete-selected"
               style={{ background: '#d32f2f', color: '#fff', padding: '10px 24px', borderRadius: '6px', fontSize: '16px', cursor: 'pointer', border: 'none' }}
               onClick={() => {
-                if (window.confirm('ნამდვილად გსურთ მონიშნული სიტყვების ბაზიდან წაშლა?')) {
+                if (window.confirm('ნამდვილად გსურთ მონიშნული ელემენტების ბაზიდან წაშლა?')) {
                   selectedWordIds.forEach(id => {
                     const item = currentData.find(i => i.id === id);
                     if (item) handleDelete(item);

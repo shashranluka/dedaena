@@ -7,7 +7,8 @@ import { Navigate } from "react-router-dom";
 // --- Constants ---
 const VERSION_DATA = {
   name: "იაკობ გოგებაშვილი",
-  dedaena_table: "gogebashvili_1_test"
+  // dedaena_table: "gogebashvili_1_test"
+  dedaena_table: "gogebashvili_1_with_ids"
 };
 
 // --- Helper Functions ---
@@ -18,6 +19,7 @@ const showErrorMessage = (error) => {
 
 // ✅ NEW: სიტყვის ნორმალიზაცია (პუნქტუაციის წაშლა)
 const normalizeWord = (word) => {
+  if (typeof word !== "string") return "";
   return word.replace(/[.,!?;:()"""''«»—\-]/g, '').toLowerCase().trim();
 };
 
@@ -38,7 +40,7 @@ const ModeratorDashboard = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState([]);
   const [showAllAnalysis, setShowAllAnalysis] = useState(false);
-  console.log("ModeratorDashboard render: ", { activeTab, searchQuery, tourFilter, editingItem, isAdding, formData, detectedTour });
+  // console.log("ModeratorDashboard render: ", { activeTab, searchQuery, tourFilter, editingItem, isAdding, formData, detectedTour });
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -49,6 +51,7 @@ const ModeratorDashboard = () => {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setDedaenaData(response.data.data || []);
+      console.log("Fetched dedaena data:", response.data.data);
       setError(null);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message;
@@ -123,7 +126,9 @@ const ModeratorDashboard = () => {
   }, [allWordsMap, dedaenaData]);
 
   // ✅ NEW: წინადადების სიტყვებად დაყოფა
-  const analyzeSentence = useCallback((sentence) => {
+  const analyzeSentence = useCallback((sentence, index, content) => {
+    // console.log("Analyzing sentence:", index, sentence, index, content);
+    if (typeof sentence !== 'string' || !sentence.trim()) return [];
     const words = sentence.split(/\s+/).filter(w => w.length > 0);
     return words
       .map(word => detectWordTour(word))
@@ -133,37 +138,85 @@ const ModeratorDashboard = () => {
   // --- Data Processing (from ModeratorFullData) ---
   const allItems = useMemo(() => {
     const items = [];
+    const extractText = (item, type) => {
+      if (!item) return '';
+      if (type === 'words') return item.word || '';
+      if (type === 'sentences') return item.sentence || '';
+      if (type === 'proverbs') return item.proverb || '';
+      if (type === 'toreads') return item.toread || '';
+      return '';
+    };
     dedaenaData.forEach(tour => {
-      (tour.words || []).forEach((content, index) => items.push({ type: 'words', content, arrayIndex: index, tourPosition: tour.position, tourLetter: tour.letter }));
-      (tour.sentences || []).forEach((content, index) => items.push({
+      (tour.words || []).forEach((item, index) => items.push({
+        type: 'words',
+        content: extractText(item, 'words'),
+        arrayIndex: index,
+        tourPosition: tour.position,
+        tourLetter: tour.letter,
+      }));
+      (tour.sentences || []).forEach((item, index) => items.push({
         type: 'sentences',
-        content,
+        content: extractText(item, 'sentences'),
         arrayIndex: index,
         tourPosition: tour.position,
+        is_playable: item.is_playable,
         tourLetter: tour.letter,
-        wordAnalysis: analyzeSentence(content)
+        wordAnalysis: analyzeSentence(item.sentence, index, item)
       }));
-      (tour.proverbs || []).forEach((content, index) => items.push({
+      (tour.proverbs || []).forEach((item, index) => items.push({
         type: 'proverbs',
-        content,
+        content: extractText(item, 'proverbs'),
         arrayIndex: index,
         tourPosition: tour.position,
+        is_playable: item.is_playable,
         tourLetter: tour.letter,
-        wordAnalysis: analyzeSentence(content) // ✅ დამატებულია
+        wordAnalysis: analyzeSentence(item.proverb, index, item)
       }));
-      (tour.reading || []).forEach((content, index) => items.push({
-        type: 'reading',
-        content,
+      (tour.reading || tour.toreads || []).forEach((item, index) => items.push({
+        type: 'toreads',
+        content: extractText(item, 'toreads'),
         arrayIndex: index,
         tourPosition: tour.position,
         tourLetter: tour.letter,
-        wordAnalysis: analyzeSentence(content) // ✅ დამატებულია
+        wordAnalysis: analyzeSentence(item.toread, index, item)
       }));
     });
     return items.map((item) => ({ ...item, id: `${item.tourPosition}-${item.type}-${item.arrayIndex}` }));
-  }, [dedaenaData, analyzeSentence]);
+  }, [dedaenaData]);
+
+
+  const handleTogglePlayable = async (item) => {
+    try {
+      setActionLoading(true);
+      const token = getToken();
+      let endpointType = item.type.slice(0, -1);
+      item.is_playable=!item.is_playable;
+      console.log({
+        content: item.content,
+        is_playable: !item.is_playable,
+        // content_type: item.type
+      });
+      await api.patch(
+        `/moderator/dedaena/${VERSION_DATA.dedaena_table}/${item.type}/toggle_playable`,
+        {
+          content: item.content,
+          is_playable: item.is_playable,
+          // content_type: item.type, // 'sentences', 'proverbs', 'toreads'
+        },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      // await fetchData();
+    } catch (err) {
+      showErrorMessage(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+
 
   const currentData = useMemo(() => {
+    // console.log("Current data:", allItems);
     return allItems.filter(item => {
       const matchesTab = item.type === activeTab;
       const matchesTour = tourFilter === 'all' || item.tourPosition === parseInt(tourFilter, 10);
@@ -171,12 +224,12 @@ const ModeratorDashboard = () => {
       return matchesTab && matchesTour && matchesSearch;
     });
   }, [allItems, activeTab, tourFilter, searchQuery]);
-
+  // console.log("Current data:", currentData);
   const totalCounts = useMemo(() => ({
     words: allItems.filter(i => i.type === 'words').length,
     sentences: allItems.filter(i => i.type === 'sentences').length,
     proverbs: allItems.filter(i => i.type === 'proverbs').length,
-    reading: allItems.filter(i => i.type === 'reading').length,
+    toreads: allItems.filter(i => i.type === 'toreads').length,
   }), [allItems]);
 
   // ✅ NEW: სიტყვის ტურში დამატება
@@ -212,7 +265,7 @@ const ModeratorDashboard = () => {
     if (!text || !text.trim()) { setDetectedTour(null); return; }
     const content = text.trim();
     const estimatedTour = dedaenaData.slice().reverse().find(tour => content.includes(tour.letter));
-    console.log(estimatedTour, dedaenaData);
+    // console.log(estimatedTour, dedaenaData);
     setDetectedTour(estimatedTour ? { position: estimatedTour.position, letter: estimatedTour.letter, confidence: content[0] === estimatedTour.letter ? 'high' : 'medium' } : null);
   };
 
@@ -496,77 +549,102 @@ const ModeratorDashboard = () => {
           {/* წინადადებები, ანდაზები, კითხვა (items-list) */}
           {activeTab !== 'words' && (
             <div className="items-list">
-              {currentData.map((item, idx) => {
-                const isSelected = selectedWordIds.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className={`${item.type.slice(0, -1)}-card${isSelected ? ' selected' : ''}`}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      // მონიშვნა/მოხსნა
-                      setSelectedWordIds((prev) =>
-                        prev.includes(item.id)
-                          ? prev.filter((wid) => wid !== item.id)
-                          : [...prev, item.id]
-                      );
-                    }}
-                  >
-                    <div className="card-header">
-                      <div className="tour-badge">
-                        <span className="tour-letter">{item.tourLetter}</span>
-                        <span className="tour-position">ტური #{item.tourPosition}</span>
-                      </div>
-                      <div className="header-right">
-                        <span className="item-number">#{idx + 1}</span>
-                        <div className="card-actions">
-                          <button onClick={(e) => { e.stopPropagation(); startEdit(item); }} className="btn-edit" disabled={actionLoading || !!editingItem}>✏️</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleDelete(item); }} className="btn-delete" disabled={actionLoading || !!editingItem}>🗑️</button>
+              {(() => {
+                // ჯერ playable, შემდეგ დანარჩენი
+                const playableItems = currentData.filter(item => item.is_playable);
+                const nonPlayableItems = currentData.filter(item => !item.is_playable);
+                const sortedItems = [...playableItems, ...nonPlayableItems];
+                return sortedItems.map((item, idx) => {
+                  console.log("Rendering item:", item);
+                  const isSelected = selectedWordIds.includes(item.id);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`${item.type.slice(0, -1)}-card${selectedWordIds.includes(item.id) ? ' selected' : ''}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        // მონიშვნა/მოხსნა
+                        setSelectedWordIds((prev) =>
+                          prev.includes(item.id)
+                            ? prev.filter((wid) => wid !== item.id)
+                            : [...prev, item.id]
+                        );
+                      }}
+                    >
+                      <div className="card-header">
+                        <div className="tour-badge">
+                          <span className="tour-letter">{item.tourLetter}</span>
+                          <span className="tour-position">ტური #{item.tourPosition}</span>
                         </div>
-                      </div>
-                    </div>
-                    <div className="card-content">
-                      <p className="item-text">{item.content}</p>
-                      {item.wordAnalysis && showAllAnalysis && (
-                        <div className="word-analysis">
-                          <h4 className="analysis-title">📝 სიტყვების ანალიზი:</h4>
-                          <div className="word-cards">
-                            {item.wordAnalysis.map((wordInfo, wordIdx) => (
-                              <div key={wordIdx} className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}>
-                                <span className="word-text">{wordInfo.word}</span>
-                                {wordInfo.existsInTours.length > 0 ? (
-                                  <span className="word-tours">
-                                    ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
-                                  </span>
-                                ) : (
-                                  <div className="word-missing-info">
-                                    {wordInfo.estimatedTour ? (
-                                      <>
-                                        <span className="estimated-tour">
-                                          📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
-                                        </span>
-                                        <button
-                                          className="btn-add-word"
-                                          onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
-                                          disabled={actionLoading}
-                                        >
-                                          ➕ დამატება
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                        {(item.type === 'sentences' || item.type === 'proverbs' || item.type === 'toreads') && (
+                          <div className="playable-toggle" style={{ marginTop: 8 }}>
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={item.is_playable}
+                                disabled={actionLoading}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleTogglePlayable(item);
+                                }}
+                              />
+                              <span style={{ marginLeft: 6 }}>
+                                {item.is_playable ? '🎵 დაკვრისთვის ჩართულია' : '🎵 დაკვრისთვის გამორთულია'}
+                              </span>
+                            </label>
+                          </div>
+                        )}
+                        <div className="header-right">
+                          <span className="item-number">#{idx + 1}</span>
+                          <div className="card-actions">
+                            <button onClick={(e) => { e.stopPropagation(); startEdit(item); }} className="btn-edit" disabled={actionLoading || !!editingItem}>✏️</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDelete(item); }} className="btn-delete" disabled={actionLoading || !!editingItem}>🗑️</button>
                           </div>
                         </div>
-                      )}
+                      </div>
+                      <div className="card-content">
+                        <p className="item-text">{item.content}</p>
+                        {item.wordAnalysis && showAllAnalysis && (
+                          <div className="word-analysis">
+                            <h4 className="analysis-title">📝 სიტყვების ანალიზი:</h4>
+                            <div className="word-cards">
+                              {item.wordAnalysis.map((wordInfo, wordIdx) => (
+                                <div key={wordIdx} className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}>
+                                  <span className="word-text">{wordInfo.word}</span>
+                                  {wordInfo.existsInTours.length > 0 ? (
+                                    <span className="word-tours">
+                                      ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
+                                    </span>
+                                  ) : (
+                                    <div className="word-missing-info">
+                                      {wordInfo.estimatedTour ? (
+                                        <>
+                                          <span className="estimated-tour">
+                                            📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
+                                          </span>
+                                          <button
+                                            className="btn-add-word"
+                                            onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
+                                            disabled={actionLoading}
+                                          >
+                                            ➕ დამატება
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
               {currentData.length === 0 && !isAdding && !editingItem && (
                 <div className="no-results">
                   <p>{searchQuery || tourFilter !== 'all' ? '🔍 შედეგები არ მოიძებნა' : '📭 ამ კატეგორიაში კონტენტი არ არის'}</p>

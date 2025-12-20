@@ -496,8 +496,9 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
     font-size: 0.85rem;
     
     &.exists {
-      background-color: lighten($success-color, 45%);
-      border-color: lighten($success-color, 30%);
+      background: #e8f5e9;
+      border: 1.5px solid #4caf50;
+      transition: background 0.2s, border 0.2s;
       
       .word-text {
         font-weight: 600;
@@ -511,8 +512,8 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
     }
     
     &.missing {
-      background-color: lighten($warning-color, 40%);
-      border-color: lighten($warning-color, 25%);
+      background: #fffbe9;
+      border: 1.5px solid #ffc107;
       
       .word-text {
         font-weight: 600;
@@ -698,7 +699,15 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
 
 .items-list .selected,
 .words-grid .selected {
-  border: 2px solid #1976d2;
+  border: 2px solid #d21919;
   background: #e3f2fd;
   /* შეგიძლია ფერი შეცვალო სურვილისამებრ */
+}
+
+.sentence-card.playable,
+.proverb-card.playable,
+.toread-card.playable {
+  // border: 2px solid #4caf50;
+  background: #b2dbb5;
+  box-shadow: 0 0 8px #4caf5033;
 }

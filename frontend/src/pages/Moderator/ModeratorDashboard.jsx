@@ -111,6 +111,7 @@ const ModeratorDashboard = () => {
 
     // ვიძებთ რომელ ტურში არის ეს სიტყვა
     const existingTours = allWordsMap.get(normalized)?.tours || new Set();
+    // console.log(`Detecting word: "${word}" (normalized: "${normalized}") - exists in tours:`, Array.from(existingTours));
 
     // ვიძებთ რომელ ტურს ეკუთვნის პირველი ასო
     // const estimatedTour = dedaenaData.find(tour => tour.letter === firstLetter);
@@ -265,7 +266,7 @@ const ModeratorDashboard = () => {
     if (!text || !text.trim()) { setDetectedTour(null); return; }
     const content = text.trim();
     const estimatedTour = dedaenaData.slice().reverse().find(tour => content.includes(tour.letter));
-    // console.log(estimatedTour, dedaenaData);
+    // console.log(estimatedTour, dedაenaData);
     setDetectedTour(estimatedTour ? { position: estimatedTour.position, letter: estimatedTour.letter, confidence: content[0] === estimatedTour.letter ? 'high' : 'medium' } : null);
   };
 
@@ -555,21 +556,16 @@ const ModeratorDashboard = () => {
                 const nonPlayableItems = currentData.filter(item => !item.is_playable);
                 const sortedItems = [...playableItems, ...nonPlayableItems];
                 return sortedItems.map((item, idx) => {
-                  console.log("Rendering item:", item);
+                  // console.log("Rendering item:", item);
                   const isSelected = selectedWordIds.includes(item.id);
                   return (
                     <div
                       key={item.id}
-                      className={`${item.type.slice(0, -1)}-card${selectedWordIds.includes(item.id) ? ' selected' : ''}`}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        // მონიშვნა/მოხსნა
-                        setSelectedWordIds((prev) =>
-                          prev.includes(item.id)
-                            ? prev.filter((wid) => wid !== item.id)
-                            : [...prev, item.id]
-                        );
-                      }}
+                      className={
+                        `${item.type.slice(0, -1)}-card` +
+                        (selectedWordIds.includes(item.id) ? ' selected' : '') +
+                        (item.is_playable ? ' playable' : '')
+                      }
                     >
                       <div className="card-header">
                         <div className="tour-badge">
@@ -589,7 +585,7 @@ const ModeratorDashboard = () => {
                                 }}
                               />
                               <span style={{ marginLeft: 6 }}>
-                                {item.is_playable ? '🎵 დაკვრისთვის ჩართულია' : '🎵 დაკვრისთვის გამორთულია'}
+                                {item.is_playable ? 'თამაშისთვის ჩართულია' : 'თამაშისთვის გამორთულია'}
                               </span>
                             </label>
                           </div>
@@ -602,40 +598,55 @@ const ModeratorDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="card-content">
+                      <div className="card-content"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        // მონიშვნა/მოხსნა
+                        setSelectedWordIds((prev) =>
+                          prev.includes(item.id)
+                            ? prev.filter((wid) => wid !== item.id)
+                            : [...prev, item.id]
+                        );
+                      }}
+                      >
                         <p className="item-text">{item.content}</p>
                         {item.wordAnalysis && showAllAnalysis && (
                           <div className="word-analysis">
                             <h4 className="analysis-title">📝 სიტყვების ანალიზი:</h4>
                             <div className="word-cards">
                               {item.wordAnalysis.map((wordInfo, wordIdx) => (
-                                <div key={wordIdx} className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}>
-                                  <span className="word-text">{wordInfo.word}</span>
-                                  {wordInfo.existsInTours.length > 0 ? (
-                                    <span className="word-tours">
-                                      ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
-                                    </span>
-                                  ) : (
-                                    <div className="word-missing-info">
-                                      {wordInfo.estimatedTour ? (
-                                        <>
-                                          <span className="estimated-tour">
-                                            📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
-                                          </span>
-                                          <button
-                                            className="btn-add-word"
-                                            onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
-                                            disabled={actionLoading}
-                                          >
-                                            ➕ დამატება
-                                          </button>
-                                        </>
-                                      ) : (
-                                        <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
+                                <div
+  key={wordIdx}
+  className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}
+  style={wordInfo.existsInTours.length > 0 ? { background: '#e8f5e9', borderColor: '#4caf50' } : {}}
+>
+  <span className="word-text">{wordInfo.word}</span>
+  {wordInfo.existsInTours.length > 0 ? (
+    <span className="word-tours">
+      ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
+    </span>
+  ) : (
+    <div className="word-missing-info">
+      {wordInfo.estimatedTour ? (
+        <>
+          <span className="estimated-tour">
+            📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
+          </span>
+          {/* დამატების ღილაკი მხოლოდ მაშინ, როცა სიტყვა არ არის ბაზაში */}
+          <button
+            className="btn-add-word"
+            onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
+            disabled={actionLoading}
+          >
+            ➕ დამატება
+          </button>
+        </>
+      ) : (
+        <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
+      )}
+    </div>
+  )}
+</div>
                               ))}
                             </div>
                           </div>
@@ -700,7 +711,24 @@ const ModeratorDashboard = () => {
 
         {/* მონიშნულების ბაზიდან წაშლის ღილაკი გვერდის ბოლოზე */}
         {selectedWordIds.length > 0 && (
-          <div style={{ marginTop: '32px', textAlign: 'center' }}>
+          <div style={{ marginTop: '32px', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px' }}>
+            {/* ✅ ყველას მოსანიშნი checkbox */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedWordIds.length === currentData.length && currentData.length > 0}
+                indeterminate={selectedWordIds.length > 0 && selectedWordIds.length < currentData.length ? "indeterminate" : undefined}
+                onChange={e => {
+                  if (e.target.checked) {
+                    setSelectedWordIds(currentData.map(item => item.id));
+                  } else {
+                    setSelectedWordIds([]);
+                  }
+                }}
+                style={{ width: 20, height: 20 }}
+              />
+              ყველას მონიშვნა
+            </label>
             <button
               className="btn-delete-selected"
               style={{ background: '#d32f2f', color: '#fff', padding: '10px 24px', borderRadius: '6px', fontSize: '16px', cursor: 'pointer', border: 'none' }}

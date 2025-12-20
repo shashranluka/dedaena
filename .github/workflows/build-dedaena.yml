@@ -1,53 +1,56 @@
-
-name: Deploy Dedaena to Hetzner
+name: Dedanea Deploy
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  BPD:
+  deploy:
     runs-on: ubuntu-24.04
-  
+
     env:
       DOCKER_IMAGE: "${{ github.ref_name }}:${{ github.sha }}"
       DOCKER_IMAGE_TAR: "${{ github.ref_name }}.tar"
 
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: Checkout repository
-      uses:  actions/checkout@v4
+      uses: actions/checkout@v4
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build backend
+    - name: Build backend image
       run: |
         cd backend
-        docker build . -t backend-${{ env.DOCKER_IMAGE }} --platform linux/amd64
+        docker build . \
+          -t backend-${{ env.DOCKER_IMAGE }} \
+          --platform linux/amd64
 
-    - name: Build frontend
+    - name: Build frontend image
       run: |
         cd frontend
-        docker build . -t frontend-${{ env.DOCKER_IMAGE }} --platform linux/amd64
+        docker build . \
+          -t frontend-${{ env.DOCKER_IMAGE }} \
+          --platform linux/amd64
 
-    - name: Save Docker Image backend
+    - name: Save backend image to tar
       run: |
-        docker save --output backend-${{ env.DOCKER_IMAGE_TAR }} backend-${{ env.DOCKER_IMAGE }} 
+        docker save \
+          --output backend-${{ env.DOCKER_IMAGE_TAR }} \
+          backend-${{ env.DOCKER_IMAGE }}
         chmod 664 backend-${{ env.DOCKER_IMAGE_TAR }}
 
-    - name: Save Docker Image frontend
+    - name: Save frontend image to tar
       run: |
-        docker save --output frontend-${{ env.DOCKER_IMAGE_TAR }} frontend-${{ env.DOCKER_IMAGE }} 
+        docker save \
+          --output frontend-${{ env.DOCKER_IMAGE_TAR }} \
+          frontend-${{ env.DOCKER_IMAGE }}
         chmod 664 frontend-${{ env.DOCKER_IMAGE_TAR }}
 
-    - name: Copy backend image to host
+    - name: Copy backend image to server
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.HOST }}
@@ -55,9 +58,9 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         source: "backend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "backend-${{ env.DOCKER_IMAGE_TAR }}"
+        target: "/home/luka/backend-${{ env.DOCKER_IMAGE_TAR }}"
 
-    - name: Copy frontend image to host
+    - name: Copy frontend image to server
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.HOST }}
@@ -65,54 +68,38 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         source: "frontend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "frontend-${{ env.DOCKER_IMAGE_TAR }}"
-        
-    - name: Load Frontend and Backend Images
+        target: "/home/luka/frontend-${{ env.DOCKER_IMAGE_TAR }}"
+
+    - name: Load images on server
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        script: | 
-          docker load -i frontend-${{ env.DOCKER_IMAGE_TAR }}/frontend-${{ env.DOCKER_IMAGE_TAR }}
-          docker load -i backend-${{ env.DOCKER_IMAGE_TAR }}/backend-${{ env.DOCKER_IMAGE_TAR }}
-    
-    - name: Update Docker Compose 
+        script: |
+          docker load -i /home/luka/frontend-${{ env.DOCKER_IMAGE_TAR }}
+          docker load -i /home/luka/backend-${{ env.DOCKER_IMAGE_TAR }}
+
+    - name: Update docker compose images
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        script: | 
-          yq w -i dedaena/docker-compose.yml 'services.frontend-${{ github.ref_name }}.image' 'frontend-${{ github.ref_name }}:${{ github.sha }}'
-          yq w -i dedaena/docker-compose.yml 'services.backend-${{ github.ref_name }}.image' 'backend-${{ github.ref_name }}:${{ github.sha }}'
-    
-    - name: Recreate images
+        script: |
+          yq w -i dedaena/docker-compose.yml "services.frontend-${{ github.ref_name }}.image" "frontend-${{ github.ref_name }}:${{ github.sha }}"
+          yq w -i dedaena/docker-compose.yml "services.backend-${{ github.ref_name }}.image" "backend-${{ github.ref_name }}:${{ github.sha }}"
+
+    - name: Restart services
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        script: | 
+        script: |
           cd dedaena
           docker rollout frontend-${{ github.ref_name }}
           docker rollout backend-${{ github.ref_name }}
-          
-    # - name: Clean up old images
-    #   uses: appleboy/ssh-action@v1.0.3
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.USER }}
-    #     key: ${{ secrets.KEY }}
-    #     port: ${{ secrets.PORT }}
-    #     script: | 
-    #       docker image prune -a -f
-
-    
-        
-
-
-          

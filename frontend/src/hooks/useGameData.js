@@ -8,30 +8,34 @@ export const useGameData = (version_data, position) => {
   const [sentences, setSentences] = useState([]);
   const [proverbs, setProverbs] = useState([]);
   const [readingData, setReadingData] = useState([]);
+  const [dedaenaData, setDedaenaData] = useState([]);
   const [staticData, setStaticData] = useState([]);
-  const [alphabetData, setAlphabetData] = useState({}); // ყველა ასოს დეტალური ინფორმაცია
+  // const [alphabetData, setAlphabetData] = useState({}); // ყველა ასოს დეტალური ინფორმაცია
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  console.log("staticData:", staticData);
+  // console.log("dedaenaData:", dedaenaData);
   // Full alphabet load
   useEffect(() => {
-    const loadStaticData = async () => {
+    const loadDedaenaData = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/dedaena/${version_data.dedaena_table}/general-info`);
+        const response = await api.get(`/dedaena/${version_data.dedaena_table}`);
         // const response = await fetch(`http://localhost:8000/api/dedaena/${version_data.dedaena_table}/general-info`);
         if (!response.status) throw new Error('Failed to load alphabet');
+        setDedaenaData(response.data.data);
         setStaticData(response.data);
-        
+        console.log("Fetched dedaena data:", response.data);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    loadStaticData();
+    loadDedaenaData();
   }, [version_data.dedaena_table]);
-
+  // console.log("Dedaena data in hook:",position, dedaenaData[position-1]);
+  // setWords(dedaenaData[position-1].words || []);
+  // setSentences(dedaenaData[position-1]?.sentences || []);
   // Position data load
   useEffect(() => {
     const loadPositionData = async () => {
@@ -43,6 +47,7 @@ export const useGameData = (version_data, position) => {
         if (!response.status) throw new Error('Failed to load position data');
         const data = response.data;
         setLetters(data.letters || []);
+        console.log(`Fetched position ${position} data:`, data);
         setWords(data.position_info?.words || []);
         setSentences(data.position_info?.sentences || []);
         setProverbs(data.position_info?.proverbs || []);
@@ -56,5 +61,5 @@ export const useGameData = (version_data, position) => {
     loadPositionData();
   }, [version_data.dedaena_table, position]);
 
-  return { letters, words, sentences, proverbs, readingData, staticData, loading, error };
+  return { letters, words, sentences, proverbs, readingData, dedaenaData, staticData, loading, error };
 };

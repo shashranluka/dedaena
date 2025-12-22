@@ -5,10 +5,12 @@ const SentenceList = ({
   sentences, 
   foundSentences, 
   position, 
-  onClose 
+  onClose,
+  sentencesnew 
+
 }) => {
   const remainingSentencesCount = sentences.length - foundSentences.length;
-
+  console.log("SentenceList rendering for position:", position, "with sentences:", sentencesnew);
   return (
     <div className="show-sentences-list">
       <div className="sentences-list-header">
@@ -18,12 +20,12 @@ const SentenceList = ({
       <div className="sentences-list-content">
         {sentences.length > 0 ? (
           <div className="sentences-grid">
-            {sentences.map((sentence, idx) => (
+            {sentences.map((item, idx) => (
               <div
                 key={idx}
-                className={`sentence-item ${foundSentences.includes(sentence) ? 'found' : 'not-found'}`}
+                className={`sentence-item ${foundSentences.includes(item.sentence) ? 'found' : 'not-found'}`}
               >
-                {sentence}
+                {item.sentence}
               </div>
             ))}
           </div>

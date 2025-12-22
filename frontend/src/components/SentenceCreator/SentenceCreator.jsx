@@ -1,17 +1,19 @@
 import React from "react";
 import "./SentenceCreator.scss";
 
-const SentenceCreator = ({ 
-  allFoundWords, 
-  userSentence, 
-  foundSentences, 
-  totalSentences, 
+const SentenceCreator = ({
+  allFoundWords,
+  userSentence,
+  foundSentences,
+  totalSentences,
   sentenceMessage,
-  onWordAdd, 
+  onWordAdd,
   onPunctuationAdd,
-  onCheck, 
-  onClear, 
-  onClose 
+  onCheck,
+  onClear,
+  onClose,
+  onRemoveLast, // ← შეცვლილი პროპი
+  letters // ← დაამატეთ ეს prop
 }) => {
   const remainingSentencesCount = totalSentences - foundSentences.length;
 
@@ -21,6 +23,8 @@ const SentenceCreator = ({
         <span>შექმენი წინადადება ({foundSentences.length}/{totalSentences})</span>
         <button className="close-create-sentence" onClick={onClose}>×</button>
       </div>
+
+
 
       <div className="found-words">
         <h4>ნაპოვნი სიტყვები ({allFoundWords.length} სულ ყველა ტურიდან):</h4>
@@ -59,6 +63,53 @@ const SentenceCreator = ({
             </div>
           )}
         </div>
+
+
+
+        {/* ✅ ასოების ღილაკები */}
+        {letters && letters.length > 0 && (
+          <div className="letters-row" style={{ marginBottom: 12 }}>
+            {letters.map((l, index) => (
+              <button
+                key={`${l}-${index}`}
+                className="letter-btn"
+                onClick={() => onWordAdd(l)}
+                title="დაამატე ასო წინადადებაში"
+              >
+                {l}
+              </button>
+            ))}
+            <button
+              className="letter-btn"
+              onClick={() => onWordAdd(" ")}
+              title="ჰარი"
+              style={{ minWidth: 36 }}
+            >
+              
+            </button>
+            <button
+              className="letter-btn"
+              onClick={() => onWordAdd(".")}
+              title="წერტილი"
+              style={{ minWidth: 36 }}
+            >
+              .
+            </button>
+            {/* ✅ ბოლოს დამატებული სიმბოლოს წაშლის ღილაკი */}
+            <button
+              className="letter-btn"
+              onClick={onRemoveLast}
+              title="ბოლო სიმბოლოს წაშლა"
+              style={{ minWidth: 36 }}
+              disabled={userSentence.length === 0}
+            >
+              ⬅️
+            </button>
+          </div>
+        )}
+
+
+
 
         <div className="sentence-actions">
           <button

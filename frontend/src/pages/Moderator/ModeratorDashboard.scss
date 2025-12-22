@@ -635,6 +635,20 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
     .tour-count.sentences-count.active  { background: #43a047; }
     .tour-count.proverbs-count.active   { background: #fbc02d; color: #444; }
     .tour-count.reading-count.active    { background: #8e24aa; }
+    .tour-count.words-count.blue,
+    .tour-count.sentences-count.blue,
+    .tour-count.proverbs-count.blue,
+    .tour-count.reading-count.blue {
+      color: #1976d2;
+      font-weight: bold;
+    }
+    .tour-count.words-count.green,
+    .tour-count.sentences-count.green,
+    .tour-count.proverbs-count.green,
+    .tour-count.reading-count.green {
+      color: #388e3c;
+      font-weight: bold;
+    }
   }
   .tour-position-label {
     font-size: 0.8em;

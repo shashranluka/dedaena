@@ -189,13 +189,13 @@ async def handle_dynamic_content_action(
     db_column = f"{content_type}s"
     if db_column not in ["words", "sentences", "proverbs", "readings"]:
         raise HTTPException(status_code=400, detail="Invalid content type")
-    if db_column == "readings":
-        db_column = "reading"
+    # if db_column == "readings":
+    #     db_column = "reading"
+
+    # if db_column == "reading":
+    #     ids_column = "toreads_ids"  # თუ ბაზაში ასეა
 
     ids_column = f"{db_column}_ids"
-    if db_column == "reading":
-        ids_column = "toreads_ids"  # თუ ბაზაში ასეა
-
     try:
         # 1. ამოიღე ids array
         ids_result = db.execute(

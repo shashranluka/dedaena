@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import "./GameDedaena.scss";
 import { useGameData } from "../../hooks/useGameData";
 import TopControls from "../../components/topControls/TopControls";
@@ -12,7 +12,7 @@ import StatsPanel from "../../components/StatsPanel/StatsPanel";
 // import { getGeneralInfo, getPositionData } from "../../utils/getData";
 // import { useGameData } from "../../utils/getData";
 
-const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_test" };
+const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_with_ids" };
 
 function GameDedaena() {
   const [selected, setSelected] = useState([]);
@@ -23,9 +23,14 @@ function GameDedaena() {
   const [sentenceMessage, setSentenceMessage] = useState("");
   const [activeView, setActiveView] = useState('create');
   const [position, setPosition] = useState(2);
+  const [werili, setWerili] = useState();
+  const [showGift, setShowGift] = useState(false);
+  const [proverbIndex, setProverbIndex] = useState(0);
 
-  const { letters, words, sentences, staticData, loading, error } = useGameData(version_data, position);
-  // console.log('GameDedaena loaded data:', { letters, words, sentences, staticData, loading, error });
+  const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
+
+  // const { dedaenaData, staticData, loading, error } = useGameData(version_data, position);
+  console.log('GameDedaena loaded data:', { letters, words, sentences, dedaenaData, loading, error });
   // const generalInfo = useMemo(() => getGeneralInfo(version_data), []);
   // const positionData = useMemo(() => getPositionData(version_data, position), [version_data, position]);
   // const positionData = getPositionData(version_data, position);
@@ -39,8 +44,32 @@ function GameDedaena() {
   // }, [error]);
 
   // Computed values
+  const lettersStats = useMemo(() => {
+    return dedaenaData.reduce((acc, t, index) => {
+      if (index < position) {
+        acc[t.letter] = 0;
+      }
+      return acc;
+    }, {});
+  }, [dedaenaData, position]);
+  console.log('Initial letters stats:', lettersStats);
   const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
   const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
+  const [lettersStatsFromSentences, setLettersStatsFromSentences] = useState({});
+  useEffect(() => {
+    const stats = { ...lettersStats };
+    currentFoundSentences.forEach(s => {
+      const text = (s || "").replace(/[^ა-ჰ]/g, "");
+      for (const ch of text) {
+        if (stats.hasOwnProperty(ch)) {
+          stats[ch]++;
+        }
+      }
+    });
+    setLettersStatsFromSentences(stats);
+    // eslint-disable-next-line
+  }, [currentFoundSentences, lettersStats]);
+  console.log('Letters stats from sentences:', lettersStatsFromSentences, currentFoundSentences);
   const allFoundWords = useMemo(() => {
     const allWords = [];
     Object.values(foundWordsByPosition).forEach(positionWords => {
@@ -50,9 +79,9 @@ function GameDedaena() {
   }, [foundWordsByPosition]);
 
   const currentLetter = useMemo(() => {
-    if (!staticData || staticData.length === 0) return '';
-    return staticData[position - 1]?.letter || '';
-  }, [staticData, position]);
+    if (!dedaenaData || dedaenaData.length === 0) return '';
+    return dedaenaData[position - 1]?.letter || '';
+  }, [dedaenaData, position]);
 
   const totalFoundWordsCount = useMemo(() => {
     return Object.values(foundWordsByPosition).reduce((total, positionWords) =>
@@ -66,17 +95,17 @@ function GameDedaena() {
 
   // Check if a position is completed (all words and sentences found)
   const isPositionCompleted = useCallback((pos) => {
-    if (!staticData || !staticData[pos - 1]) return false;
-    
-    const positionData = staticData[pos - 1];
+    if (!dedaenaData || !dedaenaData[pos - 1]) return false;
+
+    const positionData = dedaenaData[pos - 1];
     const foundWords = foundWordsByPosition[pos] || [];
     const foundSentences = foundSentencesByPosition[pos] || [];
-    
+
     const wordCount = positionData.word_count || 0;
     const sentenceCount = positionData.sentence_count || 0;
-    
+
     return foundWords.length >= wordCount && foundSentences.length >= sentenceCount;
-  }, [staticData, foundWordsByPosition, foundSentencesByPosition]);
+  }, [dedaenaData, foundWordsByPosition, foundSentencesByPosition]);
 
   // Check if current position is completed
   const isCurrentPositionCompleted = useMemo(() => {
@@ -113,10 +142,14 @@ function GameDedaena() {
     setMessage("");
   }, []);
 
-  const addWordToSentence = useCallback((word) => {
-    setUserSentence(prev => prev + (prev ? " " : "") + word);
-    setSentenceMessage("");
-  }, []);
+  const handleRemoveLast = () => {
+    setUserSentence(prev => prev.slice(0, -1));
+  };
+
+  // const addWordToSentence = useCallback((word) => {
+  //   setUserSentence(prev => prev + (prev ? " " : "") + word);
+  //   setSentenceMessage("");
+  // }, []);
 
   const clearSentence = useCallback(() => {
     setUserSentence("");
@@ -132,8 +165,8 @@ function GameDedaena() {
     const normalizedUserSentence = userSentence.trim().toLowerCase();
     const currentSentences = foundSentencesByPosition[position] || [];
 
-    const isCorrect = sentences.some(sentence =>
-      sentence.trim().toLowerCase() === normalizedUserSentence
+    const isCorrect = dedaenaData[position - 1]?.sentences.some(item =>
+      item.sentence.trim().toLowerCase() === normalizedUserSentence
     );
 
     if (isCorrect && !currentSentences.includes(userSentence)) {
@@ -171,7 +204,23 @@ function GameDedaena() {
   // if (loading) {
   //   return <div className="loading">იტვირთება...</div>;
   // }
-  console.log(staticData, position, foundWordsByPosition, foundSentencesByPosition);
+  console.log(dedaenaData, position, foundWordsByPosition, foundSentencesByPosition);
+  // ყველა ასო 0-ზე მეტია?
+  const allLettersStatsCompleted = useMemo(() => {
+    const values = Object.values(lettersStatsFromSentences);
+    return values.length > 0 && values.every(v => v > 0);
+  }, [lettersStatsFromSentences]);
+
+  // არჩეული ტურის ანდაზებიდან პირველი
+  const firstProverb = dedaenaData[position - 1]?.proverbs?.[0]?.proverb || "";
+  console.log('First proverb for position', position, ':', firstProverb);
+
+  // არჩეული ტურის ანდაზებიდან proverbIndex-ით
+  const proverbs = dedaenaData[position - 1]?.proverbs || [];
+  const currentProverb = proverbs[proverbIndex]?.proverb || "";
+
+  console.log('Current proverb for position', position, 'at index', proverbIndex, ':', currentProverb, proverbs);
+
   return (
     <div className="gamededaena-page">
       <h2>{version_data.name}ს დედაენა</h2>
@@ -180,7 +229,7 @@ function GameDedaena() {
         activeView={activeView}
         currentLetter={currentLetter}
         position={position}
-        staticDataLength={staticData.length}
+        staticDataLength={dedaenaData.length}
         foundWordsCount={currentFoundWords.length}
         wordsCount={words.length}
         foundSentencesCount={currentFoundSentences.length}
@@ -188,12 +237,51 @@ function GameDedaena() {
         onViewChange={handleViewChange}
       />
 
+
+      {dedaenaData && dedaenaData.length > 0 && (
+        <div className="tour-letter-buttons" style={{ margin: "16px 0" }}>
+          {dedaenaData.map((tour, idx) => {
+            let btnClass = "tour-letter-btn";
+            if (position === tour.position) {
+              btnClass += " active";
+            } else if (position > tour.position) {
+              btnClass += " before-selected";
+            } else if (position < tour.position) {
+              btnClass += " after-selected";
+            }
+            return (
+              <div key={tour.position} className="tour-letter-btn-wrapper">
+                <span className="tour-position-label">
+                  {tour.position}
+                </span>
+                <button
+                  className={btnClass}
+                  onClick={() => {
+                    console.log(tour);
+                    setPosition(tour.position)
+                  }
+                  }
+                  title={`ტური ${tour.position} (${tour.letter})`}
+                >
+                  {tour.letter}
+                </button>
+                {idx < position &&
+                  <span className={`letter-stat ${lettersStatsFromSentences[tour.letter] > 0 ? 'completed' : 'not-completed'}`}>
+                    {lettersStatsFromSentences[tour.letter]}
+                  </span>
+                }
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {activeView === 'alphabet' && (
         <TableOfContents
-          staticData={staticData}
+          dedaenaData={dedaenaData}
           position={position}
-          foundWordsByPosition={foundWordsByPosition}
-          foundSentencesByPosition={foundSentencesByPosition}
+          // foundWordsByPosition={foundWordsByPosition}
+          // foundSentencesByPosition={foundSentencesByPosition}
           onCardClick={handleAlphabetCardClick}
           onClose={() => setActiveView(null)}
         />
@@ -202,6 +290,7 @@ function GameDedaena() {
       {activeView === 'words' && (
         <WordsList
           words={words}
+          // wordsnew={dedaenaData[position-1]?.words || []}
           foundWords={currentFoundWords}
           position={position}
           onClose={() => setActiveView(null)}
@@ -227,62 +316,75 @@ function GameDedaena() {
           allFoundWords={allFoundWords}
           userSentence={userSentence}
           foundSentences={currentFoundSentences}
-          totalSentences={sentences.length}
+          totalSentences={dedaenaData[position - 1]?.sentences.length}
           sentenceMessage={sentenceMessage}
-          onWordAdd={addWordToSentence}
+          onWordAdd={(value) => {
+            if (typeof value === "string" && value.length === 1) {
+              setUserSentence(prev => prev + value); // ასო დაემატება ჰარის გარეშე
+            } else {
+              setUserSentence(prev => prev.length > 0 ? prev + " " + value : value); // სიტყვა დაემატება ჰარით
+            }
+          }}
           onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
           onCheck={checkSentence}
+          onRemoveLast={handleRemoveLast}
           onClear={clearSentence}
           onClose={() => setActiveView(null)}
+          letters={letters}
         />
       )}
 
       {activeView === 'showSentences' && (
         <SentenceList
-          sentences={sentences}
+          // sentences={sentences}
+          sentences={dedaenaData[position - 1]?.sentences}
           foundSentences={currentFoundSentences}
           position={position}
           onClose={() => setActiveView(null)}
         />
       )}
 
-      {/* Artifacts Section - Only show when position is completed */}
-      {isCurrentPositionCompleted && staticData[position - 1] && (
-        <div className="chest">
-          <div className="chest-header">
-            <span className="chest-icon">🏆</span>
-            <span className="chest-title">ზარდახშა გახსნილია!</span>
-            <span className="chest-icon">🏆</span>
-          </div>
-          
-          <div className="artifacts-container">
-            {staticData[position - 1].has_proverbs && (
-              <button 
-                className="artifact-btn proverb-btn"
-                // onClick={() => getPositionProverbs(position)}
-                title="ანდაზების ნახვა"
-              >
-                <span className="artifact-icon">📜</span>
-                <span className="artifact-text">ანდაზები</span>
-              </button>
-            )}
-            
-            {staticData[position - 1].has_reading && (
-              <button 
-                className="artifact-btn reading-btn"
-                // onClick={() => getPositionReading(position)}
-                title="საკითხავი მასალის ნახვა"
-              >
-                <span className="artifact-icon">📖</span>
-                <span className="artifact-text">საკითხავი</span>
-              </button>
-            )}
-            
-            {!staticData[position - 1].has_proverbs && !staticData[position - 1].has_reading && (
-              <div className="no-artifacts">
-                ამ ტურში არტეფაქტები არ არის
-              </div>
-            )}
+      <div className="open-button-div">
+        {allLettersStatsCompleted && (
+          <button
+            className="open-gift-btn"
+            onClick={() => {
+              setLettersStatsFromSentences(prev => {
+                const updated = {};
+                Object.entries(prev).forEach(([ch, count]) => {
+                  updated[ch] = Math.max(0, count - 1);
+                });
+                return updated;
+              });
+              setShowGift(true)
+            }
+            }
+          >
+            🎁 საჩუქრის გახსნა
+          </button>
+        )}
+      </div>
+
+      {showGift && (
+        <div className="gift-modal-overlay" >
+          <div className="gift-modal" onClick={e => e.stopPropagation()}>
+            <h3>🎁 ანდაზა</h3>
+            <div className="gift-content">
+              {currentProverb ? (
+                <p style={{ fontSize: "20px", fontWeight: "bold", margin: "24px 0" }}>{currentProverb}</p>
+              ) : (
+                <p>ამ ტურში ანდაზა არ მოიძებნა.</p>
+              )}
+            </div>
+            <button
+              className="close-gift-btn"
+              onClick={() => {
+                setShowGift(false);
+                setProverbIndex((prev) => (prev + 1) % proverbs.length);
+              }}
+            >
+              დახურვა
+            </button>
           </div>
         </div>
       )}
@@ -297,18 +399,18 @@ function GameDedaena() {
             <div className="progress-bar">
               <span className="progress-label">სიტყვები:</span>
               <div className="progress-track">
-                <div 
+                <div
                   className="progress-fill words"
                   style={{ width: `${words.length > 0 ? (currentFoundWords.length / words.length) * 100 : 0}%` }}
                 ></div>
               </div>
               <span className="progress-count">{currentFoundWords.length}/{words.length}</span>
             </div>
-            
+
             <div className="progress-bar">
               <span className="progress-label">წინადადებები:</span>
               <div className="progress-track">
-                <div 
+                <div
                   className="progress-fill sentences"
                   style={{ width: `${sentences.length > 0 ? (currentFoundSentences.length / sentences.length) * 100 : 0}%` }}
                 ></div>
@@ -323,9 +425,9 @@ function GameDedaena() {
         totalFoundWords={totalFoundWordsCount}
         totalFoundSentences={totalFoundSentencesCount}
         currentPosition={position}
-        totalPositions={staticData.length}
+        totalPositions={dedaenaData.length}
         onNextTurn={handleNextTurn}
-        nextTurnDisabled={position >= staticData.length}
+        nextTurnDisabled={position >= dedaenaData.length}
       />
     </div>
   );

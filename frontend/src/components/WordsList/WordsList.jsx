@@ -5,9 +5,11 @@ const WordsList = ({
   words, 
   foundWords, 
   position, 
-  onClose 
+  onClose, 
+  wordsnew
 }) => {
   const remainingWordsCount = words.length - foundWords.length;
+  console.log("WordsList rendering for position:", position, "with words:", wordsnew);
 
   return (
     <div className="current-words-list">

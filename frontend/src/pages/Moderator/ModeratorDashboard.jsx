@@ -40,6 +40,7 @@ const ModeratorDashboard = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState([]);
   const [showAllAnalysis, setShowAllAnalysis] = useState(false);
+  const [lettersFromSentences, setLettersFromSentences] = useState(new Set());
   // console.log("ModeratorDashboard render: ", { activeTab, searchQuery, tourFilter, editingItem, isAdding, formData, detectedTour });
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
@@ -191,7 +192,7 @@ const ModeratorDashboard = () => {
       setActionLoading(true);
       const token = getToken();
       let endpointType = item.type.slice(0, -1);
-      item.is_playable=!item.is_playable;
+      item.is_playable = !item.is_playable;
       console.log({
         content: item.content,
         is_playable: !item.is_playable,
@@ -232,6 +233,34 @@ const ModeratorDashboard = () => {
     proverbs: allItems.filter(i => i.type === 'proverbs').length,
     toreads: allItems.filter(i => i.type === 'toreads').length,
   }), [allItems]);
+
+  function getLettersStatsFromSentences(playableSentences, lettersStats) {
+    // lettersStats: ობიექტი { "ა": 0, "ბ": 0, ... }
+    // playableSentences: წინადადებების მასივი ({ sentence: ... })
+    const stats = { ...lettersStats };
+    playableSentences.forEach(s => {
+      const text = (s.sentence || "").replace(/[^ა-ჰ]/g, "");
+      for (const ch of text) {
+        if (stats.hasOwnProperty(ch)) {
+          stats[ch]++;
+        }
+      }
+    });
+    console.log("Updated letters stats from sentences:", stats);
+    setLettersFromSentences(stats);
+    // setLettersFromSentences(new Set(Object.keys(stats).filter(letter => stats[letter] > 0)));
+  }
+  console.log("Letters from sentences stats:", lettersFromSentences);
+  function chooseTour(position, tour) {
+    setTourFilter(String(position));
+    const lettersStats = dedaenaData.reduce((acc, t) => {
+      acc[t.letter] = 0;
+      return acc;
+    }, {});
+    const playableSentences = (tour.sentences || []).filter(s => s.is_playable === true);
+    console.log("Chosen tour:", position, lettersStats, tour.sentences, playableSentences);
+    getLettersStatsFromSentences(playableSentences, lettersStats);
+  }
 
   // ✅ NEW: სიტყვის ტურში დამატება
   const handleAddWordToTour = async (wordInfo) => {
@@ -304,8 +333,10 @@ const ModeratorDashboard = () => {
   };
 
   const handleDelete = (item) => {
+    console.log("Deleting item:", item);
     if (!window.confirm(`დარწმუნებული ხართ რომ გსურთ წაშლა?\n\n"${item.content}"`)) return;
     const payload = {
+      content: item.content,
       position: item.tourPosition,
       arrayIndex: item.arrayIndex,
       deleted_by: user.username,
@@ -471,25 +502,56 @@ const ModeratorDashboard = () => {
               } else if (selectedIdx > -1 && idx > selectedIdx) {
                 btnClass += " after-selected";
               }
-              // ✅ დამატებულია ინფორმაცია ტურის კონტენტზე ღილაკის ზემოთ
+
+              // ითვლის is_playable ელემენტებს
+              const wordsTotal = (tour.words || []).length;
+              const wordsPlayable = (tour.words || []).filter(w => w.is_playable).length;
+              const sentencesTotal = (tour.sentences || []).length;
+              const sentencesPlayable = (tour.sentences || []).filter(s => s.is_playable).length;
+              const proverbsTotal = (tour.proverbs || []).length;
+              const proverbsPlayable = (tour.proverbs || []).filter(p => p.is_playable).length;
+              const readingArr = tour.reading || tour.toreads || [];
+              const readingTotal = readingArr.length;
+              const readingPlayable = readingArr.filter(r => r.is_playable).length;
+
+              // კლასები სტილიზაციისთვის (მწვანე > ლურჯი > ჩვეულებრივი)
+              const getCountClass = (playable, total, base) =>
+                playable > 0
+                  ? `tour-count ${base}-count green`
+                  : total > 0
+                    ? `tour-count ${base}-count blue`
+                    : `tour-count ${base}-count`;
+
               return (
                 <div key={tour.position} className="tour-letter-btn-wrapper">
                   <div className="tour-info">
-                    <span className={`tour-count words-count${tour.words?.length > 0 ? ' active' : ''}`}>{tour.words?.length || 0}</span>
-                    <span className={`tour-count sentences-count${tour.sentences?.length > 0 ? ' active' : ''}`}>{tour.sentences?.length || 0}</span>
-                    <span className={`tour-count proverbs-count${tour.proverbs?.length > 0 ? ' active' : ''}`}>{tour.proverbs?.length || 0}</span>
-                    <span className={`tour-count reading-count${tour.reading?.length > 0 ? ' active' : ''}`}>{tour.reading?.length || 0}</span>
+                    <span className={getCountClass(wordsPlayable, wordsTotal, "words")}>
+                      {wordsPlayable}/{wordsTotal}
+                    </span>
+                    <span className={getCountClass(sentencesPlayable, sentencesTotal, "sentences")}>
+                      {sentencesPlayable}/{sentencesTotal}
+                    </span>
+                    <span className={getCountClass(proverbsPlayable, proverbsTotal, "proverbs")}>
+                      {proverbsPlayable}/{proverbsTotal}
+                    </span>
+                    <span className={getCountClass(readingPlayable, readingTotal, "reading")}>
+                      {readingPlayable}/{readingTotal}
+                    </span>
                   </div>
+                  <span className="tour-position-label">
+                    {tour.position}
+                  </span>
                   <button
                     className={btnClass}
-                    onClick={() => setTourFilter(String(tour.position))}
+                    onClick={() => {
+                      chooseTour(tour.position, tour);
+                      // setTourFilter(String(tour.position))
+                    }}
                     title={`ტური ${tour.position} (${tour.letter})`}
                   >
                     {tour.letter}
                   </button>
-                  <span className="tour-position-label">
-                    {tour.position}
-                  </span>
+                  {lettersFromSentences[tour.letter]}
                 </div>
               );
             })}
@@ -599,15 +661,15 @@ const ModeratorDashboard = () => {
                         </div>
                       </div>
                       <div className="card-content"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        // მონიშვნა/მოხსნა
-                        setSelectedWordIds((prev) =>
-                          prev.includes(item.id)
-                            ? prev.filter((wid) => wid !== item.id)
-                            : [...prev, item.id]
-                        );
-                      }}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          // მონიშვნა/მოხსნა
+                          setSelectedWordIds((prev) =>
+                            prev.includes(item.id)
+                              ? prev.filter((wid) => wid !== item.id)
+                              : [...prev, item.id]
+                          );
+                        }}
                       >
                         <p className="item-text">{item.content}</p>
                         {item.wordAnalysis && showAllAnalysis && (
@@ -616,37 +678,37 @@ const ModeratorDashboard = () => {
                             <div className="word-cards">
                               {item.wordAnalysis.map((wordInfo, wordIdx) => (
                                 <div
-  key={wordIdx}
-  className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}
-  style={wordInfo.existsInTours.length > 0 ? { background: '#e8f5e9', borderColor: '#4caf50' } : {}}
->
-  <span className="word-text">{wordInfo.word}</span>
-  {wordInfo.existsInTours.length > 0 ? (
-    <span className="word-tours">
-      ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
-    </span>
-  ) : (
-    <div className="word-missing-info">
-      {wordInfo.estimatedTour ? (
-        <>
-          <span className="estimated-tour">
-            📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
-          </span>
-          {/* დამატების ღილაკი მხოლოდ მაშინ, როცა სიტყვა არ არის ბაზაში */}
-          <button
-            className="btn-add-word"
-            onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
-            disabled={actionLoading}
-          >
-            ➕ დამატება
-          </button>
-        </>
-      ) : (
-        <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
-      )}
-    </div>
-  )}
-</div>
+                                  key={wordIdx}
+                                  className={`word-mini-card ${wordInfo.existsInTours.length === 0 ? 'missing' : 'exists'}`}
+                                  style={wordInfo.existsInTours.length > 0 ? { background: '#e8f5e9', borderColor: '#4caf50' } : {}}
+                                >
+                                  <span className="word-text">{wordInfo.word}</span>
+                                  {wordInfo.existsInTours.length > 0 ? (
+                                    <span className="word-tours">
+                                      ✅ ტურ{wordInfo.existsInTours.length > 1 ? 'ებ' : ''}ში: {wordInfo.existsInTours.join(', ')}
+                                    </span>
+                                  ) : (
+                                    <div className="word-missing-info">
+                                      {wordInfo.estimatedTour ? (
+                                        <>
+                                          <span className="estimated-tour">
+                                            📍 შესაბამისი: ტური {wordInfo.estimatedTour.position} ({wordInfo.estimatedTour.letter})
+                                          </span>
+                                          {/* დამატების ღილაკი მხოლოდ მაშინ, როცა სიტყვა არ არის ბაზაში */}
+                                          <button
+                                            className="btn-add-word"
+                                            onClick={(e) => { e.stopPropagation(); handleAddWordToTour(wordInfo); }}
+                                            disabled={actionLoading}
+                                          >
+                                            ➕ დამატება
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <span className="no-tour">❌ ტური ვერ მოიძებნა</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               ))}
                             </div>
                           </div>

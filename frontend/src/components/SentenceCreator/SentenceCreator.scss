@@ -210,4 +210,31 @@
       }
     }
   }
+
+  .letters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .letter-btn {
+    background: #f5f5f5;
+    border: 1.5px solid #bdbdbd;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.15s, border 0.15s, color 0.15s;
+
+    &:hover,
+    &:focus {
+      background: #e3f2fd;
+      border-color: #1976d2;
+      color: #1976d2;
+      outline: none;
+    }
+  }
 }

@@ -1,7 +1,10 @@
 """
 Dedaena Routes
 """
-
+from sqlalchemy import text, bindparam
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from app.api.dependencies import get_db, get_current_moderator_user
 import json
 from typing import List
 from fastapi import APIRouter, HTTPException
@@ -12,11 +15,12 @@ router = APIRouter()
 
 
 class StaticInfo(BaseModel):
+    position: int
     letter: str
-    word_count: int
-    sentence_count: int
-    has_proverbs: bool
-    has_reading: bool
+    words_ids: list[int]
+    sentences_ids: list[int]
+    proverbs_ids: list[int]
+    toreads_ids: list[int]
 
 
 @router.get("/")
@@ -24,42 +28,72 @@ async def dedaena_root():
     return {"message": "Dedaena API", "version": "1.0.0"}
 
 
-@router.get("/{table_name}/general-info", response_model=List[StaticInfo])
-def get_general_info(table_name: str):
-    """Get all letters"""
-    
-    allowed_tables = ["gogebashvili_1", "gogebashvili_1_test"]
-    if table_name not in allowed_tables:
-        raise HTTPException(status_code=400, detail="Invalid table")
-    
-    conn = get_db_connection()
+@router.get("/{table_name}")
+async def get_dedaena_data(
+    table_name: str,
+    db: Session = Depends(get_db),
+    # current_user: dict = Depends(get_current_moderator_user)
+):
+    # ...existing code...
+    print(f"Fetching data for table: {table_name}")
     try:
-        with conn.cursor() as cur:
-            cur.execute(f"""
-                SELECT letter, word_count, sentence_count, has_proverbs, has_reading 
+        result = db.execute(
+            text(f"""
+                SELECT 
+                    id, 
+                    position, 
+                    letter, 
+                    words_ids, 
+                    sentences_ids, 
+                    proverbs_ids, 
+                    toreads_ids
                 FROM {table_name} 
-                ORDER BY position ASC;
+                ORDER BY position
             """)
-            rows = cur.fetchall()
-            print(f"rows: {rows}")
+        ).fetchall()
         
-        return [
-            StaticInfo(
-                letter=row[0],
-                word_count=row[1] or 0,
-                sentence_count=row[2] or 0,
-                has_proverbs=row[3] or False,
-                has_reading=row[4] or False
-            ) 
-            for row in rows
-        ]
-        print("static_info returned successfully")
+        dedaenaData = []
+        for r in result:
+            def fetch_items(table, column, ids):
+                if not ids:
+                    return []
+                if isinstance(ids, str):
+                    ids = [int(i) for i in ids.split(',') if i.strip().isdigit()]
+                if not isinstance(ids, list):
+                    ids = list(ids)
+                if not ids:
+                    return []
+                # ✅ გამოიყენეთ tuple(ids) და IN :ids
+                items = db.execute(
+                    text(f"SELECT * FROM {table} WHERE id IN :ids AND is_playable = true").bindparams(bindparam("ids", expanding=True)),
+                    {"ids": tuple(ids)}
+                ).fetchall()
+                return [dict(item._mapping) for item in items]
+
+            words = fetch_items("words", "word", r.words_ids)
+            sentences = fetch_items("sentences", "sentence", r.sentences_ids)
+            proverbs = fetch_items("proverbs", "proverb", r.proverbs_ids)
+            toreads = fetch_items("toreads", "toread", r.toreads_ids)
+
+            dedaenaData.append({
+                "id": r.id,
+                "position": r.position,
+                "letter": r.letter,
+                "words": words,
+                "sentences": sentences,
+                "proverbs": proverbs,
+                "toreads": toreads
+            })
+        
+        return {
+            "success": True,
+            "table_name": table_name,
+            "count": len(dedaenaData),
+            "data": dedaenaData
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    finally:
-        conn.close()
-
-
+        # ...error handling...
+        raise
 @router.get("/{table_name}/position/{position}")
 def get_position_data(table_name: str, position: int):
     """Get position data"""

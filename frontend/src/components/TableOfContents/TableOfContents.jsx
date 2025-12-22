@@ -1,15 +1,14 @@
 import React from "react";
 import "./TableOfContents.scss";
 
-const TableOfContents = ({ 
-  staticData, 
-  position, 
-  foundWordsByPosition, 
-  foundSentencesByPosition, 
-  onCardClick, 
-  onClose 
+const TableOfContents = ({
+  dedaenaData,
+  position,
+  // foundWordsByPosition,
+  // foundSentencesByPosition,
+  onCardClick,
+  onClose
 }) => {
-  console.log("TableOfContents staticData:", staticData);
   return (
     <div className="alphabet-cards-full">
       <div className="alphabet-header">
@@ -17,16 +16,23 @@ const TableOfContents = ({
         <button className="close-alphabet" onClick={onClose}>×</button>
       </div>
       <div className="alphabet-cards">
-        {staticData.map((pageInfo, idx) => {
-          const positionFoundWords = foundWordsByPosition[idx + 1] || [];
-          const positionFoundSentences = foundSentencesByPosition[idx + 1] || [];
-          
+        {dedaenaData.map((pageInfo, idx) => {
+          console.log("Rendering card for position:", idx + 1, pageInfo);
+          // თითოეული ტურისთვის აიღე მონაცემები dedaenaData-დან
+          const wordsCount = pageInfo.words ? pageInfo.words.length : 0;
+          const sentencesCount = pageInfo.sentences ? pageInfo.sentences.length : 0;
+          const proverbsCount = pageInfo.proverbs ? pageInfo.proverbs.length : 0;
+          const toreadsCount = pageInfo.toreads ? pageInfo.toreads.length : 0;
+
+          // const positionFoundWords = foundWordsByPosition[idx + 1] || [];
+          // const positionFoundSentences = foundSentencesByPosition[idx + 1] || [];
+
           return (
             <div
               key={idx}
               className={`alphabet-card ${idx < position ? 'learned' : 'unlearned'} ${idx + 1 === position ? 'current' : ''}`}
               onClick={() => onCardClick(idx + 1)}
-              title={`ტური ${idx + 1} - ${pageInfo.letter} (სიტყვები: ${positionFoundWords.length}, წინადადებები: ${positionFoundSentences.length})`}
+              title={`ტური ${idx + 1} - ${pageInfo.letter} (სიტყვები: ${wordsCount}, წინადადებები: ${sentencesCount})`}
             >
               <span className="card-letter">{pageInfo.letter}</span>
               <span className="card-position">{idx + 1}</span>
@@ -34,22 +40,19 @@ const TableOfContents = ({
               <div className="card-content">
                 <div className="content-dot words">
                   <span className="icon">🔤</span>
-                  <span className="count">{pageInfo.word_count || 0}</span>
+                  <span className="count">{wordsCount}</span>
                 </div>
                 <div className="content-dot sentences">
                   <span className="icon">📝</span>
-                  <span className="count">{pageInfo.sentence_count || 0}</span>
+                  <span className="count">{sentencesCount}</span>
                 </div>
-              </div>
-
-              <div className="card-content">
-                <div className={`content-dot proverbs ${pageInfo.has_proverbs ? 'available' : 'unavailable'}`}>
+                <div className="content-dot proverbs">
                   <span className="icon">💡</span>
-                  {pageInfo.has_proverbs && <span className="prize">📜</span>}
+                  <span className="count">{proverbsCount}</span>
                 </div>
-                <div className={`content-dot reading ${pageInfo.has_reading ? 'available' : 'unavailable'}`}>
+                <div className="content-dot reading">
                   <span className="icon">📖</span>
-                  {pageInfo.has_reading && <span className="prize">📖</span>}
+                  <span className="count">{toreadsCount}</span>
                 </div>
               </div>
             </div>

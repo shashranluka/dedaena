@@ -7,11 +7,16 @@ WORKDIR /app
 # 3. დააკოპირე დამოკიდებულებები
 COPY requirements.txt .
 
+
 # 4. დააინსტალირე დამოკიდებულებები
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 5. დააკოპირე აპლიკაციის კოდი
 COPY . .
+# 5.1. დააკოპირე .env ფაილი
+COPY .env .env
+
+
 
 # 6. დააყენე გარემოს ცვლადები (სურვილისამებრ)
 ENV PYTHONUNBUFFERED=1

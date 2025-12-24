@@ -309,3 +309,11 @@
     transform: translateY(-3px);
   }
 }
+
+.letter-stat {
+  transition: opacity 0.5s, transform 0.5s;
+}
+.letter-stat.fade-out {
+  opacity: 0;
+  transform: translateY(-20px) scale(1.2);
+}

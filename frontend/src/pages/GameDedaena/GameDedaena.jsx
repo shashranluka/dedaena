@@ -30,12 +30,9 @@ function GameDedaena() {
   const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
 
   // const { dedaenaData, staticData, loading, error } = useGameData(version_data, position);
-  console.log('GameDedaena loaded data:', { letters, words, sentences, dedaenaData, loading, error });
   // const generalInfo = useMemo(() => getGeneralInfo(version_data), []);
   // const positionData = useMemo(() => getPositionData(version_data, position), [version_data, position]);
   // const positionData = getPositionData(version_data, position);
-  // console.log('General info loaded:', generalInfo);
-  // console.log('Position data loaded:', positionData);
 
   // useEffect(() => {
   //   if (error) {
@@ -52,24 +49,26 @@ function GameDedaena() {
       return acc;
     }, {});
   }, [dedaenaData, position]);
-  console.log('Initial letters stats:', lettersStats);
   const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
   const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
   const [lettersStatsFromSentences, setLettersStatsFromSentences] = useState({});
+  // განახლება lettersStatsFromSentences currentFoundSentences-ის მიხედვით. ამიტომ არ აკლდება საბოლოოდ გამოყენებული ასოები.
+  // function addToLettersStatsFromSentences(stats, ch) {
+  //   setLettersStatsFromSentences(prev => ({}));
+  // }
   useEffect(() => {
     const stats = { ...lettersStats };
-    currentFoundSentences.forEach(s => {
-      const text = (s || "").replace(/[^ა-ჰ]/g, "");
-      for (const ch of text) {
-        if (stats.hasOwnProperty(ch)) {
-          stats[ch]++;
-        }
-      }
-    });
+    // currentFoundSentences.forEach(s => {
+    //   const text = (s || "").replace(/[^ა-ჰ]/g, "");
+    //   for (const ch of text) {
+    //     if (stats.hasOwnProperty(ch)) {
+    //       stats[ch]++;
+    //     }
+    //   }
+    // });
     setLettersStatsFromSentences(stats);
     // eslint-disable-next-line
-  }, [currentFoundSentences, lettersStats]);
-  console.log('Letters stats from sentences:', lettersStatsFromSentences, currentFoundSentences);
+  }, []);
   const allFoundWords = useMemo(() => {
     const allWords = [];
     Object.values(foundWordsByPosition).forEach(positionWords => {
@@ -122,7 +121,6 @@ function GameDedaena() {
     const word = selected.join("");
     const currentWords = foundWordsByPosition[position] || [];
     const pureWords = words.map(w => w.trim().replace(/[-–—]/g, ''));
-    console.log('Checking word:', word, 'at position:', currentWords);
     if (pureWords.includes(word) && !currentWords.includes(word)) {
       setFoundWordsByPosition(prev => ({
         ...prev,
@@ -180,7 +178,23 @@ function GameDedaena() {
     } else {
       setSentenceMessage("არასწორი წინადადება! სცადეთ თავიდან.");
     }
-
+    setLettersStatsFromSentences(prev => {
+      // ბოლო ნაპოვნი წინადადება
+      const lastSentence = userSentence;
+      // მხოლოდ ქართული ასოები
+      const lettersInSentence = (lastSentence || "").replace(/[^ა-ჰ]/g, "").split("");
+      // ასოების რაოდენობა წინადადებაში
+      const letterCounts = {};
+      lettersInSentence.forEach(ch => {
+        letterCounts[ch] = (letterCounts[ch] || 0) + 1;
+      });
+      // დაამატე თითოეულ ასოს შესაბამისი რაოდენობა
+      const updated = { ...prev };
+      Object.entries(letterCounts).forEach(([ch, count]) => {
+        updated[ch] = (updated[ch] || 0) + count;
+      });
+      return updated;
+    });
     setUserSentence("");
   }, [userSentence, sentences, foundSentencesByPosition, position]);
 
@@ -204,7 +218,6 @@ function GameDedaena() {
   // if (loading) {
   //   return <div className="loading">იტვირთება...</div>;
   // }
-  console.log(dedaenaData, position, foundWordsByPosition, foundSentencesByPosition);
   // ყველა ასო 0-ზე მეტია?
   const allLettersStatsCompleted = useMemo(() => {
     const values = Object.values(lettersStatsFromSentences);
@@ -213,13 +226,10 @@ function GameDedaena() {
 
   // არჩეული ტურის ანდაზებიდან პირველი
   const firstProverb = dedaenaData[position - 1]?.proverbs?.[0]?.proverb || "";
-  console.log('First proverb for position', position, ':', firstProverb);
 
   // არჩეული ტურის ანდაზებიდან proverbIndex-ით
   const proverbs = dedaenaData[position - 1]?.proverbs || [];
   const currentProverb = proverbs[proverbIndex]?.proverb || "";
-
-  console.log('Current proverb for position', position, 'at index', proverbIndex, ':', currentProverb, proverbs);
 
   return (
     <div className="gamededaena-page">
@@ -257,7 +267,6 @@ function GameDedaena() {
                 <button
                   className={btnClass}
                   onClick={() => {
-                    console.log(tour);
                     setPosition(tour.position)
                   }
                   }
@@ -360,7 +369,7 @@ function GameDedaena() {
             }
             }
           >
-            🎁 საჩუქრის გახსნა
+            🚪 განძსაცავის გახსნა
           </button>
         )}
       </div>

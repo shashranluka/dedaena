@@ -1,100 +1,157 @@
-name: Dedanea Deploy
+name: Deploy Dedaena
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
+  DEPLOY_PATH: /home/luka/dedaena
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-24.04
-
-    env:
-      DOCKER_IMAGE: "${{ github.ref_name }}:${{ github.sha }}"
-      DOCKER_IMAGE_TAR: "${{ github.ref_name }}.tar"
-
+    permissions:
+      contents: read
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Build Docker images
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag backend-${{ env.IMAGE_TAG }} \
+            --load \
+            ./backend
+          
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag frontend-${{ env.IMAGE_TAG }} \
+            --load \
+            ./frontend
 
-    - name: Build backend image
-      run: |
-        cd backend
-        docker build . \
-          -t backend-${{ env.DOCKER_IMAGE }} \
-          --platform linux/amd64
+      - name: Export Docker images
+        run: |
+          docker save backend-${{ env.IMAGE_TAG }} | gzip > backend.tar.gz
+          docker save frontend-${{ env.IMAGE_TAG }} | gzip > frontend.tar.gz
 
-    - name: Build frontend image
-      run: |
-        cd frontend
-        docker build . \
-          -t frontend-${{ env.DOCKER_IMAGE }} \
-          --platform linux/amd64
+      - name: Transfer images to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          source: "*.tar.gz"
+          target: "${{ env.DEPLOY_PATH }}/images"
+          strip_components: 1
 
-    - name: Save backend image to tar
-      run: |
-        docker save --output images/backend-${{ env.DOCKER_IMAGE_TAR }} backend-${{ env.DOCKER_IMAGE }}
-        chmod 664 images/backend-${{ env.DOCKER_IMAGE_TAR }}
+      - name: Load Docker images on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}/images
+            
+            echo "Loading backend image..."
+            docker load -i backend.tar.gz
+            
+            echo "Loading frontend image..."
+            docker load -i frontend.tar.gz
+            
+            echo "Images loaded successfully"
+            docker images | grep ${{ env.IMAGE_TAG }}
 
-    - name: Save frontend image to tar
-      run: |
-        docker save --output images/frontend-${{ env.DOCKER_IMAGE_TAR }} frontend-${{ env.DOCKER_IMAGE }}
-        chmod 664 images/frontend-${{ env.DOCKER_IMAGE_TAR }}
+      - name: Update Docker Compose configuration
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "Updating backend service image..."
+            yq eval -i \
+              '.services.backend-${{ github.ref_name }}.image = "backend-${{ env.IMAGE_TAG }}"' \
+              docker-compose.yml
+            
+            echo "Updating frontend service image..."
+            yq eval -i \
+              '.services.frontend-${{ github.ref_name }}.image = "frontend-${{ env.IMAGE_TAG }}"' \
+              docker-compose.yml
+            
+            echo "Configuration updated successfully"
 
-    - name: Copy backend image to server
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        source: "images/backend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "/home/luka/images/backend-${{ env.DOCKER_IMAGE_TAR }}"
+      - name: Deploy backend service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "Deploying backend service..."
+            docker rollout backend-${{ github.ref_name }}
+            
+            echo "Backend deployment completed"
 
-    - name: Copy frontend image to server
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        source: "images/frontend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "/home/luka/images/frontend-${{ env.DOCKER_IMAGE_TAR }}"
+      - name: Deploy frontend service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "Deploying frontend service..."
+            docker rollout frontend-${{ github.ref_name }}
+            
+            echo "Frontend deployment completed"
 
-    - name: Load images on server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          docker load -i /home/luka/images/frontend-${{ env.DOCKER_IMAGE_TAR }}
-          docker load -i /home/luka/images/backend-${{ env.DOCKER_IMAGE_TAR }}
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "Checking service status..."
+            docker ps | grep ${{ github.ref_name }} || true
+            
+            echo "Deployment verification completed"
 
-    - name: Update docker compose images
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          yq w -i /home/luka/dedaena/docker-compose.yml "services.frontend-${{ github.ref_name }}.image" "frontend-${{ github.ref_name }}:${{ github.sha }}"
-          yq w -i /home/luka/dedaena/docker-compose.yml "services.backend-${{ github.ref_name }}.image" "backend-${{ github.ref_name }}:${{ github.sha }}"
-
-    - name: Restart services
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          cd /home/luka/dedaena
-          docker-compose up -d frontend-${{ github.ref_name }} backend-${{ github.ref_name }}
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "================================"
+          echo "Deployment Summary"
+          echo "================================"
+          echo "Status: ${{ job.status }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Image Tag: ${{ env.IMAGE_TAG }}"
+          echo "================================"

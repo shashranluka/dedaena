@@ -58,7 +58,7 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         source: "backend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "/home/luka/backend-${{ env.DOCKER_IMAGE_TAR }}"
+        target: "/home/luka/images/backend-${{ env.DOCKER_IMAGE_TAR }}"
 
     - name: Copy frontend image to server
       uses: appleboy/scp-action@v0.1.7
@@ -68,7 +68,7 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         source: "frontend-${{ env.DOCKER_IMAGE_TAR }}"
-        target: "/home/luka/frontend-${{ env.DOCKER_IMAGE_TAR }}"
+        target: "/home/luka/images/frontend-${{ env.DOCKER_IMAGE_TAR }}"
 
     - name: Load images on server
       uses: appleboy/ssh-action@v1.0.3
@@ -78,8 +78,8 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          docker load -i /home/luka/frontend-${{ env.DOCKER_IMAGE_TAR }}
-          docker load -i /home/luka/backend-${{ env.DOCKER_IMAGE_TAR }}
+          docker load -i /home/luka/images/frontend-${{ env.DOCKER_IMAGE_TAR }}
+          docker load -i /home/luka/images/backend-${{ env.DOCKER_IMAGE_TAR }}
 
     - name: Update docker compose images
       uses: appleboy/ssh-action@v1.0.3
@@ -89,8 +89,8 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          yq w -i dedaena/docker-compose.yml "services.frontend-${{ github.ref_name }}.image" "frontend-${{ github.ref_name }}:${{ github.sha }}"
-          yq w -i dedaena/docker-compose.yml "services.backend-${{ github.ref_name }}.image" "backend-${{ github.ref_name }}:${{ github.sha }}"
+          yq w -i /home/luka/dedaena/docker-compose.yml "services.frontend-${{ github.ref_name }}.image" "frontend-${{ github.ref_name }}:${{ github.sha }}"
+          yq w -i /home/luka/dedaena/docker-compose.yml "services.backend-${{ github.ref_name }}.image" "backend-${{ github.ref_name }}:${{ github.sha }}"
 
     - name: Restart services
       uses: appleboy/ssh-action@v1.0.3
@@ -100,6 +100,6 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          cd dedaena
+          cd /home/luka/dedaena
           docker rollout frontend-${{ github.ref_name }}
           docker rollout backend-${{ github.ref_name }}

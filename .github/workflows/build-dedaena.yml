@@ -38,13 +38,11 @@ jobs:
 
     - name: Save backend image to tar
       run: |
-        mkdir -p images
         docker save --output images/backend-${{ env.DOCKER_IMAGE_TAR }} backend-${{ env.DOCKER_IMAGE }}
         chmod 664 images/backend-${{ env.DOCKER_IMAGE_TAR }}
 
     - name: Save frontend image to tar
       run: |
-        mkdir -p images
         docker save --output images/frontend-${{ env.DOCKER_IMAGE_TAR }} frontend-${{ env.DOCKER_IMAGE }}
         chmod 664 images/frontend-${{ env.DOCKER_IMAGE_TAR }}
 

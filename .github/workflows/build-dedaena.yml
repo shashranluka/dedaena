@@ -38,17 +38,15 @@ jobs:
 
     - name: Save backend image to tar
       run: |
-        docker save \
-          --output backend-${{ env.DOCKER_IMAGE_TAR }} \
-          backend-${{ env.DOCKER_IMAGE }}
-        chmod 664 backend-${{ env.DOCKER_IMAGE_TAR }}
+        mkdir -p images
+        docker save --output images/backend-${{ env.DOCKER_IMAGE_TAR }} backend-${{ env.DOCKER_IMAGE }}
+        chmod 664 images/backend-${{ env.DOCKER_IMAGE_TAR }}
 
     - name: Save frontend image to tar
       run: |
-        docker save \
-          --output frontend-${{ env.DOCKER_IMAGE_TAR }} \
-          frontend-${{ env.DOCKER_IMAGE }}
-        chmod 664 frontend-${{ env.DOCKER_IMAGE_TAR }}
+        mkdir -p images
+        docker save --output images/frontend-${{ env.DOCKER_IMAGE_TAR }} frontend-${{ env.DOCKER_IMAGE }}
+        chmod 664 images/frontend-${{ env.DOCKER_IMAGE_TAR }}
 
     - name: Copy backend image to server
       uses: appleboy/scp-action@v0.1.7
@@ -57,7 +55,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        source: "backend-${{ env.DOCKER_IMAGE_TAR }}"
+        source: "images/backend-${{ env.DOCKER_IMAGE_TAR }}"
         target: "/home/luka/images/backend-${{ env.DOCKER_IMAGE_TAR }}"
 
     - name: Copy frontend image to server
@@ -67,7 +65,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        source: "frontend-${{ env.DOCKER_IMAGE_TAR }}"
+        source: "images/frontend-${{ env.DOCKER_IMAGE_TAR }}"
         target: "/home/luka/images/frontend-${{ env.DOCKER_IMAGE_TAR }}"
 
     - name: Load images on server
@@ -101,5 +99,4 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd /home/luka/dedaena
-          docker rollout frontend-${{ github.ref_name }}
-          docker rollout backend-${{ github.ref_name }}
+          docker-compose up -d frontend-${{ github.ref_name }} backend-${{ github.ref_name }}

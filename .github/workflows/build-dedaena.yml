@@ -43,6 +43,16 @@ jobs:
           docker save backend-${{ env.IMAGE_TAG }} | gzip > backend.tar.gz
           docker save frontend-${{ env.IMAGE_TAG }} | gzip > frontend.tar.gz
 
+      - name: Ensure images directory exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            mkdir -p ${{ env.DEPLOY_PATH }}/images
+      
       - name: Transfer images to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -51,8 +61,8 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           source: "*.tar.gz"
-          target: "${{ env.DEPLOY_PATH }}/images"
-          strip_components: 1
+          target: "${{ env.DEPLOY_PATH }}/images/"
+          strip_components: 0
 
       - name: Load Docker images on server
         uses: appleboy/ssh-action@v1.0.3

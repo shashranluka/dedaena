@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import './LettersPage.scss';
+import api from "../../services/api";
 
 function LettersPage() {
   const [letters, setLetters] = useState([]);
@@ -7,9 +8,9 @@ function LettersPage() {
   const [addedWords, setAddedWords] = useState([]); // დამატებული სიტყვების სია
 
   useEffect(() => {
-    fetch("http://localhost:8000/letters")
-      .then((res) => res.json())
-      .then((data) => setLetters(data));
+    api.get("/letters")
+      .then((res) => setLetters(res.data))
+      .catch((error) => console.error("Error fetching letters:", error));
   }, []);
  
   console.log(letters)

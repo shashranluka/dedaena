@@ -8,9 +8,7 @@ import WordCreator from "../../components/WordCreator/WordCreator";
 import SentenceList from "../../components/SentenceList/SentenceList";
 import SentenceCreator from "../../components/SentenceCreator/SentenceCreator";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
-// import { getPositionData } from "../../utils/getData";
-// import { getGeneralInfo, getPositionData } from "../../utils/getData";
-// import { useGameData } from "../../utils/getData";
+
 
 const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_with_ids" };
 
@@ -52,6 +50,7 @@ function GameDedaena() {
   const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
   const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
   const [lettersStatsFromSentences, setLettersStatsFromSentences] = useState({});
+  console.log('lettersStatsFromSentences:', lettersStatsFromSentences);
   // განახლება lettersStatsFromSentences currentFoundSentences-ის მიხედვით. ამიტომ არ აკლდება საბოლოოდ გამოყენებული ასოები.
   // function addToLettersStatsFromSentences(stats, ch) {
   //   setLettersStatsFromSentences(prev => ({}));

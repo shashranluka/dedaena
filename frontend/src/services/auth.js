@@ -1,5 +1,5 @@
 // ✅ Webpack/CRA-ისთვის
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 
 /**
@@ -8,7 +8,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:800
 export const registerUser = async (userData) => {
   console.log("Registering user with data:", userData);
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,10 +33,10 @@ export const registerUser = async (userData) => {
  * მომხმარებლის ავტორიზაცია (Login)
  */
 export const loginUser = async (credentials) => {
-  console.log("🔐 Logging in user:", credentials.username);
+  console.log("🔐 Logging in user:", credentials.username,API_BASE_URL);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

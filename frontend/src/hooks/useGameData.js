@@ -20,7 +20,6 @@ export const useGameData = (version_data, position) => {
       try {
         setLoading(true);
         const response = await api.get(`/dedaena/${version_data.dedaena_table}`);
-        // const response = await fetch(`http://localhost:8000/api/dedaena/${version_data.dedaena_table}/general-info`);
         if (!response.status) throw new Error('Failed to load alphabet');
         setDedaenaData(response.data.data);
         setStaticData(response.data);
@@ -43,7 +42,6 @@ export const useGameData = (version_data, position) => {
         setLoading(true);
         console.log("Fetching position data from:");
         const response = await api.get(`/dedaena/${version_data.dedaena_table}/position/${position}`);
-        // const response = await fetch(`http://localhost:8000/api/dedaena/${version_data.dedaena_table}/position/${position}`);
         if (!response.status) throw new Error('Failed to load position data');
         const data = response.data;
         setLetters(data.letters || []);

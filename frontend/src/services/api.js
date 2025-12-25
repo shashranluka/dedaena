@@ -1,5 +1,4 @@
 import axios from 'axios';
-// import Url from "../baseUrl.js";
 
 
 const apiUrl = process.env.REACT_APP_API_URL;

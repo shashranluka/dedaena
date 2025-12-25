@@ -1,36 +1,21 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Base Image
+FROM node:20
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy dependency files
-COPY package.json package-lock.json ./
+# Copy package.json and package-lock.json to the working directory
+COPY package.json ./
+COPY package-lock.json ./
 
-# Install all dependencies (including dev dependencies for build)
-RUN npm ci
+# Install dependencies
+RUN npm install
 
-# Copy application code
+# Copy the rest of the application code to the working directory
 COPY . .
 
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production
-
-# Copy built application from builder
-COPY --from=builder /app/build ./build
-
-# Expose port
+# Expose the port that Vite uses (default is 5173)
 EXPOSE 3000
 
-# Start the application
+# Start the development server
 CMD ["npm", "start"]

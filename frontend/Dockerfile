@@ -1,21 +1,31 @@
-# Base Image
-FROM node:20
+# Build stage
+FROM node:20 AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package.json ./
-COPY package-lock.json ./
+# Copy dependency files
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production
 
-# Copy the rest of the application code to the working directory
+# Copy application code
 COPY . .
 
-# Expose the port that Vite uses (default is 5173)
-EXPOSE 3000
+# Build the application
+RUN npm run build
 
-# Start the development server
-CMD ["npm", "start"]
+# Production stage
+FROM nginx:alpine
+
+# Copy built files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx config if you have one (optional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

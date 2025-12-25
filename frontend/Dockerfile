@@ -27,8 +27,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --only=production
 
 # Copy built application from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/build ./build
 
 # Expose port
 EXPOSE 3000

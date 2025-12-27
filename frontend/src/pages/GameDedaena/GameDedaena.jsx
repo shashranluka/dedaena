@@ -19,7 +19,7 @@ function GameDedaena() {
   const [message, setMessage] = useState("");
   const [userSentence, setUserSentence] = useState("");
   const [sentenceMessage, setSentenceMessage] = useState("");
-  const [activeView, setActiveView] = useState('create');
+  const [activeView, setActiveView] = useState('sentence');
   const [position, setPosition] = useState(2);
   const [werili, setWerili] = useState();
   const [showGift, setShowGift] = useState(false);
@@ -27,47 +27,20 @@ function GameDedaena() {
 
   const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
 
-  // const { dedaenaData, staticData, loading, error } = useGameData(version_data, position);
-  // const generalInfo = useMemo(() => getGeneralInfo(version_data), []);
-  // const positionData = useMemo(() => getPositionData(version_data, position), [version_data, position]);
-  // const positionData = getPositionData(version_data, position);
 
-  // useEffect(() => {
-  //   if (error) {
-  //     setMessage(`შეცდომა: ${error}`);
-  //   }
-  // }, [error]);
-
-  // Computed values
-  const lettersStats = useMemo(() => {
-    return dedaenaData.reduce((acc, t, index) => {
+  const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
+  const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
+  const [lettersStatsFromSentences, setLettersStatsFromSentences] = useState({});
+  console.log('lettersStatsFromSentences:', lettersStatsFromSentences);
+  useEffect(() => {
+    const lettersStats = dedaenaData.reduce((acc, t, index) => {
       if (index < position) {
         acc[t.letter] = 0;
       }
       return acc;
     }, {});
-  }, [dedaenaData, position]);
-  const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
-  const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
-  const [lettersStatsFromSentences, setLettersStatsFromSentences] = useState({});
-  console.log('lettersStatsFromSentences:', lettersStatsFromSentences);
-  // განახლება lettersStatsFromSentences currentFoundSentences-ის მიხედვით. ამიტომ არ აკლდება საბოლოოდ გამოყენებული ასოები.
-  // function addToLettersStatsFromSentences(stats, ch) {
-  //   setLettersStatsFromSentences(prev => ({}));
-  // }
-  useEffect(() => {
-    const stats = { ...lettersStats };
-    // currentFoundSentences.forEach(s => {
-    //   const text = (s || "").replace(/[^ა-ჰ]/g, "");
-    //   for (const ch of text) {
-    //     if (stats.hasOwnProperty(ch)) {
-    //       stats[ch]++;
-    //     }
-    //   }
-    // });
-    setLettersStatsFromSentences(stats);
-    // eslint-disable-next-line
-  }, []);
+    setLettersStatsFromSentences(lettersStats);
+  }, [dedaenaData,position]);
   const allFoundWords = useMemo(() => {
     const allWords = [];
     Object.values(foundWordsByPosition).forEach(positionWords => {
@@ -203,7 +176,7 @@ function GameDedaena() {
     setMessage("");
     setUserSentence("");
     setSentenceMessage("");
-    setActiveView('create');
+    setActiveView('sentence');
   }, []);
 
   const handleViewChange = useCallback((newView) => {
@@ -319,7 +292,7 @@ function GameDedaena() {
         />
       )}
 
-      {activeView === 'sentence' && (
+      {/* {activeView === 'sentence' && ( */}
         <SentenceCreator
           allFoundWords={allFoundWords}
           userSentence={userSentence}
@@ -340,7 +313,7 @@ function GameDedaena() {
           onClose={() => setActiveView(null)}
           letters={letters}
         />
-      )}
+      {/* )} */}
 
       {activeView === 'showSentences' && (
         <SentenceList
@@ -429,14 +402,14 @@ function GameDedaena() {
         </div>
       )}
 
-      <StatsPanel
+      {/* <StatsPanel
         totalFoundWords={totalFoundWordsCount}
         totalFoundSentences={totalFoundSentencesCount}
         currentPosition={position}
         totalPositions={dedaenaData.length}
         onNextTurn={handleNextTurn}
         nextTurnDisabled={position >= dedaenaData.length}
-      />
+      /> */}
     </div>
   );
 }

@@ -26,7 +26,7 @@ const SentenceCreator = ({
 
 
 
-      <div className="found-words">
+      {/* <div className="found-words">
         <h4>ნაპოვნი სიტყვები ({allFoundWords.length} სულ ყველა ტურიდან):</h4>
         <div className="words-grid">
           {allFoundWords.map((w, idx) => (
@@ -46,10 +46,10 @@ const SentenceCreator = ({
             .
           </button>
         </div>
-      </div>
+      </div> */}
 
       <div className="sentence-section">
-        <h4>წინადადების შედგენა:</h4>
+        {/* <h4>წინადადების შედგენა:</h4> */}
         <div className="sentence-builder">
           {userSentence.length > 0 ? (
             <div className="sentence-words">
@@ -59,7 +59,7 @@ const SentenceCreator = ({
             </div>
           ) : (
             <div className="sentence-placeholder">
-              დააკლიკე ნაპოვნ სიტყვებს წინადადების შესადგენად
+              წინადადების შესადგენად დააკლიკე ასოების ბარათებს
             </div>
           )}
         </div>
@@ -79,34 +79,37 @@ const SentenceCreator = ({
                 {l}
               </button>
             ))}
-            <button
-              className="letter-btn"
-              onClick={() => onWordAdd(" ")}
-              title="ჰარი"
-              style={{ minWidth: 36 }}
-            >
-              
-            </button>
-            <button
-              className="letter-btn"
-              onClick={() => onWordAdd(".")}
-              title="წერტილი"
-              style={{ minWidth: 36 }}
-            >
-              .
-            </button>
-            {/* ✅ ბოლოს დამატებული სიმბოლოს წაშლის ღილაკი */}
-            <button
-              className="letter-btn"
-              onClick={onRemoveLast}
-              title="ბოლო სიმბოლოს წაშლა"
-              style={{ minWidth: 36 }}
-              disabled={userSentence.length === 0}
-            >
-              ⬅️
-            </button>
           </div>
         )}
+        <div className="signs">
+          <button
+            className="sign-btn"
+            onClick={() => onWordAdd(" ")}
+            title="ჰარი"
+            style={{ minWidth: 100 }}
+          >
+
+          </button>
+          <button
+            className="sign-btn"
+            onClick={() => onWordAdd(".")}
+            title="წერტილი"
+            style={{ minWidth: 36 }}
+          >
+            .
+          </button>
+          {/* ✅ ბოლოს დამატებული სიმბოლოს წაშლის ღილაკი */}
+          <button
+            className="sign-btn"
+            onClick={onRemoveLast}
+            title="ბოლო სიმბოლოს წაშლა"
+            style={{ minWidth: 36 }}
+            disabled={userSentence.length === 0}
+          >
+            ⬅️
+          </button>
+        </div>
+
 
 
 

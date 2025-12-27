@@ -8,24 +8,24 @@ const BUTTONS = [
       <span className="card-hint">{props.position}</span>
     </>
   )},
-  { view: 'create', class: 'control-button', card: 'control-card', content: () => (
-    <>
-      <span className="card-icon">✏️</span>
-      <span className="card-hint">შექმენი სიტყვა</span>
-    </>
-  )},
-  { view: 'words', class: 'control-button', card: 'control-card', content: (props) => (
-    <>
-      <span className="card-icon">📝</span>
-      <span className="card-hint">სიტყვები ({props.foundWordsCount}/{props.wordsCount})</span>
-    </>
-  )},
-  { view: 'sentence', class: 'control-button', card: 'control-card', content: () => (
-    <>
-      <span className="card-icon">💬</span>
-      <span className="card-hint">შექმენი წინადადება</span>
-    </>
-  )},
+  // { view: 'create', class: 'control-button', card: 'control-card', content: () => (
+  //   <>
+  //     <span className="card-icon">✏️</span>
+  //     <span className="card-hint">შექმენი სიტყვა</span>
+  //   </>
+  // )},
+  // { view: 'words', class: 'control-button', card: 'control-card', content: (props) => (
+  //   <>
+  //     <span className="card-icon">📝</span>
+  //     <span className="card-hint">სიტყვები ({props.foundWordsCount}/{props.wordsCount})</span>
+  //   </>
+  // )},
+  // { view: 'sentence', class: 'control-button', card: 'control-card', content: () => (
+  //   <>
+  //     <span className="card-icon">💬</span>
+  //     <span className="card-hint">შექმენი წინადადება</span>
+  //   </>
+  // )},
   { view: 'showSentences', class: 'control-button', card: 'control-card', content: (props) => (
     <>
       <span className="card-icon">📋</span>

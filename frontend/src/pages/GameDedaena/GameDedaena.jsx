@@ -244,7 +244,7 @@ function GameDedaena() {
                     setPosition(tour.position)
                   }
                   }
-                  title={`ოთახი ${tour.position} (${tour.letter})`}
+                  title={`ქვესტი ${tour.position} (${tour.letter})`}
                 >
                   {tour.letter}
                 </button>

@@ -84,7 +84,6 @@ async def get_all_users(current_user: dict = Depends(get_current_admin)):
     
     Requires: Admin or Moderator
     """
-    print(current_user, "current_user in get_all_users")
     check_rate_limit(current_user['id'])
     logger.info(f"Admin request: Get all users by {current_user['username']}")
     
@@ -195,7 +194,6 @@ async def update_user_role(
     role_data: UpdateRoleRequest,
     current_user: dict = Depends(get_current_admin)
 ):
-    print("test3")
     
     """
     მომხმარებლის როლის შეცვლა (Admin/Moderator)
@@ -215,7 +213,6 @@ async def update_user_role(
     
     conn = get_db_connection()
     try:
-        print("Connected to DB for update_user_role")
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM users WHERE id = %s;", (user_id,))
             if not cur.fetchone():

@@ -38,13 +38,11 @@ async def get_current_moderator_user(
         # ✅ Token-ის ამოღება Authorization header-იდან
         token = credentials.credentials
         
-        print(f"🔑 Received token: {token[:30]}...", credentials.credentials)
         
         # ✅ JWT Secret Key გარემოს ცვლადიდან
         SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
         ALGORITHM = "HS256"
         
-        print(f"🔐 Using SECRET_KEY: {SECRET_KEY[:10]}...")
         
         payload = decode_access_token(token)
         print(f"🔐 Decoded payload1: {payload}")
@@ -67,8 +65,6 @@ async def get_current_moderator_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token payload"
             )
-        
-        print(f"🔐 Authenticated user: {username} (role: {role})")
         
         # ✅ Role-ის შემოწმება (მხოლოდ moderator ან admin)
         if role not in ["moderator", "admin"]:

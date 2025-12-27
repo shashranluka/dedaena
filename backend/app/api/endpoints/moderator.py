@@ -32,13 +32,11 @@ async def get_dedaena_data(
     """
     აბრუნებს ყველა ტურს: id, position, letter და შესაბამისი ელემენტები (words, sentences, proverbs, toread)
     """
-    print(f"📊 GET dedaena data from table: {table_name}")
+    print(f"⚡️ Fetching Dedaena data for moderator: {current_user['username']} from table: {table_name}")
     if not current_user or not isinstance(current_user, dict) or 'username' not in current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated as moderator")
-    print(f"   Request from: {current_user['username']}")
-
+        raise HTTPException(status_code=501, detail="Not authenticated as moderator")
     if table_name not in allowed_tables:
-        raise HTTPException(status_code=400, detail="Invalid table name")
+        raise HTTPException(status_code=500, detail="Invalid table name")
     
     try:
         # ვიღებთ ყველა ტურს
@@ -57,8 +55,6 @@ async def get_dedaena_data(
             """)
         ).fetchall()
         
-        print(f"   Retrieved {len(result)} tours from {table_name}")
-        
         data = []
         for r in result:
             def fetch_items(table, column, ids):
@@ -71,8 +67,6 @@ async def get_dedaena_data(
                     text(f"SELECT * FROM {table} WHERE id = ANY(:ids)"),
                     {"ids": ids}
                 ).fetchall()
-                # print(f"   Fetched {len(items)} items from {table} for IDs: {ids}")
-                # print(f"   Items: {items}")
                 # აქ გამოიყენეთ ._mapping რომ მიიღოთ dict
                 return [dict(item._mapping) for item in items]
                 # return
@@ -82,7 +76,6 @@ async def get_dedaena_data(
             proverbs = fetch_items("proverbs", "proverb", r.proverbs_ids)
             toreads = fetch_items("toreads", "toread", r.toreads_ids)
 
-            # print(f"sentences: {sentences}")
 
             data.append({
                 "id": r.id,
@@ -93,8 +86,6 @@ async def get_dedaena_data(
                 "proverbs": proverbs,
                 "toreads": toreads
             })
-        
-        print(f"   ✅ Successfully returned {len(data)} tours")
         
         return {
             "success": True,
@@ -127,7 +118,6 @@ async def toggle_is_playable(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_moderator_user)
 ):
-    print(f"⚡️ Toggling is_playable in {table_name} for {content_type}")
     table_map = {
         "sentences": ("sentences", "sentence"),
         "proverbs": ("proverbs", "proverb"),
@@ -179,11 +169,9 @@ async def handle_dynamic_content_action(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_moderator_user)
 ):
-    print(f"⚡️ Dynamic Action: {action.upper()} on {content_type.upper()} in {table_name}")
-    print(f"   Request from: {current_user['username']}")
-    print(f"   Payload: {request.dict()}")
-
-    if table_name not in allowed_tables:
+    # print(f"   Dynamic action request: table={table_name}, content_type={content_type}, action={action}, position={request.position}, arrayIndex={request.arrayIndex}, content={request.content}")
+    allowed_tables = ["words", "sentences", "proverbs", "readings"]
+    if f"{content_type}s" not in allowed_tables:
         raise HTTPException(status_code=400, detail="Invalid table name")
 
     db_column = f"{content_type}s"
@@ -204,6 +192,7 @@ async def handle_dynamic_content_action(
         ).fetchone()
         current_ids = ids_result[0] or []
         tour_letter = ids_result[1]
+
 
         # 2. მოქმედება ცალკე ცხრილში და ids განახლება
         if action == "add":
@@ -232,17 +221,31 @@ async def handle_dynamic_content_action(
             message = f"'{request.content[:20]}...' წარმატებით დაემატა {db_column} და {ids_column}-ში."
 
         elif action == "update":
-            if request.arrayIndex is None or not request.content:
-                raise HTTPException(status_code=400, detail="arrayIndex and content are required for updating.")
-            if not (0 <= request.arrayIndex < len(current_ids)):
-                raise HTTPException(status_code=400, detail="Invalid arrayIndex.")
+            # განახლება id-ით (content ან id უნდა იყოს მოწოდებული)
+            update_id = None
+            if hasattr(request, "id") and request.id is not None:
+                update_id = request.id
+            elif request.content is not None:
+                # მოძებნე id content-ით
+                # მოძებნე შესაბამისი ჩანაწერი
+                update_column = "sentence" if content_type == "sentence" else \
+                                "proverb" if content_type == "proverb" else \
+                                "word" if content_type == "word" else \
+                                "toread" if content_type == "reading" else None
+                row = db.execute(
+                    text(f"SELECT id FROM {db_column} WHERE {update_column} = :content"),
+                    {"content": request.content.strip()}
+                ).fetchone()
+                if not row:
+                    raise HTTPException(status_code=404, detail="Content not found for update.")
+                update_id = row.id
+            else:
+                raise HTTPException(status_code=400, detail="id or content is required for updating.")
 
-            # განაახლე შესაბამის ცხრილში
             update_column = "sentence" if content_type == "sentence" else \
                             "proverb" if content_type == "proverb" else \
                             "word" if content_type == "word" else \
                             "toread" if content_type == "reading" else None
-            update_id = current_ids[request.arrayIndex]
             update_query = text(f"""
                 UPDATE {db_column}
                 SET {update_column} = :content
@@ -253,18 +256,33 @@ async def handle_dynamic_content_action(
             message = f"ელემენტი განახლდა {db_column} ცხრილში და {ids_column}-ში."
 
         elif action == "delete":
-            if request.arrayIndex is None:
-                raise HTTPException(status_code=400, detail="arrayIndex is required for deleting.")
-            if not (0 <= request.arrayIndex < len(current_ids)):
-                raise HTTPException(status_code=400, detail="Invalid arrayIndex.")
+            # წაშლა id-ით (content ან id უნდა იყოს მოწოდებული)
+            delete_id = None
+            if hasattr(request, "id") and request.id is not None:
+                delete_id = request.id
+            elif request.content is not None:
+                # მოძებნე id content-ით
+                delete_column = "sentence" if content_type == "sentence" else \
+                                "proverb" if content_type == "proverb" else \
+                                "word" if content_type == "word" else \
+                                "toread" if content_type == "reading" else None
+                row = db.execute(
+                    text(f"SELECT id FROM {db_column} WHERE {delete_column} = :content"),
+                    {"content": request.content.strip()}
+                ).fetchone()
+                if not row:
+                    raise HTTPException(status_code=404, detail="Content not found for delete.")
+                delete_id = row.id
+            else:
+                raise HTTPException(status_code=400, detail="id or content is required for deleting.")
 
             # წაშალე შესაბამის ცხრილში
-            delete_id = current_ids[request.arrayIndex]
             db.execute(
                 text(f"DELETE FROM {db_column} WHERE id = :id"),
                 {"id": delete_id}
             )
-            updated_ids = current_ids[:request.arrayIndex] + current_ids[request.arrayIndex+1:]
+            # ids-იდან ამოიღე ეს id
+            updated_ids = [i for i in current_ids if i != delete_id]
             message = f"ელემენტი წაიშალა {db_column} ცხრილიდან და {ids_column}-დან."
 
         else:

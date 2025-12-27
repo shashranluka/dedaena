@@ -52,7 +52,6 @@ def get_db():
     Yields:
         SessionLocal: Database session
     """
-    print("🔌 Database connection established")
     db = SessionLocal()
     try:
         yield db  # ← FastAPI მიიღებს ამ session-ს

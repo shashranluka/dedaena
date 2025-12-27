@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useReducer } from "react";
 import { getCurrentUser, getToken } from "../../services/auth";
 import api from "../../services/api";
 import "./ModeratorDashboard.scss";
@@ -23,6 +23,34 @@ const normalizeWord = (word) => {
   return word.replace(/[.,!?;:()"""''«»—\-]/g, '').toLowerCase().trim();
 };
 
+// function arrayReducer(state, action) {
+
+
+
+//   const lettersStats = dedaenaData.reduce((acc, t) => {
+//     acc[t.letter] = 0;
+//     return acc;
+//   }, {});
+//   const stats = { ...lettersStats };
+//   playableSentences.forEach(s => {
+//     const text = (s.sentence || "").replace(/[^ა-ჰ]/g, "");
+//     for (const ch of text) {
+//       if (stats.hasOwnProperty(ch)) {
+
+//         stats[ch]++;
+//       }
+//     }
+//   });
+//   switch (action.type) {
+//     case 'add':
+//       return [...state, action.payload];
+//     case 'remove':
+//       return state.filter(item => item !== action.payload);
+//     default:
+//       return state;
+//   }
+// }
+
 const ModeratorDashboard = () => {
   const [user, setUser] = useState(null);
   const [dedaenaData, setDedaenaData] = useState([]);
@@ -39,6 +67,10 @@ const ModeratorDashboard = () => {
   const [detectedTour, setDetectedTour] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState([]);
+
+  // const [playableSentences, dispatchPlayableSentences] = useReducer(arrayReducer, () => {
+
+  // });
   const [showAllAnalysis, setShowAllAnalysis] = useState(false);
   const [lettersFromSentences, setLettersFromSentences] = useState(new Set());
   // console.log("ModeratorDashboard render: ", { activeTab, searchQuery, tourFilter, editingItem, isAdding, formData, detectedTour });
@@ -52,7 +84,7 @@ const ModeratorDashboard = () => {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setDedaenaData(response.data.data || []);
-      console.log("Fetched dedaena data:", response.data.data);
+      // console.log("Fetched dedaena data:", response.data.data);
       setError(null);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message;
@@ -69,6 +101,7 @@ const ModeratorDashboard = () => {
     try {
       const token = getToken();
       const endpointType = type.slice(0, -1);
+      console.log(`Handling content action: ${action} on ${type} with data:`, data);
       await api.patch(
         `/moderator/dedaena/${VERSION_DATA.dedaena_table}/${endpointType}/${action}`,
         { ...data, table_name: VERSION_DATA.dedaena_table },
@@ -149,9 +182,11 @@ const ModeratorDashboard = () => {
       return '';
     };
     dedaenaData.forEach(tour => {
+      console.log("Tour:", tour);
       (tour.words || []).forEach((item, index) => items.push({
         type: 'words',
         content: extractText(item, 'words'),
+        id: item.id,
         arrayIndex: index,
         tourPosition: tour.position,
         tourLetter: tour.letter,
@@ -159,6 +194,7 @@ const ModeratorDashboard = () => {
       (tour.sentences || []).forEach((item, index) => items.push({
         type: 'sentences',
         content: extractText(item, 'sentences'),
+        id: item.id,
         arrayIndex: index,
         tourPosition: tour.position,
         is_playable: item.is_playable,
@@ -168,6 +204,7 @@ const ModeratorDashboard = () => {
       (tour.proverbs || []).forEach((item, index) => items.push({
         type: 'proverbs',
         content: extractText(item, 'proverbs'),
+        id: item.id,
         arrayIndex: index,
         tourPosition: tour.position,
         is_playable: item.is_playable,
@@ -177,6 +214,7 @@ const ModeratorDashboard = () => {
       (tour.reading || tour.toreads || []).forEach((item, index) => items.push({
         type: 'toreads',
         content: extractText(item, 'toreads'),
+        id: item.id,
         arrayIndex: index,
         tourPosition: tour.position,
         tourLetter: tour.letter,
@@ -189,24 +227,33 @@ const ModeratorDashboard = () => {
 
   const handleTogglePlayable = async (item) => {
     try {
+      // console.log("Toggling playable for item:", item);
       setActionLoading(true);
       const token = getToken();
       let endpointType = item.type.slice(0, -1);
       item.is_playable = !item.is_playable;
-      console.log({
-        content: item.content,
-        is_playable: !item.is_playable,
-        // content_type: item.type
-      });
       await api.patch(
         `/moderator/dedaena/${VERSION_DATA.dedaena_table}/${item.type}/toggle_playable`,
         {
           content: item.content,
           is_playable: item.is_playable,
-          // content_type: item.type, // 'sentences', 'proverbs', 'toreads'
         },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
+      if (item.type === 'sentences') {
+        const tour = dedaenaData.find(t => t.position === item.tourPosition);
+        tour.sentences[item.arrayIndex].is_playable = item.is_playable;
+        const playableSentences = (tour.sentences || []).filter(s => s.is_playable === true);
+        getLettersStatsFromSentences(playableSentences);
+      }
+      // else if (item.type === 'proverbs') {
+      //   const tour = dedaenaData.find(t => t.position === item.tourPosition);
+      //   tour.proverbs[item.arrayIndex].is_playable = item.is_playable;
+      // } else if (item.type === 'toreads') {
+      //   const tour = dedaenaData.find(t => t.position === item.tourPosition);
+      //   tour.reading[item.arrayIndex].is_playable = item.is_playable;
+      // }
+      // const tour = dedaenaData.find(t => t.position === item.tourPosition);
       // await fetchData();
     } catch (err) {
       showErrorMessage(err);
@@ -218,7 +265,7 @@ const ModeratorDashboard = () => {
 
 
   const currentData = useMemo(() => {
-    // console.log("Current data:", allItems);
+    console.log("Current data:", allItems);
     return allItems.filter(item => {
       const matchesTab = item.type === activeTab;
       const matchesTour = tourFilter === 'all' || item.tourPosition === parseInt(tourFilter, 10);
@@ -234,32 +281,37 @@ const ModeratorDashboard = () => {
     toreads: allItems.filter(i => i.type === 'toreads').length,
   }), [allItems]);
 
-  function getLettersStatsFromSentences(playableSentences, lettersStats) {
+  function getLettersStatsFromSentences(playableSentences, addOrSub) {
     // lettersStats: ობიექტი { "ა": 0, "ბ": 0, ... }
     // playableSentences: წინადადებების მასივი ({ sentence: ... })
+    console.log("Calculating letters stats from sentences:", playableSentences, addOrSub);
+    const lettersStats = dedaenaData.reduce((acc, t) => {
+      acc[t.letter] = 0;
+      return acc;
+    }, {});
     const stats = { ...lettersStats };
     playableSentences.forEach(s => {
       const text = (s.sentence || "").replace(/[^ა-ჰ]/g, "");
       for (const ch of text) {
         if (stats.hasOwnProperty(ch)) {
+
           stats[ch]++;
         }
       }
     });
-    console.log("Updated letters stats from sentences:", stats);
+    // console.log("Updated letters stats from sentences:", stats);
     setLettersFromSentences(stats);
-    // setLettersFromSentences(new Set(Object.keys(stats).filter(letter => stats[letter] > 0)));
   }
-  console.log("Letters from sentences stats:", lettersFromSentences);
+  // console.log("Letters from sentences stats:", lettersFromSentences);
   function chooseTour(position, tour) {
     setTourFilter(String(position));
-    const lettersStats = dedaenaData.reduce((acc, t) => {
-      acc[t.letter] = 0;
-      return acc;
-    }, {});
+    // const lettersStats = dedaenaData.reduce((acc, t) => {
+    //   acc[t.letter] = 0;
+    //   return acc;
+    // }, {});
+    // console.log("Chosen tour:", position, lettersStats, tour.sentences, playableSentences);
     const playableSentences = (tour.sentences || []).filter(s => s.is_playable === true);
-    console.log("Chosen tour:", position, lettersStats, tour.sentences, playableSentences);
-    getLettersStatsFromSentences(playableSentences, lettersStats);
+    getLettersStatsFromSentences(playableSentences);
   }
 
   // ✅ NEW: სიტყვის ტურში დამატება
@@ -320,16 +372,27 @@ const ModeratorDashboard = () => {
     handleContentAction('add', activeTab, payload);
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = (addingItem, item) => {
     if (!formData.content.trim()) { alert('ტექსტი არ უნდა იყოს ცარიელი.'); return; }
+
     const payload = {
       position: detectedTour?.position || item.tourPosition,
+      id: item.id,
       arrayIndex: item.arrayIndex,
       content: formData.content.trim(),
       edited_by: user.username,
       edited_at: new Date().toISOString(),
+      addOrSub: addingItem ? 'add' : 'sub',
     };
     handleContentAction('update', activeTab, payload);
+    if (item.type === 'sentences') {
+      const tour = dedaenaData.find(t => t.position === item.tourPosition);
+      if (tour) {
+        tour.sentences[item.arrayIndex].content = formData.content.trim();
+        const playableSentences = (tour.sentences || []).filter(s => s.is_playable === true);
+        getLettersStatsFromSentences(playableSentences);
+      }
+    }
   };
 
   const handleDelete = (item) => {
@@ -338,11 +401,20 @@ const ModeratorDashboard = () => {
     const payload = {
       content: item.content,
       position: item.tourPosition,
+      id: item.id,
       arrayIndex: item.arrayIndex,
       deleted_by: user.username,
       deleted_at: new Date().toISOString(),
     };
     handleContentAction('delete', activeTab, payload);
+    if (item.type === 'sentences') {
+      const tour = dedaenaData.find(t => t.position === item.tourPosition);
+      if (tour) {
+        tour.sentences.splice(item.arrayIndex, 1);
+        const playableSentences = (tour.sentences || []).filter(s => s.is_playable === true);
+        getLettersStatsFromSentences(playableSentences);
+      }
+    }
   };
 
   const startEdit = (item) => {
@@ -369,7 +441,7 @@ const ModeratorDashboard = () => {
     setUser(getCurrentUser());
     fetchData();
   }, [fetchData]);
-  console.log("User state:", user);
+  // console.log("User state:", user);
   // ✅ წვდომის კონტროლი კომპონენტის დასაწყისშივე
   if (loading) {
     return (
@@ -604,7 +676,7 @@ const ModeratorDashboard = () => {
                   fontSize: '16px'
                 }}
               >
-                {showAllAnalysis ? '📝 ყველა ანალიზის დამალვა' : '📝 ყველა სიტყვების ანალიზი'}
+                {showAllAnalysis ? '📝 ყველა ანალიზის დამალვა' : '📝 ყველა სიტყვის ანალიზი'}
               </button>
             </div>
           )}
@@ -614,6 +686,7 @@ const ModeratorDashboard = () => {
             <div className="items-list">
               {(() => {
                 // ჯერ playable, შემდეგ დანარჩენი
+                console.log("Sorting items for display...", currentData);
                 const playableItems = currentData.filter(item => item.is_playable);
                 const nonPlayableItems = currentData.filter(item => !item.is_playable);
                 const sortedItems = [...playableItems, ...nonPlayableItems];
@@ -838,8 +911,16 @@ const ModeratorDashboard = () => {
               </select>
             </div>
             <div className="form-actions">
-              <button onClick={isAdding ? handleAdd : () => handleEdit(editingItem)} disabled={actionLoading || (!formData.tourPosition && !detectedTour)} className="btn-save">{actionLoading ? '⏳' : '✅'} შენახვა</button>
-              <button onClick={cancelEdit} disabled={actionLoading} className="btn-cancel">❌ გაუქმება</button>
+              <button
+                onClick={isAdding ? handleAdd : () => handleEdit(editingItem)}
+                disabled={actionLoading || (!formData.tourPosition && !detectedTour)}
+                className="btn-save">{actionLoading ? '⏳' : '✅'} შენახვა
+              </button>
+              <button
+                onClick={cancelEdit}
+                disabled={actionLoading}
+                className="btn-cancel"
+              >❌ გაუქმება</button>
             </div>
           </div>
         </div>

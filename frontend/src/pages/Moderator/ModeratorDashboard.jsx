@@ -54,6 +54,7 @@ const normalizeWord = (word) => {
 const ModeratorDashboard = () => {
   const [user, setUser] = useState(null);
   const [dedaenaData, setDedaenaData] = useState([]);
+  console.log("Dedaena data:", dedaenaData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -182,7 +183,7 @@ const ModeratorDashboard = () => {
       return '';
     };
     dedaenaData.forEach(tour => {
-      console.log("Tour:", tour);
+      // console.log("Tour:", tour);
       (tour.words || []).forEach((item, index) => items.push({
         type: 'words',
         content: extractText(item, 'words'),
@@ -221,7 +222,7 @@ const ModeratorDashboard = () => {
         wordAnalysis: analyzeSentence(item.toread, index, item)
       }));
     });
-    return items.map((item) => ({ ...item, id: `${item.tourPosition}-${item.type}-${item.arrayIndex}` }));
+    return items.map((item) => ({ ...item, id: `${item.id}-${item.type}-${item.arrayIndex}` }));
   }, [dedaenaData]);
 
 
@@ -273,7 +274,7 @@ const ModeratorDashboard = () => {
       return matchesTab && matchesTour && matchesSearch;
     });
   }, [allItems, activeTab, tourFilter, searchQuery]);
-  // console.log("Current data:", currentData);
+  console.log("Current data:", currentData);
   const totalCounts = useMemo(() => ({
     words: allItems.filter(i => i.type === 'words').length,
     sentences: allItems.filter(i => i.type === 'sentences').length,
@@ -372,17 +373,18 @@ const ModeratorDashboard = () => {
     handleContentAction('add', activeTab, payload);
   };
 
-  const handleEdit = (addingItem, item) => {
+  const handleEdit = (item) => {
+    console.log(item);
     if (!formData.content.trim()) { alert('ტექსტი არ უნდა იყოს ცარიელი.'); return; }
 
     const payload = {
       position: detectedTour?.position || item.tourPosition,
-      id: item.id,
+      id: item.id.split('-')[0],
       arrayIndex: item.arrayIndex,
       content: formData.content.trim(),
       edited_by: user.username,
       edited_at: new Date().toISOString(),
-      addOrSub: addingItem ? 'add' : 'sub',
+      // addOrSub: addingItem ? 'add' : 'sub',
     };
     handleContentAction('update', activeTab, payload);
     if (item.type === 'sentences') {

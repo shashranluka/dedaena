@@ -215,7 +215,7 @@ function GameDedaena() {
         foundWordsCount={currentFoundWords.length}
         wordsCount={words.length}
         foundSentencesCount={currentFoundSentences.length}
-        sentencesCount={sentences.length}
+        sentencesCount={dedaenaData[position - 1]?.sentences.length || 0}
         onViewChange={handleViewChange}
       />
 

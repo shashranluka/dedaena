@@ -152,6 +152,7 @@ class DynamicContentRequest(BaseModel):
     position: int
     content: Optional[str] = None
     arrayIndex: Optional[int] = None # Note the camelCase from frontend
+    id: Optional[str] = None
     added_by: Optional[str] = None
     added_at: Optional[str] = None
     edited_by: Optional[str] = None
@@ -232,13 +233,13 @@ async def handle_dynamic_content_action(
                                 "proverb" if content_type == "proverb" else \
                                 "word" if content_type == "word" else \
                                 "toread" if content_type == "reading" else None
-                row = db.execute(
-                    text(f"SELECT id FROM {db_column} WHERE {update_column} = :content"),
-                    {"content": request.content.strip()}
-                ).fetchone()
-                if not row:
-                    raise HTTPException(status_code=404, detail="Content not found for update.")
-                update_id = row.id
+                # row = db.execute(
+                #     text(f"SELECT id FROM {db_column} WHERE {update_column} = :content"),
+                #     {"content": request.content.strip()}
+                # ).fetchone()
+                # if not row:
+                #     raise HTTPException(status_code=404, detail="Content not found for update.")
+                update_id = request.id
             else:
                 raise HTTPException(status_code=400, detail="id or content is required for updating.")
 

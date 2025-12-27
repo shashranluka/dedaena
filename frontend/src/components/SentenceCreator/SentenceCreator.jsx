@@ -98,6 +98,14 @@ const SentenceCreator = ({
           >
             .
           </button>
+          <button
+            className="sign-btn"
+            onClick={() => onWordAdd(",")}
+            title="მძიმე"
+            style={{ minWidth: 36 }}
+          >
+            ,
+          </button>
           {/* ✅ ბოლოს დამატებული სიმბოლოს წაშლის ღილაკი */}
           <button
             className="sign-btn"

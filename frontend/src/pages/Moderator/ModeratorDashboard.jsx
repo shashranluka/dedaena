@@ -397,13 +397,13 @@ const ModeratorDashboard = () => {
     }
   };
 
-  const handleDelete = (item) => {
+const handleDelete = (item) => {
     console.log("Deleting item:", item);
     if (!window.confirm(`დარწმუნებული ხართ რომ გსურთ წაშლა?\n\n"${item.content}"`)) return;
     const payload = {
       content: item.content,
       position: item.tourPosition,
-      id: item.id,
+      id: item.id.split('-')[0],
       arrayIndex: item.arrayIndex,
       deleted_by: user.username,
       deleted_at: new Date().toISOString(),

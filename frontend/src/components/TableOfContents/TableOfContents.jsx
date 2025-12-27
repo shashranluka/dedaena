@@ -38,16 +38,18 @@ const TableOfContents = ({
               <span className="card-position">{idx + 1}</span>
 
               <div className="card-content">
-                <div className="content-dot words">
+                {/* <div className="content-dot words">
                   <span className="icon">🔤</span>
                   <span className="count">{wordsCount}</span>
-                </div>
+                </div> */}
                 <div className="content-dot sentences">
                   <span className="icon">📝</span>
+                  <span className="">წინადადება</span>
                   <span className="count">{sentencesCount}</span>
                 </div>
                 <div className="content-dot proverbs">
                   <span className="icon">💡</span>
+                  <span className="">არტეფაქტი</span>
                   <span className="count">{proverbsCount}</span>
                 </div>
                 <div className="content-dot reading">

@@ -40,7 +40,7 @@ function GameDedaena() {
       return acc;
     }, {});
     setLettersStatsFromSentences(lettersStats);
-  }, [dedaenaData,position]);
+  }, [dedaenaData, position]);
   const allFoundWords = useMemo(() => {
     const allWords = [];
     Object.values(foundWordsByPosition).forEach(positionWords => {
@@ -150,23 +150,25 @@ function GameDedaena() {
     } else {
       setSentenceMessage("არასწორი წინადადება! სცადეთ თავიდან.");
     }
-    setLettersStatsFromSentences(prev => {
-      // ბოლო ნაპოვნი წინადადება
-      const lastSentence = userSentence;
-      // მხოლოდ ქართული ასოები
-      const lettersInSentence = (lastSentence || "").replace(/[^ა-ჰ]/g, "").split("");
-      // ასოების რაოდენობა წინადადებაში
-      const letterCounts = {};
-      lettersInSentence.forEach(ch => {
-        letterCounts[ch] = (letterCounts[ch] || 0) + 1;
+    if (isCorrect) {
+      setLettersStatsFromSentences(prev => {
+        // ბოლო ნაპოვნი წინადადება
+        const lastSentence = userSentence;
+        // მხოლოდ ქართული ასოები
+        const lettersInSentence = (lastSentence || "").replace(/[^ა-ჰ]/g, "").split("");
+        // ასოების რაოდენობა წინადადებაში
+        const letterCounts = {};
+        lettersInSentence.forEach(ch => {
+          letterCounts[ch] = (letterCounts[ch] || 0) + 1;
+        });
+        // დაამატე თითოეულ ასოს შესაბამისი რაოდენობა
+        const updated = { ...prev };
+        Object.entries(letterCounts).forEach(([ch, count]) => {
+          updated[ch] = (updated[ch] || 0) + count;
+        });
+        return updated;
       });
-      // დაამატე თითოეულ ასოს შესაბამისი რაოდენობა
-      const updated = { ...prev };
-      Object.entries(letterCounts).forEach(([ch, count]) => {
-        updated[ch] = (updated[ch] || 0) + count;
-      });
-      return updated;
-    });
+    }
     setUserSentence("");
   }, [userSentence, sentences, foundSentencesByPosition, position]);
 
@@ -242,7 +244,7 @@ function GameDedaena() {
                     setPosition(tour.position)
                   }
                   }
-                  title={`ტური ${tour.position} (${tour.letter})`}
+                  title={`ოთახი ${tour.position} (${tour.letter})`}
                 >
                   {tour.letter}
                 </button>
@@ -293,26 +295,26 @@ function GameDedaena() {
       )}
 
       {/* {activeView === 'sentence' && ( */}
-        <SentenceCreator
-          allFoundWords={allFoundWords}
-          userSentence={userSentence}
-          foundSentences={currentFoundSentences}
-          totalSentences={dedaenaData[position - 1]?.sentences.length}
-          sentenceMessage={sentenceMessage}
-          onWordAdd={(value) => {
-            if (typeof value === "string" && value.length === 1) {
-              setUserSentence(prev => prev + value); // ასო დაემატება ჰარის გარეშე
-            } else {
-              setUserSentence(prev => prev.length > 0 ? prev + " " + value : value); // სიტყვა დაემატება ჰარით
-            }
-          }}
-          onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
-          onCheck={checkSentence}
-          onRemoveLast={handleRemoveLast}
-          onClear={clearSentence}
-          onClose={() => setActiveView(null)}
-          letters={letters}
-        />
+      <SentenceCreator
+        allFoundWords={allFoundWords}
+        userSentence={userSentence}
+        foundSentences={currentFoundSentences}
+        totalSentences={dedaenaData[position - 1]?.sentences.length}
+        sentenceMessage={sentenceMessage}
+        onWordAdd={(value) => {
+          if (typeof value === "string" && value.length === 1) {
+            setUserSentence(prev => prev + value); // ასო დაემატება ჰარის გარეშე
+          } else {
+            setUserSentence(prev => prev.length > 0 ? prev + " " + value : value); // სიტყვა დაემატება ჰარით
+          }
+        }}
+        onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
+        onCheck={checkSentence}
+        onRemoveLast={handleRemoveLast}
+        onClear={clearSentence}
+        onClose={() => setActiveView(null)}
+        letters={letters}
+      />
       {/* )} */}
 
       {activeView === 'showSentences' && (
@@ -326,7 +328,7 @@ function GameDedaena() {
       )}
 
       <div className="open-button-div">
-        {allLettersStatsCompleted && (
+        {allLettersStatsCompleted && currentProverb.length > 0 && (
           <button
             className="open-gift-btn"
             onClick={() => {
@@ -341,7 +343,7 @@ function GameDedaena() {
             }
             }
           >
-            🚪 განძსაცავის გახსნა
+            🚪 არტეფაქტის ნახვა
           </button>
         )}
       </div>
@@ -349,7 +351,7 @@ function GameDedaena() {
       {showGift && (
         <div className="gift-modal-overlay" >
           <div className="gift-modal" onClick={e => e.stopPropagation()}>
-            <h3>🎁 ანდაზა</h3>
+            <h3> ანდაზა</h3>
             <div className="gift-content">
               {currentProverb ? (
                 <p style={{ fontSize: "20px", fontWeight: "bold", margin: "24px 0" }}>{currentProverb}</p>

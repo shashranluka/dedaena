@@ -12,7 +12,7 @@ const TableOfContents = ({
   return (
     <div className="alphabet-cards-full">
       <div className="alphabet-header">
-        <span>აირჩიე ტური</span>
+        <span>აირჩიე ოთახი</span>
         <button className="close-alphabet" onClick={onClose}>×</button>
       </div>
       <div className="alphabet-cards">
@@ -32,7 +32,7 @@ const TableOfContents = ({
               key={idx}
               className={`alphabet-card ${idx < position ? 'learned' : 'unlearned'} ${idx + 1 === position ? 'current' : ''}`}
               onClick={() => onCardClick(idx + 1)}
-              title={`ტური ${idx + 1} - ${pageInfo.letter} (სიტყვები: ${wordsCount}, წინადადებები: ${sentencesCount})`}
+              title={`ოთახი ${idx + 1} - ${pageInfo.letter} (სიტყვები: ${wordsCount}, წინადადებები: ${sentencesCount})`}
             >
               <span className="card-letter">{pageInfo.letter}</span>
               <span className="card-position">{idx + 1}</span>

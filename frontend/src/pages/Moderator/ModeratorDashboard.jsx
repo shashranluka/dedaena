@@ -623,7 +623,16 @@ const ModeratorDashboard = () => {
                   >
                     {tour.letter}
                   </button>
-                  {lettersFromSentences[tour.letter]}
+                  <div
+                    className={
+                      "letterStat " +
+                      (lettersFromSentences[tour.letter] > 0
+                        ? "green"
+                        : "yellow")
+                    }
+                  >
+                    {lettersFromSentences[tour.letter]}
+                  </div>
                 </div>
               );
             })}

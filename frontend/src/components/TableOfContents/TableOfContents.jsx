@@ -47,15 +47,15 @@ const TableOfContents = ({
                   <span className="">წინადადება</span>
                   <span className="count">{sentencesCount}</span>
                 </div>
-                <div className="content-dot proverbs">
+                <div className="content-dot artefacts">
                   <span className="icon">💡</span>
                   <span className="">არტეფაქტი</span>
                   <span className="count">{proverbsCount}</span>
                 </div>
-                <div className="content-dot reading">
+                {/* <div className="content-dot reading">
                   <span className="icon">📖</span>
                   <span className="count">{toreadsCount}</span>
-                </div>
+                </div> */}
               </div>
             </div>
           );

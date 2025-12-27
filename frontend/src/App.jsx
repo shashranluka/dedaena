@@ -17,7 +17,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* <Route path="/register" element={<Register />} /> */}
 
         {/* Protected Routes - ავტორიზებული მომხმარებლები */}
         <Route 

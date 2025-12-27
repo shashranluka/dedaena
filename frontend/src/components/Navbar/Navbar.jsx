@@ -57,15 +57,15 @@ function Navbar() {
 
       {/* Navigation Links */}
       <div className="navbar-links">
-        <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+        {/* <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
           მთავარი
-        </Link>
-        <Link to="/letters" className={`nav-link ${location.pathname === '/letters' ? 'active' : ''}`}>
+        </Link> */}
+        {/* <Link to="/letters" className={`nav-link ${location.pathname === '/letters' ? 'active' : ''}`}>
           ანბანი
-        </Link>
-        <Link to="/gamededaena" className={`nav-link ${location.pathname === '/gamededaena' ? 'active' : ''}`}>
+        </Link> */}
+        {/* <Link to="/gamededaena" className={`nav-link ${location.pathname === '/gamededaena' ? 'active' : ''}`}>
           თამაში
-        </Link>
+        </Link> */}
         
         {/* Admin and Moderator Panel Links */}
         {user && (user.is_admin || user.is_moder) && (
@@ -184,12 +184,12 @@ function Navbar() {
         ) : (
           // Not logged in
           <div className="auth-buttons">
-            <Link to="/login" className="login-btn">
+            {/* <Link to="/login" className="login-btn">
               შესვლა
-            </Link>
-            <Link to="/registration" className="register-btn">
+            </Link> */}
+            {/* <Link to="/registration" className="register-btn">
               რეგისტრაცია
-            </Link>
+            </Link> */}
           </div>
         )}
       </div>

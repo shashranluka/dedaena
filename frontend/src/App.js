@@ -12,12 +12,13 @@ import ModeratorDashboard from "./pages/Moderator/ModeratorDashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 function App() {
+  console.log("App rendered");
   return (
     <Router>
       <Navbar />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<GameDedaena />} />
         <Route path="/letters" element={<LettersPage />} />
         <Route path="/gogebashvili" element={<Gogebashvili />} />
         <Route path="/gamededaena" element={<GameDedaena />} />

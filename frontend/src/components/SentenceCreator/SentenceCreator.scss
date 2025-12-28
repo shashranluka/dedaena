@@ -47,26 +47,50 @@
 
     span {
       font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .next-quest {
+      background: white;
+      color: #9C27B0;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
       font-size: 0.9rem;
-      line-height: 1.3;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #f3e5f5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
     }
 
     .close-create-sentence {
-      background: rgba(255, 255, 255, 0.2);
+      background: transparent;
       border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
+      color: white;
+      font-size: 2rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      font-size: 1rem;
-      color: white;
-      transition: all 0.2s;
+      border-radius: 4px;
+      transition: background 0.15s;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.2);
       }
     }
   }
@@ -122,6 +146,7 @@
 
   .sentence-section {
     padding: 15px;
+    position: relative; // ✅ overlay-სთვის
 
     h4 {
       margin: 0 0 10px 0;
@@ -138,6 +163,7 @@
       min-height: 50px;
       display: flex;
       align-items: center;
+      position: relative; // ✅ overlay-სთვის
 
       .sentence-words {
         .sentence-word {
@@ -153,6 +179,45 @@
         font-size: 0.9rem;
         text-align: center;
         width: 100%;
+      }
+
+      // ✅ ახალი overlay შეტყობინება
+      .sentence-message-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(76, 175, 80, 0.95); // ✅ default მწვანე
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+        color: white;
+        z-index: 10;
+        backdrop-filter: blur(2px);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        
+        // ✅ წითელი ვარიანტი შეცდომისთვის
+        &.error {
+          background: rgba(244, 67, 54, 0.95);
+          box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        }
+        
+        // ✅ ყვითელი ვარიანტი გაფრთხილებისთვის
+        &.warning {
+          background: rgba(255, 152, 0, 0.95);
+          box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
+      }
+
+      // ✅ 3 წამიანი fade-out ანიმაცია
+      .sentence-message-fadeout {
+        animation: messageFadeIn 0.3s ease-in-out, messageFadeOut 2.7s ease-in-out 0.3s forwards;
       }
     }
 
@@ -203,16 +268,47 @@
     }
   }
 
+  // ✅ ძველი sentence-message წაშალეთ ან დატოვეთ fallback-ად
   .sentence-message {
-    margin: 0 15px 15px 15px;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-    font-size: 0.9rem;
-    background: #E8F5E8;
-    color: #2E7D32;
-    border: 1px solid #4CAF50;
+    display: none; // ან სრულიად წაშალეთ
+  }
+
+  // ✅ ანიმაცია
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  // ✅ შეტყობინებისთვის სპეციალური fadeIn
+  @keyframes messageFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  // ✅ შეტყობინებისთვის სპეციალური fadeOut
+  @keyframes messageFadeOut {
+    0% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      visibility: hidden;
+    }
   }
 
   .remaining-info {

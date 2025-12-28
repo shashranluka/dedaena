@@ -19,6 +19,8 @@ function GameDedaena() {
   const [message, setMessage] = useState("");
   const [userSentence, setUserSentence] = useState("");
   const [sentenceMessage, setSentenceMessage] = useState("");
+  const [sentenceMessageKey, setSentenceMessageKey] = useState(0);
+  const [sentenceMessageType, setSentenceMessageType] = useState("success"); // ✅ ახალი state
   const [activeView, setActiveView] = useState('sentence');
   const [position, setPosition] = useState(2);
   const [werili, setWerili] = useState();
@@ -102,7 +104,8 @@ function GameDedaena() {
     } else if (currentWords.includes(word)) {
       setMessage("ეს სიტყვა უკვე მოძებნილია!");
     } else {
-      setMessage("არასწორი კომბინაცია!");
+      setMessage("სხვა სცადე!");
+      // setMessage("არასწორი კომბინაცია!");
     }
     setSelected([]);
   }, [selected, words, foundWordsByPosition, position]);
@@ -129,6 +132,8 @@ function GameDedaena() {
   const checkSentence = useCallback(() => {
     if (userSentence.length === 0) {
       setSentenceMessage("შეადგინე წინადადება!");
+      setSentenceMessageType("warning"); // ✅ ყვითელი
+      setSentenceMessageKey(Date.now());
       return;
     }
 
@@ -145,32 +150,34 @@ function GameDedaena() {
         [position]: [...currentSentences, userSentence]
       }));
       setSentenceMessage("სწორი წინადადება!");
+      setSentenceMessageType("success"); // ✅ მწვანე
+      setSentenceMessageKey(Date.now());
     } else if (currentSentences.some(s => s.toLowerCase() === normalizedUserSentence)) {
       setSentenceMessage("ეს წინადადება უკვე შედგენილია!");
+      setSentenceMessageType("warning"); // ✅ ყვითელი
+      setSentenceMessageKey(Date.now());
     } else {
-      setSentenceMessage("არასწორი წინადადება! სცადეთ თავიდან.");
+      setSentenceMessage("სხვა სცადე!");
+      setSentenceMessageType("error"); // ✅ წითელი
+      setSentenceMessageKey(Date.now());
     }
     if (isCorrect) {
       setLettersStatsFromSentences(prev => {
-        // ბოლო ნაპოვნი წინადადება
         const lastSentence = userSentence;
-        // მხოლოდ ქართული ასოები
         const lettersInSentence = (lastSentence || "").replace(/[^ა-ჰ]/g, "").split("");
-        // ასოების რაოდენობა წინადადებაში
         const letterCounts = {};
         lettersInSentence.forEach(ch => {
           letterCounts[ch] = (letterCounts[ch] || 0) + 1;
         });
-        // დაამატე თითოეულ ასოს შესაბამისი რაოდენობა
         const updated = { ...prev };
         Object.entries(letterCounts).forEach(([ch, count]) => {
           updated[ch] = (updated[ch] || 0) + count;
         });
         return updated;
       });
+      setUserSentence("");
     }
-    setUserSentence("");
-  }, [userSentence, sentences, foundSentencesByPosition, position]);
+  }, [userSentence, sentences, foundSentencesByPosition, position, dedaenaData]);
 
   const handleAlphabetCardClick = useCallback((clickedPosition) => {
     setPosition(clickedPosition);
@@ -301,11 +308,13 @@ function GameDedaena() {
         foundSentences={currentFoundSentences}
         totalSentences={dedaenaData[position - 1]?.sentences.length}
         sentenceMessage={sentenceMessage}
+        sentenceMessageKey={sentenceMessageKey}
+        sentenceMessageType={sentenceMessageType} // ✅ ახალი prop
         onWordAdd={(value) => {
           if (typeof value === "string" && value.length === 1) {
-            setUserSentence(prev => prev + value); // ასო დაემატება ჰარის გარეშე
+            setUserSentence(prev => prev + value);
           } else {
-            setUserSentence(prev => prev.length > 0 ? prev + " " + value : value); // სიტყვა დაემატება ჰარით
+            setUserSentence(prev => prev.length > 0 ? prev + " " + value : value);
           }
         }}
         onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
@@ -314,6 +323,8 @@ function GameDedaena() {
         onClear={clearSentence}
         onClose={() => setActiveView(null)}
         letters={letters}
+        position={position}
+        setPosition={setPosition}
       />
       {/* )} */}
 
@@ -343,7 +354,7 @@ function GameDedaena() {
             }
             }
           >
-            🚪 არტეფაქტის ნახვა
+            🚪 არტეფაქტის გახსნა
           </button>
         )}
       </div>

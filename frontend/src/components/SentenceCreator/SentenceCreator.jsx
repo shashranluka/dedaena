@@ -7,13 +7,17 @@ const SentenceCreator = ({
   foundSentences,
   totalSentences,
   sentenceMessage,
+  sentenceMessageKey,
+  sentenceMessageType, // ✅ ახალი prop
   onWordAdd,
   onPunctuationAdd,
   onCheck,
   onClear,
   onClose,
-  onRemoveLast, // ← შეცვლილი პროპი
-  letters // ← დაამატეთ ეს prop
+  onRemoveLast,
+  letters,
+  position,
+  setPosition
 }) => {
   const remainingSentencesCount = totalSentences - foundSentences.length;
 
@@ -21,35 +25,11 @@ const SentenceCreator = ({
     <div className="create-sentence-div">
       <div className="create-sentence-header">
         <span>შექმენი წინადადება ({foundSentences.length}/{totalSentences})</span>
-        <button className="close-create-sentence" onClick={onClose}>×</button>
+        <button className="next-quest" onClick={()=>setPosition(position+1)}>შემდეგი ქვესტი</button>
+        {/* <button className="close-create-sentence" onClick={onClose}>×</button> */}
       </div>
 
-
-
-      {/* <div className="found-words">
-        <h4>ნაპოვნი სიტყვები ({allFoundWords.length} სულ ყველა ტურიდან):</h4>
-        <div className="words-grid">
-          {allFoundWords.map((w, idx) => (
-            <button
-              key={idx}
-              className="word-card"
-              onClick={() => onWordAdd(w)}
-              title="დაკლიკე წინადადებაში დასამატებლად"
-            >
-              {w}
-            </button>
-          ))}
-          <button
-            className="punctuation-btn"
-            onClick={() => onPunctuationAdd(".")}
-          >
-            .
-          </button>
-        </div>
-      </div> */}
-
       <div className="sentence-section">
-        {/* <h4>წინადადების შედგენა:</h4> */}
         <div className="sentence-builder">
           {userSentence.length > 0 ? (
             <div className="sentence-words">
@@ -62,11 +42,18 @@ const SentenceCreator = ({
               წინადადების შესადგენად დააკლიკე ასოების ბარათებს
             </div>
           )}
+          
+          {/* ✅ შეტყობინება უნიკალური key-ით და ტიპით */}
+          {sentenceMessage && (
+            <div 
+              key={sentenceMessageKey}
+              className={`sentence-message-overlay sentence-message-fadeout ${sentenceMessageType || 'success'}`}
+            >
+              {sentenceMessage}
+            </div>
+          )}
         </div>
 
-
-
-        {/* ✅ ასოების ღილაკები */}
         {letters && letters.length > 0 && (
           <div className="letters-row" style={{ marginBottom: 12 }}>
             {letters.map((l, index) => (
@@ -81,6 +68,7 @@ const SentenceCreator = ({
             ))}
           </div>
         )}
+        
         <div className="signs">
           <button
             className="sign-btn"
@@ -88,7 +76,6 @@ const SentenceCreator = ({
             title="ჰარი"
             style={{ minWidth: 100 }}
           >
-
           </button>
           <button
             className="sign-btn"
@@ -106,7 +93,6 @@ const SentenceCreator = ({
           >
             ,
           </button>
-          {/* ✅ ბოლოს დამატებული სიმბოლოს წაშლის ღილაკი */}
           <button
             className="sign-btn"
             onClick={onRemoveLast}
@@ -117,10 +103,6 @@ const SentenceCreator = ({
             ⬅️
           </button>
         </div>
-
-
-
-
 
         <div className="sentence-actions">
           <button
@@ -140,9 +122,7 @@ const SentenceCreator = ({
         </div>
       </div>
 
-      {sentenceMessage && <div className="sentence-message">{sentenceMessage}</div>}
-
-      <div className="remaining-info">
+      {/* <div className="remaining-info">
         <div className="remaining-count">
           <span className="remaining-label">დარჩენილი:</span>
           <span className="remaining-number">{remainingSentencesCount}</span>
@@ -151,7 +131,7 @@ const SentenceCreator = ({
           <span className="total-label">სულ:</span>
           <span className="total-number">{totalSentences}</span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

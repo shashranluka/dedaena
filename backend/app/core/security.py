@@ -48,15 +48,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     Input:  {"sub": "luka"}
     Output: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsdWthIiwiZXhwIjoxNjk5NDYzMjAwfQ.xyz..."
     """
-    to_encode = data.copy()
-    
     # Token-ის ვადის გაწერა
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
+    # ❌ არა data.copy() - ყველაფერს იღებს
+    # ✅ მხოლოდ კონკრეტული ველები
+    to_encode = {
+        "exp": expire,
+        "id": data.get("id"),
+        "username": data.get("username"),
+        "role": data.get("role"),
+        "is_admin": data.get("is_admin", False),
+        "is_moder": data.get("is_moder", False)
+    }
     
     # JWT encode
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

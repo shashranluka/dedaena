@@ -43,41 +43,41 @@ async def register(user_data: UserRegister):
     finally:
         conn.close()
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 async def login(credentials: UserLogin):
     """მომხმარებლის ავტორიზაცია"""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT id, username, email, password, is_admin, is_moder, created_at
-                FROM users
+                SELECT id, username, password, is_admin, is_moder 
+                FROM users 
                 WHERE username = %s AND is_active = TRUE;
             """, (credentials.username,))
-            user_row = cur.fetchone()
-            if not user_row or not verify_password(credentials.password, user_row[3]):
-                raise HTTPException(status_code=401, detail="არასწორი მომხმარებლის სახელი ან პაროლი")
-            # JWT access token-ის გენერაცია
+            user = cur.fetchone()
+            
+            if not user or not verify_password(credentials.password, user[2]):
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+            # ✅ Token payload-ში ID-ს ჩართვა
             access_token = create_access_token(data={
-                "username": user_row[1],
-                "role": "admin" if user_row[4] else "moderator" if user_row[5] else "user"
+                "id": user[0],              # ✅ user ID
+                "username": user[1],
+                "is_admin": user[3],
+                "is_moder": user[4],
+                "role": "admin" if user[3] else "moderator" if user[4] else "user"
             })
-            return TokenResponse(
-                access_token=access_token,
-                token_type="bearer",
-                user=UserResponse(
-                    id=user_row[0],
-                    username=user_row[1],
-                    email=user_row[2],
-                    is_admin=user_row[4],
-                    is_moder=user_row[5],
-                    created_at=user_row[6]
-                )
-            )
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=500, detail="ავტორიზაცია ვერ მოხერხდა")
+            
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": user[0],          # ✅ ID
+                    "username": user[1],
+                    "is_admin": user[3],
+                    "is_moder": user[4]
+                }
+            }
     finally:
         conn.close()
 

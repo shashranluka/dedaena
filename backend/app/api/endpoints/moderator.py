@@ -136,8 +136,8 @@ async def toggle_is_playable(
         raise HTTPException(status_code=404, detail="Content not found")
 
     db.execute(
-        text(f"UPDATE {table_name_db} SET is_playable = :is_playable WHERE id = :id"),
-        {"is_playable": request.is_playable, "id": row.id}
+        text(f"UPDATE {table_name_db} SET is_playable = :is_playable, updated_by = :user_id WHERE id = :id"),
+        {"is_playable": request.is_playable, "id": row.id, "user_id": current_user["id"]}
     )
     db.commit()
     return {"success": True, "id": row.id, "is_playable": request.is_playable}
@@ -170,6 +170,7 @@ async def handle_dynamic_content_action(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_moderator_user)
 ):
+    print(f"⚡️ Dynamic action request by moderator: {current_user}")
     # print(f"   Dynamic action request: table={table_name}, content_type={content_type}, action={action}, position={request.position}, arrayIndex={request.arrayIndex}, content={request.content}")
     allowed_tables = ["words", "sentences", "proverbs", "readings"]
     if f"{content_type}s" not in allowed_tables:
@@ -209,11 +210,11 @@ async def handle_dynamic_content_action(
                 raise HTTPException(status_code=400, detail="Invalid content type for insert.")
 
             insert_query = text(f"""
-                INSERT INTO {db_column} ({insert_column})
-                VALUES (:content)
+                INSERT INTO {db_column} ({insert_column}, created_by, updated_by)
+                VALUES (:content, :user_id, :user_id)
                 RETURNING id
             """)
-            inserted = db.execute(insert_query, {"content": request.content.strip()}).fetchone()
+            inserted = db.execute(insert_query, {"content": request.content.strip(), "user_id": current_user["id"]}).fetchone()
             if not inserted:
                 raise HTTPException(status_code=500, detail="Failed to insert content.")
             new_id = inserted.id
@@ -249,10 +250,12 @@ async def handle_dynamic_content_action(
                             "toread" if content_type == "reading" else None
             update_query = text(f"""
                 UPDATE {db_column}
-                SET {update_column} = :content
+                SET 
+                    {update_column} = :content,
+                    updated_by = :user_id
                 WHERE id = :id
             """)
-            db.execute(update_query, {"content": request.content.strip(), "id": update_id})
+            db.execute(update_query, {"content": request.content.strip(), "user_id": current_user["id"], "id": update_id})
             updated_ids = current_ids
             message = f"ელემენტი განახლდა {db_column} ცხრილში და {ids_column}-ში."
 

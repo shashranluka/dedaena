@@ -57,6 +57,29 @@
       font-size: 1rem;
     }
 
+    .sound-toggle-btn {
+      background: white;
+      color: #607D8B;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &:hover {
+        background: #f3e5f5;
+        transform: scale(1.1);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
     .next-quest {
       background: white;
       color: #9C27B0;

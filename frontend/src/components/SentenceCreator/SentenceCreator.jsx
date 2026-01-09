@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./SentenceCreator.scss";
 
 const SentenceCreator = ({
@@ -21,11 +21,41 @@ const SentenceCreator = ({
 }) => {
   const remainingSentencesCount = totalSentences - foundSentences.length;
 
+  // ✅ ხმის ჩართვა-გამორთვის state
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('dedaena_sound_enabled');
+    return saved !== null ? JSON.parse(saved) : true; // default ჩართული
+  });
+
+  // ✅ localStorage-ში შენახვა
+  useEffect(() => {
+    localStorage.setItem('dedaena_sound_enabled', JSON.stringify(isSoundEnabled));
+  }, [isSoundEnabled]);
+
+  const playLetterSound = (letter) => {
+    if (!isSoundEnabled) return; // ✅ თუ გამორთულია, არ დაუკრას
+    const audio = new Audio(`/audio/letters/${letter}.mp3`);
+    audio.play().catch(err => console.log('Audio play failed:', err));
+  };
+
+  const toggleSound = () => {
+    setIsSoundEnabled(prev => !prev);
+  };
+
   return (
     <div className="create-sentence-div">
       <div className="create-sentence-header">
         <span>შექმენი წინადადება ({foundSentences.length}/{totalSentences})</span>
-        <button className="next-quest" onClick={()=>setPosition(position+1)}>შემდეგი ქვესტი</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className="sound-toggle-btn" 
+            onClick={toggleSound}
+            title={isSoundEnabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
+          >
+            {isSoundEnabled ? "🔊" : "🔇"}
+          </button>
+          <button className="next-quest" onClick={()=>setPosition(position+1)}>შემდეგი ქვესტი</button>
+        </div>
         {/* <button className="close-create-sentence" onClick={onClose}>×</button> */}
       </div>
 
@@ -60,7 +90,10 @@ const SentenceCreator = ({
               <button
                 key={`${l}-${index}`}
                 className="letter-btn"
-                onClick={() => onWordAdd(l)}
+                onClick={() => {
+                  onWordAdd(l);
+                  playLetterSound(l);
+                }}
                 title="დაამატე ასო წინადადებაში"
               >
                 {l}

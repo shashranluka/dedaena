@@ -1,1 +1,4 @@
 dedaena_db.sql
+
+# macOS system files
+.DS_Store

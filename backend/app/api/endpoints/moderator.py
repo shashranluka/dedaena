@@ -9,9 +9,11 @@ from app.database import get_db
 from app.schemas.sentence import SentenceUpdate, SentenceUpdateResponse
 from app.schemas.word import AddWordToTourRequest
 from app.api.dependencies import get_current_moderator_user
+# from app.core.audit import log_audit_event
 import json
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from app.core.audit import log_audit_event
 
 
 router = APIRouter()
@@ -129,17 +131,34 @@ async def toggle_is_playable(
 
     # მოძებნე ჩანაწერი content-ით
     row = db.execute(
-        text(f"SELECT id FROM {table_name_db} WHERE {column_name} = :content"),
+        text(f"SELECT id, is_playable FROM {table_name_db} WHERE {column_name} = :content"),
         {"content": request.content}
     ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Content not found")
 
+    old_value = str(row.is_playable) if row.is_playable is not None else "None"
+    
     db.execute(
         text(f"UPDATE {table_name_db} SET is_playable = :is_playable, updated_by = :user_id WHERE id = :id"),
         {"is_playable": request.is_playable, "id": row.id, "user_id": current_user["id"]}
     )
     db.commit()
+    
+    # ✅ Audit log
+    try:
+        log_audit_event(
+            user_id=current_user['id'],
+            username=current_user['username'],
+            action="TOGGLE_PLAYABLE",
+            table_name=table_name_db,
+            record_id=row.id,
+            old_value=old_value,
+            new_value=str(request.is_playable)
+        )
+    except Exception as audit_err:
+        print(f"⚠️ Failed to log audit event: {audit_err}")
+    
     return {"success": True, "id": row.id, "is_playable": request.is_playable}
 
 
@@ -221,6 +240,19 @@ async def handle_dynamic_content_action(
 
             updated_ids = current_ids + [new_id]
             message = f"'{request.content[:20]}...' წარმატებით დაემატა {db_column} და {ids_column}-ში."
+            
+            # Audit log for CREATE
+            try:
+                log_audit_event(
+                    user_id=current_user['id'],
+                    username=current_user['username'],
+                    action="CREATE",
+                    table_name=db_column,
+                    record_id=new_id,
+                    new_value=request.content.strip()
+                )
+            except Exception as audit_err:
+                print(f"⚠️ Failed to log audit event: {audit_err}")
 
         elif action == "update":
             # განახლება id-ით (content ან id უნდა იყოს მოწოდებული)
@@ -248,6 +280,14 @@ async def handle_dynamic_content_action(
                             "proverb" if content_type == "proverb" else \
                             "word" if content_type == "word" else \
                             "toread" if content_type == "reading" else None
+            
+            # Get old value before update
+            old_row = db.execute(
+                text(f"SELECT {update_column} FROM {db_column} WHERE id = :id"),
+                {"id": update_id}
+            ).fetchone()
+            old_value = old_row[0] if old_row else None
+            
             update_query = text(f"""
                 UPDATE {db_column}
                 SET 
@@ -258,6 +298,20 @@ async def handle_dynamic_content_action(
             db.execute(update_query, {"content": request.content.strip(), "user_id": current_user["id"], "id": update_id})
             updated_ids = current_ids
             message = f"ელემენტი განახლდა {db_column} ცხრილში და {ids_column}-ში."
+            
+            # Audit log for UPDATE
+            try:
+                log_audit_event(
+                    user_id=current_user['id'],
+                    username=current_user['username'],
+                    action="UPDATE",
+                    table_name=db_column,
+                    record_id=update_id,
+                    old_value=old_value,
+                    new_value=request.content.strip()
+                )
+            except Exception as audit_err:
+                print(f"⚠️ Failed to log audit event: {audit_err}")
 
         elif action == "delete":
             # წაშლა id-ით (content ან id უნდა იყოს მოწოდებული)
@@ -280,6 +334,17 @@ async def handle_dynamic_content_action(
             else:
                 raise HTTPException(status_code=400, detail="id or content is required for deleting.")
 
+            # Get old value before delete
+            delete_column = "sentence" if content_type == "sentence" else \
+                           "proverb" if content_type == "proverb" else \
+                           "word" if content_type == "word" else \
+                           "toread" if content_type == "reading" else None
+            old_row = db.execute(
+                text(f"SELECT {delete_column} FROM {db_column} WHERE id = :id"),
+                {"id": delete_id}
+            ).fetchone()
+            old_value = old_row[0] if old_row else None
+            
             # წაშალე შესაბამის ცხრილში
             db.execute(
                 text(f"DELETE FROM {db_column} WHERE id = :id"),
@@ -288,6 +353,19 @@ async def handle_dynamic_content_action(
             # ids-იდან ამოიღე ეს id
             updated_ids = [i for i in current_ids if i != delete_id]
             message = f"ელემენტი წაიშალა {db_column} ცხრილიდან და {ids_column}-დან."
+            
+            # Audit log for DELETE
+            try:
+                log_audit_event(
+                    user_id=current_user['id'],
+                    username=current_user['username'],
+                    action="DELETE",
+                    table_name=db_column,
+                    record_id=delete_id,
+                    old_value=old_value
+                )
+            except Exception as audit_err:
+                print(f"⚠️ Failed to log audit event: {audit_err}")
 
         else:
             raise HTTPException(status_code=400, detail=f"Invalid action: {action}")

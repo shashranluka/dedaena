@@ -554,6 +554,313 @@ $hover-bg: #363a4f;
   }
 }
 
+// ========== Audit Logs Management ==========
+.audit-logs-management {
+  .audit-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .audit-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .filter-input,
+    .filter-select {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.75rem 1rem;
+      background: $card-bg;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      color: $text-primary;
+      font-size: 0.95rem;
+      @include transition(border-color);
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      }
+
+      &::placeholder {
+        color: $text-secondary;
+      }
+    }
+
+    .filter-select {
+      cursor: pointer;
+      
+      option {
+        background: $card-bg;
+        color: $text-primary;
+      }
+    }
+
+    .refresh-btn {
+      padding: 0.75rem 1.5rem;
+      background: $primary-color;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      @include transition();
+
+      &:hover:not(:disabled) {
+        background: darken($primary-color, 10%);
+        transform: translateY(-2px);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .audit-count {
+    margin-bottom: 1rem;
+    color: $text-secondary;
+    font-size: 0.95rem;
+
+    strong {
+      color: $text-primary;
+      font-weight: 600;
+    }
+  }
+
+  .audit-table-container {
+    background: $card-bg;
+    border-radius: 12px;
+    overflow: hidden;
+    @include card-shadow;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+
+  .audit-table {
+    width: 100%;
+    min-width: 1200px;
+    border-collapse: collapse;
+
+    thead {
+      background: rgba(74, 144, 226, 0.1);
+      
+      tr {
+        th {
+          padding: 1rem;
+          text-align: left;
+          font-weight: 600;
+          color: $primary-color;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 2px solid $border-color;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border-color;
+        @include transition(background-color);
+
+        &:hover {
+          background: $hover-bg;
+        }
+
+        td {
+          padding: 1rem;
+          color: $text-secondary;
+          font-size: 0.9rem;
+          vertical-align: top;
+
+          &.date-cell {
+            font-size: 0.85rem;
+            color: $text-secondary;
+            white-space: nowrap;
+            min-width: 150px;
+          }
+
+          &.table-name {
+            font-family: 'Courier New', monospace;
+            color: $warning-color;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+
+          &.value-cell {
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            max-width: 200px;
+
+            .old-value,
+            .new-value {
+              display: inline-block;
+              padding: 0.25rem 0.5rem;
+              border-radius: 4px;
+              max-width: 100%;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .old-value {
+              background: rgba(255, 107, 107, 0.1);
+              color: #ff6b6b;
+              border: 1px solid rgba(255, 107, 107, 0.3);
+            }
+
+            .new-value {
+              background: rgba(46, 204, 113, 0.1);
+              color: $success-color;
+              border: 1px solid rgba(46, 204, 113, 0.3);
+            }
+          }
+
+          &.no-data {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: $text-secondary;
+            font-style: italic;
+          }
+        }
+      }
+    }
+  }
+
+  .user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(123, 104, 238, 0.2);
+    color: $secondary-color;
+    border-radius: 6px;
+    border: 1px solid rgba(123, 104, 238, 0.3);
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .action-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+
+    &.create {
+      background: rgba(46, 204, 113, 0.2);
+      color: $success-color;
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+
+    &.update {
+      background: rgba(52, 152, 219, 0.2);
+      color: #3498db;
+      border: 1px solid rgba(52, 152, 219, 0.3);
+    }
+
+    &.delete {
+      background: rgba(231, 76, 60, 0.2);
+      color: $danger-color;
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+
+    &.toggle_playable {
+      background: rgba(243, 156, 18, 0.2);
+      color: $warning-color;
+      border: 1px solid rgba(243, 156, 18, 0.3);
+    }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: $card-bg;
+    border-radius: 8px;
+
+    .pagination-btn {
+      padding: 0.6rem 1.2rem;
+      background: $sidebar-bg;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      color: $text-primary;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+      @include transition();
+
+      &:hover:not(:disabled) {
+        background: $hover-bg;
+        border-color: $primary-color;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(74, 144, 226, 0.2);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+
+    .pagination-info {
+      color: $text-primary;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      background: rgba(74, 144, 226, 0.1);
+      border-radius: 6px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .audit-filters {
+      flex-direction: column;
+      
+      .filter-input,
+      .filter-select,
+      .refresh-btn {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+
+    .audit-table-container {
+      overflow-x: scroll;
+    }
+
+    .pagination {
+      flex-wrap: wrap;
+      gap: 0.75rem;
+
+      .pagination-btn,
+      .pagination-info {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.8rem;
+      }
+    }
+  }
+}
+
 // ========== Responsive Design ==========
 @media (max-width: 1024px) {
   .admin-dashboard {
@@ -644,4 +951,131 @@ $hover-bg: #363a4f;
     color: $text-secondary;
     margin: 0;
   }
+}
+
+// ========== Value Display Modal ==========
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  @include flex-center;
+  z-index: 9999;
+  cursor: pointer;
+
+  .modal-content {
+    background-color: $card-bg;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    cursor: default;
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      h3 {
+        color: $primary-color;
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .modal-close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: $text-primary;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        @include flex-center;
+        @include transition;
+
+        &:hover {
+          color: $danger-color;
+          transform: scale(1.1);
+        }
+      }
+    }
+
+    .modal-value-display {
+      background-color: $dark-bg;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      max-height: 50vh;
+      overflow: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: $text-secondary;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid $border-color;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+
+      .modal-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        @include transition;
+
+        &.primary {
+          background-color: $primary-color;
+          color: $text-primary;
+
+          &:hover {
+            background-color: darken($primary-color, 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+          }
+        }
+
+        &.secondary {
+          background-color: $hover-bg;
+          color: $text-primary;
+
+          &:hover {
+            background-color: lighten($hover-bg, 5%);
+          }
+        }
+      }
+    }
+  }
+}
+
+// ========== Clickable Value Cells Enhancement ==========
+.value-cell {
+  .clickable {
+    cursor: pointer;
+    @include transition;
+
+    &:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+  }
+}
+
+// ========== Loading Screen ==========
+.loading-screen {
+  @include flex-center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: $text-primary;
 }

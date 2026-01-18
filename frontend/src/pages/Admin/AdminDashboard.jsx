@@ -22,6 +22,23 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all'); // all, admin, moder, user
 
+  // ✅ Audit Logs state
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState(null);
+  const [auditStats, setAuditStats] = useState(null);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditTotalPages, setAuditTotalPages] = useState(0);
+  const [auditFilters, setAuditFilters] = useState({
+    username: '',
+    action: '',
+    table_name: ''
+  });
+
+  // State-ში დაამატე:
+  const [expandedValue, setExpandedValue] = useState(null);
+
   useEffect(() => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
@@ -38,6 +55,14 @@ function AdminDashboard() {
       fetchUsers();
     }
   }, [activeTab]);
+
+  // ✅ Fetch audit logs when 'audit' tab is active
+  useEffect(() => {
+    if (activeTab === 'audit') {
+      fetchAuditLogs();
+      fetchAuditStats();
+    }
+  }, [activeTab, auditPage, auditFilters]);
 
   // ✅ Fetch all users from API
   const fetchUsers = async () => {
@@ -194,6 +219,89 @@ function AdminDashboard() {
     return matchesSearch && matchesRole;
   });
 
+  // ✅ Fetch audit logs
+  // მიზანი: audit_logs ცხრილიდან ლოგების წამოღება ფილტრებითა და pagination-ით
+  // რას აკეთებს:
+  //   - აგებს URL params-ს (page, page_size, username, action, table_name)
+  //   - აგზავნის GET request-ს /admin/audit/logs-ზე Authorization header-ით
+  //   - იღებს პასუხს: logs მასივს, total-ს, pagination info-ს
+  //   - ახალდებს state-ს: auditLogs, auditTotal, auditTotalPages
+  // გამოყენება: როცა admin audit logs ტაბს ხსნის ან ფილტრებს/pagination-ს იცვლის
+  const fetchAuditLogs = async () => {
+    setAuditLoading(true);
+    setAuditError(null);
+    
+    try {
+      const params = new URLSearchParams({
+        page: auditPage.toString(),
+        page_size: '50'
+      });
+      
+      if (auditFilters.username) params.append('username', auditFilters.username);
+      if (auditFilters.action) params.append('action', auditFilters.action);
+      if (auditFilters.table_name) params.append('table_name', auditFilters.table_name);
+      
+      const response = await api.get(`/admin/audit/logs?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        }
+      });
+      
+      if (!response.status) {
+        throw new Error('Failed to fetch audit logs');
+      }
+      
+      const data = response.data;
+      setAuditLogs(data.logs || []);
+      setAuditTotal(data.total || 0);
+      setAuditTotalPages(data.total_pages || 0);
+      
+      console.log('✅ Audit logs loaded:', data.logs?.length);
+    } catch (error) {
+      console.error('❌ Error fetching audit logs:', error);
+      setAuditError(error.message);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  // ✅ Fetch audit statistics
+  // მიზანი: audit logs-ის სტატისტიკური მონაცემების წამოღება dashboard-ის stat cards-ისთვის
+  // რას აკეთებს:
+  //   - აგზავნის GET request-ს /admin/audit/stats-ზე Authorization header-ით
+  //   - იღებს: total_logs (სულ ლოგები), actions (მოქმედებების რაოდენობა), 
+  //           tables (ცხრილების რაოდენობა), recent_activity (ბოლო 24 საათში)
+  //   - ახალდებს auditStats state-ს რომელიც გამოჩნდება stat cards-ში
+  // გამოყენება: audit ტაბზე გადასვლისას sidebar-ის badge-ისთვის და stat cards-ისთვის
+  const fetchAuditStats = async () => {
+    try {
+      const response = await api.get('/admin/audit/stats', {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        }
+      });
+      if (response.status) {
+        setAuditStats(response.data);
+        console.log('✅ Audit stats loaded');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching audit stats:', error);
+    }
+  };
+
+  // modal handler:
+  const showFullValue = (type, value, logId) => {
+    setExpandedValue({ type, value, log_id: logId });
+  };
+
+  const closeValueModal = () => {
+    setExpandedValue(null);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ დაკოპირდა clipboard-ში');
+  };
 
   console.log("AdminDashboard Rendered", filteredUsers);
 
@@ -202,13 +310,7 @@ function AdminDashboard() {
   // console.log("Rendering AdminDashboard - Active Tab:", activeTab, filteredUsers);
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '1.5rem'
-      }}>
+      <div className="loading-screen">
         ⏳ იტვირთება...
       </div>
     );
@@ -275,6 +377,17 @@ function AdminDashboard() {
               <span>პარამეტრები</span>
             </button>
           )}
+          
+          {user.is_admin && (
+            <button 
+              className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`}
+              onClick={() => setActiveTab('audit')}
+            >
+              <span className="icon">📋</span>
+              <span>Audit Logs</span>
+              {auditStats && <span className="badge">{auditStats.recent_activity}</span>}
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -287,6 +400,7 @@ function AdminDashboard() {
             {activeTab === 'letters' && '📚 ანბანის მართვა'}
             {activeTab === 'content' && '📝 კონტენტის მართვა'}
             {activeTab === 'settings' && '⚙️ პარამეტრები'}
+            {activeTab === 'audit' && '📋 Audit Logs'}
           </h1>
           <p className="welcome-text">
             მოგესალმებით, {user.username}!
@@ -522,6 +636,221 @@ function AdminDashboard() {
             </div>
           )}
 
+          {/* ========== AUDIT LOGS TAB ========== */}
+          {activeTab === 'audit' && user.is_admin && (
+            <div className="audit-logs-management">
+              {/* Stats Cards */}
+              {auditStats && (
+                <div className="audit-stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-icon">📊</div>
+                    <div className="stat-info">
+                      <h3>სულ ლოგები</h3>
+                      <p className="stat-number">{auditStats.total_logs}</p>
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">🔄</div>
+                    <div className="stat-info">
+                      <h3>ბოლო 24 საათი</h3>
+                      <p className="stat-number">{auditStats.recent_activity}</p>
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">⚡</div>
+                    <div className="stat-info">
+                      <h3>მოქმედებები</h3>
+                      <p className="stat-number">{Object.keys(auditStats.actions || {}).length}</p>
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">📁</div>
+                    <div className="stat-info">
+                      <h3>ცხრილები</h3>
+                      <p className="stat-number">{Object.keys(auditStats.tables || {}).length}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Filters */}
+              <div className="audit-filters">
+                <input
+                  type="text"
+                  placeholder="🔍 მომხმარებლის სახელი..."
+                  value={auditFilters.username}
+                  onChange={(e) => {
+                    setAuditFilters({...auditFilters, username: e.target.value});
+                    setAuditPage(1);
+                  }}
+                  className="filter-input"
+                />
+                <select
+                  value={auditFilters.action}
+                  onChange={(e) => {
+                    setAuditFilters({...auditFilters, action: e.target.value});
+                    setAuditPage(1);
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">ყველა მოქმედება</option>
+                  <option value="CREATE">CREATE</option>
+                  <option value="UPDATE">UPDATE</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="TOGGLE_PLAYABLE">TOGGLE_PLAYABLE</option>
+                </select>
+                <select
+                  value={auditFilters.table_name}
+                  onChange={(e) => {
+                    setAuditFilters({...auditFilters, table_name: e.target.value});
+                    setAuditPage(1);
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">ყველა ცხრილი</option>
+                  <option value="words">words</option>
+                  <option value="sentences">sentences</option>
+                  <option value="proverbs">proverbs</option>
+                  <option value="toreads">toreads</option>
+                  <option value="gogebashvili_1_with_ids">gogebashvili</option>
+                </select>
+                <button
+                  className="refresh-btn"
+                  onClick={() => {
+                    fetchAuditLogs();
+                    fetchAuditStats();
+                  }}
+                  disabled={auditLoading}
+                >
+                  🔄 განახლება
+                </button>
+              </div>
+
+              {/* Loading state */}
+              {auditLoading && (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Audit logs იტვირთება...</p>
+                </div>
+              )}
+
+              {/* Error state */}
+              {auditError && (
+                <div className="error-state">
+                  <p>❌ შეცდომა: {auditError}</p>
+                  <button onClick={fetchAuditLogs}>თავიდან ცდა</button>
+                </div>
+              )}
+
+              {/* Logs table */}
+              {!auditLoading && !auditError && (
+                <>
+                  <div className="audit-count">
+                    ნაპოვნია: <strong>{auditTotal}</strong> ლოგი
+                  </div>
+
+                  <div className="audit-table-container">
+                    <table className="audit-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>დრო</th>
+                          <th>მომხმარებელი</th>
+                          <th>მოქმედება</th>
+                          <th>ცხრილი</th>
+                          <th>Record ID</th>
+                          <th>ძველი მნიშვნელობა</th>
+                          <th>ახალი მნიშვნელობა</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditLogs.length === 0 ? (
+                          <tr>
+                            <td colSpan="8" className="no-data">
+                              ლოგები არ მოიძებნა
+                            </td>
+                          </tr>
+                        ) : (
+                          auditLogs.map(log => (
+                            <tr key={log.id}>
+                              <td>#{log.id}</td>
+                              <td className="date-cell">
+                                {new Date(log.timestamp).toLocaleString('ka-GE')}
+                              </td>
+                              <td>
+                                <div className="user-badge">
+                                  {log.username || 'System'}
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`action-badge ${log.action.toLowerCase()}`}>
+                                  {log.action}
+                                </span>
+                              </td>
+                              <td className="table-name">{log.table_name}</td>
+                              <td>#{log.record_id}</td>
+                              <td className="value-cell">
+                                {log.old_value ? (
+                                  <span 
+                                    className="old-value clickable" 
+                                    title="დააჭირე სრული ტექსტის სანახავად"
+                                    onClick={() => showFullValue('old', log.old_value, log.id)}
+                                  >
+                                    {log.old_value.length > 50 
+                                      ? log.old_value.substring(0, 50) + '...' 
+                                      : log.old_value}
+                                    {log.old_value.length > 50 && ' 🔍'}
+                                  </span>
+                                ) : '—'}
+                              </td>
+                              <td className="value-cell">
+                                {log.new_value ? (
+                                  <span 
+                                    className="new-value clickable" 
+                                    title="დააჭირე სრული ტექსტის სანახავად"
+                                    onClick={() => showFullValue('new', log.new_value, log.id)}
+                                  >
+                                    {log.new_value.length > 50 
+                                      ? log.new_value.substring(0, 50) + '...' 
+                                      : log.new_value}
+                                    {log.new_value.length > 50 && ' 🔍'}
+                                  </span>
+                                ) : '—'}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  {auditTotalPages > 1 && (
+                    <div className="pagination">
+                      <button
+                        onClick={() => setAuditPage(p => Math.max(1, p - 1))}
+                        disabled={auditPage === 1}
+                        className="pagination-btn"
+                      >
+                        ← წინა
+                      </button>
+                      <span className="pagination-info">
+                        გვერდი {auditPage} / {auditTotalPages}
+                      </span>
+                      <button
+                        onClick={() => setAuditPage(p => Math.min(auditTotalPages, p + 1))}
+                        disabled={auditPage === auditTotalPages}
+                        className="pagination-btn"
+                      >
+                        შემდეგი →
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {activeTab === 'settings' && user.is_admin && (
             <div className="settings-management">
               <h2>პარამეტრები</h2>
@@ -530,6 +859,50 @@ function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {/* Value Modal */}
+      {expandedValue && (
+        <div 
+          className="modal-overlay" 
+          onClick={closeValueModal}
+        >
+          <div 
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>
+                {expandedValue.type === 'old' ? '🔴 ძველი მნიშვნელობა' : '🟢 ახალი მნიშვნელობა'}
+              </h3>
+              <button 
+                className="modal-close-btn"
+                onClick={closeValueModal}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-value-display">
+              {expandedValue.value}
+            </div>
+            
+            <div className="modal-actions">
+              <button
+                className="modal-btn primary"
+                onClick={() => copyToClipboard(expandedValue.value)}
+              >
+                📋 დაკოპირება
+              </button>
+              <button
+                className="modal-btn secondary"
+                onClick={closeValueModal}
+              >
+                დახურვა
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import os
 import logging
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, Query
 from typing import List, Optional
 from pydantic import BaseModel
+from datetime import datetime
 from app.schemas.user import UserResponse
 from app.core.security import decode_access_token
 from app.config import get_db_connection
@@ -313,6 +314,207 @@ async def delete_user(
     except Exception:
         conn.rollback()
         logger.error(f"Unexpected error in delete_user")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        conn.close()
+
+
+# ========== 5. GET /api/admin/audit/logs - Audit Logs ==========
+# მიზანი: ყველა audit log ჩანაწერის წამოღება ფილტრებითა და pagination-ით
+# რას აკეთებს:
+#   - იღებს საძიებო პარამეტრებს (user_id, username, action, table_name, თარიღები)
+#   - აგებს დინამიურ WHERE clause-ს ფილტრებიდან
+#   - პირველ რიგში ითვლის სულ რამდენი ჩანაწერია (total count)
+#   - შემდეგ იღებს მხოლოდ მოთხოვნილ გვერდს (pagination: LIMIT + OFFSET)
+#   - აბრუნებს logs მასივს, page info-სა და total_pages-ს
+# გამოყენება: Admin-ის მიერ moderator-ების მოქმედებების თვალყურის დევნებისთვის
+
+
+
+# ========== Audit Log Schemas ==========
+class AuditLogResponse(BaseModel):
+    id: int
+    timestamp: datetime
+    user_id: Optional[int]
+    username: Optional[str]
+    action: str
+    table_name: str
+    record_id: Optional[int]
+    old_value: Optional[str]
+    new_value: Optional[str]
+    ip_address: Optional[str]
+
+class AuditLogsListResponse(BaseModel):
+    total: int
+    logs: List[AuditLogResponse]
+    page: int
+    page_size: int
+    total_pages: int
+
+@router.get("/audit/logs", response_model=AuditLogsListResponse)
+async def get_audit_logs(
+    current_user: dict = Depends(get_current_admin),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    user_id: Optional[int] = None,
+    username: Optional[str] = None,
+    action: Optional[str] = None,
+    table_name: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    """
+    Audit ლოგების სია ფილტრებით და pagination-ით
+    
+    Requires: Admin
+    """
+    check_rate_limit(current_user['id'])
+    logger.info(f"Admin request: Get audit logs by {current_user['username']}")
+    
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            # Build WHERE clause
+            where_clauses = []
+            params = []
+            
+            if user_id:
+                where_clauses.append("user_id = %s")
+                params.append(user_id)
+            if username:
+                where_clauses.append("username ILIKE %s")
+                params.append(f"%{username}%")
+            if action:
+                where_clauses.append("action = %s")
+                params.append(action)
+            if table_name:
+                where_clauses.append("table_name = %s")
+                params.append(table_name)
+            if start_date:
+                where_clauses.append("timestamp >= %s")
+                params.append(start_date)
+            if end_date:
+                where_clauses.append("timestamp <= %s")
+                params.append(end_date)
+            
+            where_sql = " AND ".join(where_clauses) if where_clauses else "TRUE"
+            
+            # Get total count
+            cur.execute(f"SELECT COUNT(*) FROM audit_logs WHERE {where_sql};", params)
+            total = cur.fetchone()[0]
+            
+            # Get paginated results
+            offset = (page - 1) * page_size
+            cur.execute(f"""
+                SELECT id, timestamp, user_id, username, action, table_name, 
+                       record_id, old_value, new_value, ip_address
+                FROM audit_logs
+                WHERE {where_sql}
+                ORDER BY timestamp DESC
+                LIMIT %s OFFSET %s;
+            """, params + [page_size, offset])
+            
+            rows = cur.fetchall()
+            logs = [
+                AuditLogResponse(
+                    id=row[0],
+                    timestamp=row[1],
+                    user_id=row[2],
+                    username=row[3],
+                    action=row[4],
+                    table_name=row[5],
+                    record_id=row[6],
+                    old_value=row[7],
+                    new_value=row[8],
+                    ip_address=row[9]
+                )
+                for row in rows
+            ]
+            
+            total_pages = (total + page_size - 1) // page_size
+            
+            return AuditLogsListResponse(
+                total=total,
+                logs=logs,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages
+            )
+    except Exception as e:
+        logger.error(f"Error fetching audit logs: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        conn.close()
+
+
+# ========== 6. GET /api/admin/audit/stats - Audit Statistics ==========
+# მიზანი: audit logs-ის სტატისტიკური მიმოხილვის მიწოდება
+# რას აკეთებს:
+#   - ითვლის audit_logs ცხრილში სულ რამდენი ჩანაწერია (total_logs)
+#   - აჯგუფებს action-ის მიხედვით (CREATE, UPDATE, DELETE, TOGGLE_PLAYABLE) და ითვლის თითოეულს
+#   - აჯგუფებს table_name-ის მიხედვით (words, sentences, proverbs) და ითვლის თითოეულს
+#   - ითვლის ბოლო 24 საათის განმავლობაში რამდენი მოქმედება იყო (recent_activity)
+# გამოყენება: Dashboard-ზე სტატისტიკის ბარათების (stat cards) საჩვენებლად
+
+class AuditStatsResponse(BaseModel):
+    total_logs: int
+    actions: dict
+    tables: dict
+    recent_activity: int  # last 24h
+
+@router.get("/audit/stats", response_model=AuditStatsResponse)
+async def get_audit_stats(
+    current_user: dict = Depends(get_current_admin)
+):
+    """
+    Audit ლოგების სტატისტიკა
+    
+    Requires: Admin
+    """
+    check_rate_limit(current_user['id'])
+    logger.info(f"Admin request: Get audit stats by {current_user['username']}")
+    
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            # Total logs
+            cur.execute("SELECT COUNT(*) FROM audit_logs;")
+            total_logs = cur.fetchone()[0]
+            
+            # Actions breakdown
+            cur.execute("""
+                SELECT action, COUNT(*) 
+                FROM audit_logs 
+                GROUP BY action 
+                ORDER BY COUNT(*) DESC;
+            """)
+            actions = {row[0]: row[1] for row in cur.fetchall()}
+            
+            # Tables breakdown
+            cur.execute("""
+                SELECT table_name, COUNT(*) 
+                FROM audit_logs 
+                GROUP BY table_name 
+                ORDER BY COUNT(*) DESC;
+            """)
+            tables = {row[0]: row[1] for row in cur.fetchall()}
+            
+            # Recent activity (last 24 hours)
+            cur.execute("""
+                SELECT COUNT(*) 
+                FROM audit_logs 
+                WHERE timestamp >= NOW() - INTERVAL '24 hours';
+            """)
+            recent_activity = cur.fetchone()[0]
+            
+            return AuditStatsResponse(
+                total_logs=total_logs,
+                actions=actions,
+                tables=tables,
+                recent_activity=recent_activity
+            )
+    except Exception as e:
+        logger.error(f"Error fetching audit stats: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     finally:
         conn.close()

@@ -23,7 +23,7 @@ export const useGameData = (version_data, position) => {
         if (!response.status) throw new Error('Failed to load alphabet');
         setDedaenaData(response.data.data);
         setStaticData(response.data);
-        console.log("Fetched dedaena data:", response.data);
+        // console.log("Fetched dedaena data:", response.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -45,7 +45,7 @@ export const useGameData = (version_data, position) => {
         if (!response.status) throw new Error('Failed to load position data');
         const data = response.data;
         setLetters(data.letters || []);
-        console.log(`Fetched position ${position} data:`, data);
+        // console.log(`Fetched position ${position} data:`, data);
         setWords(data.position_info?.words || []);
         setSentences(data.position_info?.sentences || []);
         setProverbs(data.position_info?.proverbs || []);

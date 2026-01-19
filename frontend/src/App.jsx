@@ -1,65 +1,51 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar/Navbar.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 // Pages
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import Home from './pages/Home';
-import GamePage from './pages/Game/GamePage';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import ModeratorDashboard from './pages/Moderator/ModeratorDashboard';
+import Home from './pages/Home/Home.jsx';
+import LettersPage from './pages/LettersPage/LettersPage.jsx';
+import Gogebashvili from './pages/Gogebashvili/Gogebashvili';
+import GameDedaena from './pages/GameDedaena/GameDedaena';
+import Registration from './pages/Registration/Registration.jsx';
+import Login from './pages/Login/Login.jsx';
+import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
+import ModeratorDashboard from './pages/Moderator/ModeratorDashboard.jsx';
 
 function App() {
-    console.log("App component rendered");
+  console.log("App rendered");
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<GameDedaena />} />
+        <Route path="/letters" element={<LettersPage />} />
+        <Route path="/gogebashvili" element={<Gogebashvili />} />
+        <Route path="/gamededaena" element={<GameDedaena />} />
+        <Route path="/registration" element={<Registration />} />
         <Route path="/login" element={<Login />} />
-        {/* <Route path="/register" element={<Register />} /> */}
 
-        {/* Protected Routes - ავტორიზებული მომხმარებლები */}
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/game" 
-          element={
-            <ProtectedRoute>
-              <GamePage />
-            </ProtectedRoute>
-          } 
-        />
-
-        {/* Moderator Only - მხოლოდ მოდერატორი ან ადმინი */}
-        <Route 
-          path="/moderator" 
+        {/* Moderator Routes - admin და moderator-ებისთვის */}
+        <Route
+          path="/moderator"
           element={
             <ProtectedRoute requireModerator={true}>
               <ModeratorDashboard />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        {/* Admin Only - მხოლოდ ადმინი */}
-        <Route 
-          path="/admin" 
+        {/* Admin Routes - მხოლოდ admin-ებისთვის */}
+        <Route
+          path="/admin"
           element={
             <ProtectedRoute requireAdmin={true}>
               <AdminDashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-
-        {/* 404 Redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

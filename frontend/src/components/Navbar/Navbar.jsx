@@ -9,7 +9,7 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  console.log("Navbar Rendered - Current Path:", location.pathname, user);
+  // console.log("Navbar Rendered - Current Path:", location.pathname, user);
   // Check authentication status on component mount and route change
   useEffect(() => {
     if (isAuthenticated()) {

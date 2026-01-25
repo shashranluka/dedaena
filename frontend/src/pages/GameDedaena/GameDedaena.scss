@@ -538,4 +538,99 @@
     opacity: 0;
     transform: translateY(-20px) scale(1.2);
   }
+
+  // Tour Letter Buttons
+  .tour-letter-buttons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    width: 100%;
+    overflow-x: scroll;
+    margin: 8px 0;
+
+    // Custom scrollbar (ყოველთვის ჩანს)
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+
+      &:hover {
+        background: #555;
+      }
+    }
+
+    .tour-letter-btn-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 2em;
+
+      .tour-position-label {
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 2px;
+      }
+
+      .tour-letter-btn {
+        min-width: 2em;
+        max-width: 2em;
+        height: 2em;
+        padding: 0;
+        font-size: 1.1em;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background: #fff;
+        font-weight: normal;
+        cursor: pointer;
+        transition: background 0.2s, border 0.2s;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &.active {
+          background: #1976d2;
+          border: 2px solid #1565c0;
+          color: #fff;
+          font-weight: bold;
+        }
+
+        &.before-selected {
+          background: #f0f4c3;
+          border-color: #cddc39;
+        }
+
+        &.after-selected {
+          background: #ffe0b2;
+          border-color: #ff9800;
+        }
+      }
+
+      .letter-stat {
+        font-size: 0.75rem;
+        margin-top: 2px;
+        padding: 1px 4px;
+        border-radius: 3px;
+
+        &.completed {
+          background-color: green;
+          color: white;
+        }
+
+        &.not-completed {
+          background-color: rgb(255, 166, 0);
+          color: white;
+        }
+      }
+    }
+  }
 }

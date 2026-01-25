@@ -7,7 +7,10 @@ const MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX'
 
 let isInitialized = false;
 
-// Initialize Google Analytics
+/**
+ * ინიციალიზაცია უწევს Google Analytics-ს
+ * ამოწმებს Measurement ID-ს და ახდენს GA-ს კონფიგურაციას
+ */
 export const initGA = () => {
   if (!isInitialized && MEASUREMENT_ID && MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
     ReactGA.initialize(MEASUREMENT_ID, {
@@ -20,14 +23,23 @@ export const initGA = () => {
   }
 };
 
-// Track page view
+/**
+ * აგზავნის გვერდის ნახვის მონაცემებს Google Analytics-ში
+ * @param {string} path - გვერდის მისამართი
+ */
 export const trackPageView = (path) => {
   if (isInitialized) {
     ReactGA.send({ hitType: 'pageview', page: path, title: document.title });
   }
 };
 
-// Track custom events
+/**
+ * აგზავნის მორგებულ ივენთებს Google Analytics-ში
+ * @param {string} category - ივენთის კატეგორია
+ * @param {string} action - ივენთის მოქმედება
+ * @param {string} label - ივენთის ლეიბლი (ოფციონალური)
+ * @param {number} value - ივენთის რიცხვითი მნიშვნელობა (ოფციონალური)
+ */
 export const trackEvent = (category, action, label = '', value = 0) => {
   if (isInitialized) {
     ReactGA.event({
@@ -41,37 +53,56 @@ export const trackEvent = (category, action, label = '', value = 0) => {
 
 // მაგალითები კონკრეტული ივენთებისთვის:
 
-// თამაშის დაწყება
+/**
+ * აფიქსირებს თამაშის დაწყების ივენთს
+ * @param {string} gameType - თამაშის ტიპი
+ */
 export const trackGameStart = (gameType) => {
   trackEvent('Game', 'Start Game', gameType);
 };
 
-// სიტყვის არჩევა
+/**
+ * აფიქსირებს სიტყვის არჩევის ივენთს
+ * @param {string} word - არჩეული სიტყვა
+ */
 export const trackWordSelection = (word) => {
   trackEvent('Game', 'Word Selected', word);
 };
 
-// სწორი პასუხი
+/**
+ * აფიქსირებს სწორი პასუხის ივენთს
+ * @param {string} gameType - თამაშის ტიპი
+ */
 export const trackCorrectAnswer = (gameType) => {
   trackEvent('Game', 'Correct Answer', gameType);
 };
 
-// არასწორი პასუხი
+/**
+ * აფიქსირებს არასწორი პასუხის ივენთს
+ * @param {string} gameType - თამაშის ტიპი
+ */
 export const trackIncorrectAnswer = (gameType) => {
   trackEvent('Game', 'Incorrect Answer', gameType);
 };
 
-// ღილაკის დაჭერა
+/**
+ * აფიქსირებს ღილაკზე დაჭერის ივენთს
+ * @param {string} buttonName - ღილაკის სახელი
+ */
 export const trackButtonClick = (buttonName) => {
   trackEvent('User Interaction', 'Button Click', buttonName);
 };
 
-// რეგისტრაცია
+/**
+ * აფიქსირებს მომხმარებლის რეგისტრაციის ივენთს
+ */
 export const trackRegistration = () => {
   trackEvent('User', 'Registration', 'New User');
 };
 
-// ავტორიზაცია
+/**
+ * აფიქსირებს მომხმარებლის ავტორიზაციის ივენთს
+ */
 export const trackLogin = () => {
   trackEvent('User', 'Login', 'User Login');
 };

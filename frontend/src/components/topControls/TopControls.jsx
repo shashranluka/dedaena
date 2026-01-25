@@ -50,7 +50,8 @@ const TopControls = ({ activeView, onViewChange, ...props }) => {
       {BUTTONS.map((btn, i) => (
         <div 
           key={btn.view}
-          className={`${btn.class} ${i % 2 === 0 ? 'odd-button' : 'even-button'}`} 
+          // className={`${btn.class} ${i % 2 === 0 ? 'odd-button' : 'even-button'}`} 
+          className={`${btn.class} odd-button`}
           onClick={() => toggleView(btn.view)}
         >
           <div className={`${btn.card} ${activeView === btn.view ? 'active' : ''}`}>

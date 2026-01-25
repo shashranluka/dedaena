@@ -1,7 +1,8 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import { initGA, trackPageView } from './services/analytics';
 
 // Pages
 import Home from './pages/Home/Home.jsx';
@@ -13,10 +14,27 @@ import Login from './pages/Login/Login.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import ModeratorDashboard from './pages/Moderator/ModeratorDashboard.jsx';
 
+// Component to track page views on route changes
+function Analytics() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+}
+
 function App() {
+  useEffect(() => {
+    // Initialize Google Analytics when app loads
+    initGA();
+  }, []);
+
   console.log("App rendered");
   return (
     <BrowserRouter>
+      <Analytics />
       <Navbar />
       <Routes>
         {/* Public Routes */}

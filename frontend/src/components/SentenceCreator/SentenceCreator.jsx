@@ -150,7 +150,7 @@ const SentenceCreator = ({
             onClick={onClear}
             disabled={userSentence.length === 0}
           >
-            წინადადების გასუფთავება
+            დაფის გასუფთავება
           </button>
         </div>
       </div>

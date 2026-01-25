@@ -389,6 +389,129 @@
     }
   }
 
+  // Instructions Modal Styles
+  .instructions-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+
+  .instructions-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+
+    h3 {
+      text-align: center;
+      color: #667eea;
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 16px;
+    }
+
+    .instructions-content {
+      color: #333;
+      line-height: 1.8;
+
+      section {
+        margin-bottom: 24px;
+
+        h4 {
+          color: #764ba2;
+          font-size: 1.3rem;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        p {
+          margin-bottom: 12px;
+          text-align: justify;
+        }
+
+        ol, ul {
+          padding-left: 24px;
+          margin-top: 12px;
+
+          li {
+            margin-bottom: 12px;
+            
+            strong {
+              color: #667eea;
+            }
+          }
+        }
+
+        ol {
+          list-style-type: decimal;
+        }
+
+        ul {
+          list-style-type: disc;
+        }
+      }
+    }
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 4px;
+
+      &:hover {
+        background: #764ba2;
+      }
+    }
+  }
+
+  .close-instructions-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 24px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
   // Animations
   @keyframes chest-glow {
     0% {

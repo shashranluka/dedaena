@@ -175,8 +175,13 @@
   }
 
   .sentence-section {
-    padding: 15px;
+    padding: 20px;
     position: relative; // ✅ overlay-სთვის
+    background: #f8fafb;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
     h4 {
       margin: 0 0 10px 0;
@@ -185,28 +190,52 @@
     }
 
     .sentence-builder {
-      background: #F8F9FA;
-      border: 2px dashed #BDC3C7;
-      border-radius: 8px;
-      padding: 15px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 3px solid #2196F3;
+      border-radius: 12px;
+      padding: 20px;
       margin-bottom: 15px;
-      min-height: 50px;
+      min-height: 80px;
       display: flex;
       align-items: center;
       position: relative; // ✅ overlay-სთვის
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15),
+                  inset 0 2px 4px rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+
+      &::before {
+        content: "📝 შეადგინე წინადადება აქ";
+        position: absolute;
+        top: -12px;
+        left: 20px;
+        background: #2196F3;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+      }
+
+      &:hover {
+        border-color: #1976D2;
+        box-shadow: 0 6px 16px rgba(33, 150, 243, 0.25),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+      }
 
       .sentence-words {
         .sentence-word {
-          font-size: 1rem;
-          line-height: 1.4;
-          color: #495057;
+          font-size: 1.4rem;
+          line-height: 1.5;
+          color: #2c3e50;
+          font-weight: 500;
         }
       }
 
       .sentence-placeholder {
         color: #6C757D;
         font-style: italic;
-        font-size: 0.9rem;
+        font-size: 1rem;
         text-align: center;
         width: 100%;
       }

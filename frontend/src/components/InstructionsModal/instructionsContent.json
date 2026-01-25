@@ -1,0 +1,130 @@
+{
+  "ka": {
+    "title": "📖 თამაშის ინსტრუქცია",
+    "sections": [
+      {
+        "icon": "🎯",
+        "title": "მიზანი",
+        "type": "paragraph",
+        "content": "\"დედაენა\" არის საგანმანათლებლო თამაში, რომელიც დაფუძნებულია იაკობ გოგებაშვილის დედაენაზე. თამაშის მიზანია მსურველთათვის ქართული ენის შესწავლაში დახმარება."
+      },
+      {
+        "icon": "🎮",
+        "title": "როგორ ვითამაშოთ",
+        "type": "ordered-list",
+        "items": [
+          {
+            "title": "ასოების შერჩევა:",
+            "text": "ყოველ ტურში მოცემულია ასოების სია. აირჩიე ასოები და შეადგინე სიტყვა."
+          },
+          {
+            "title": "წინადადებების შედგენა:",
+            "text": "გამოიყენე მოპოვებული სიტყვები და შეადგინე მართებული წინადადებები. დააჭირე სიტყვას ან ასოს მის დასამატებლად."
+          },
+          {
+            "title": "პროგრესი:",
+            "text": "შეამოწმე შენი პროგრესი ზედა პანელიდან - ნახე რამდენი სიტყვა და წინადადება გაქვს მოპოვებული."
+          },
+          {
+            "title": "არტეფაქტის მოპოვება:",
+            "text": "როცა ყველა ასოს გამოიყენებ წინადადებებში ერთხელ მაინც, გაიხსნება \"არტეფაქტის გახსნა\" ღილაკი. დააჭირე მას და მოიპოვე ანდაზა!"
+          },
+          {
+            "title": "შემდეგ ტურზე გადასვლა:",
+            "text": "ყველა სიტყვისა და წინადადების მოძებნის შემდეგ შეგიძლია გადახვიდე შემდეგ ტურზე და ახალ ასოებზე."
+          }
+        ]
+      },
+      {
+        "icon": "💡",
+        "title": "მითითებები",
+        "type": "unordered-list",
+        "items": [
+          "დააჭირე ზედა პანელის ღილაკებს სხვადასხვა ხედების სანახავად",
+          "\"📋 წინადადებები\" - ნახე ყველა შესაძლო წინადადება",
+          "წინადადებაში გამოყენებული ასოების რაოდენობა ჩანს ასოს ღილაკზე",
+          "ანდაზის მოსაპოვებლად ყველა ასო უნდა იყოს გამოყენებული მინიმუმ ერთხელ"
+        ]
+      },
+      {
+        "icon": "🎨",
+        "title": "ინტერფეისი",
+        "type": "paragraphs",
+        "items": [
+          {
+            "title": "Ზედა პანელი:",
+            "text": "აქ ნახავ მიმდინარე ასოს, პოზიციას, მოპოვებულ წინადადებებს და დახმარების ღილაკს."
+          },
+          {
+            "title": "ასოების ღილაკები:",
+            "text": "თითოეული ღილაკი წარმოადგენს ერთ ტურს. რიცხვები აჩვენებს რამდენჯერ გამოიყენე თითოეული ასო წინადადებებში."
+          }
+        ]
+      }
+    ]
+  },
+  "en": {
+    "title": "📖 Game Instructions",
+    "sections": [
+      {
+        "icon": "🎯",
+        "title": "Goal",
+        "type": "paragraph",
+        "content": "\"Dedaena\" is an educational game based on Iakob Gogebashvili's alphabet. The goal is to learn and enrich the Georgian language through word and sentence formation."
+      },
+      {
+        "icon": "🎮",
+        "title": "How to Play",
+        "type": "ordered-list",
+        "items": [
+          {
+            "title": "Letter Selection:",
+            "text": "Each round provides a list of letters. Select letters and form words."
+          },
+          {
+            "title": "Sentence Formation:",
+            "text": "Use the found words to create correct sentences. Click on words or letters to add them."
+          },
+          {
+            "title": "Progress:",
+            "text": "Check your progress from the top panel - see how many words and sentences you've found."
+          },
+          {
+            "title": "Artifact Collection:",
+            "text": "When you use all letters in sentences at least once, the \"Open Artifact\" button appears. Click it to discover a proverb!"
+          },
+          {
+            "title": "Next Round:",
+            "text": "After finding all words and sentences, you can proceed to the next round with new letters."
+          }
+        ]
+      },
+      {
+        "icon": "💡",
+        "title": "Tips",
+        "type": "unordered-list",
+        "items": [
+          "Click the top panel buttons to view different sections",
+          "\"📋 Sentences\" - view all possible sentences",
+          "Letter usage count in sentences is shown on the letter button",
+          "To unlock a proverb, all letters must be used at least once"
+        ]
+      },
+      {
+        "icon": "🎨",
+        "title": "Interface",
+        "type": "paragraphs",
+        "items": [
+          {
+            "title": "Top Panel:",
+            "text": "Here you'll see the current letter, position, found sentences, and help button."
+          },
+          {
+            "title": "Letter Buttons:",
+            "text": "Each button represents one round. Numbers show how many times you've used each letter in sentences."
+          }
+        ]
+      }
+    ]
+  }
+}

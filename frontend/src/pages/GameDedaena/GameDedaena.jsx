@@ -8,6 +8,7 @@ import WordCreator from "../../components/WordCreator/WordCreator";
 import SentenceList from "../../components/SentenceList/SentenceList";
 import SentenceCreator from "../../components/SentenceCreator/SentenceCreator";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
+import InstructionsModal from "../../components/InstructionsModal/InstructionsModal";
 
 
 const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_with_ids" };
@@ -26,6 +27,7 @@ function GameDedaena() {
   const [werili, setWerili] = useState();
   const [showGift, setShowGift] = useState(false);
   const [proverbIndex, setProverbIndex] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
 
@@ -225,7 +227,13 @@ function GameDedaena() {
         wordsCount={words.length}
         foundSentencesCount={currentFoundSentences.length}
         sentencesCount={dedaenaData[position - 1]?.sentences.length || 0}
-        onViewChange={handleViewChange}
+        onViewChange={(view) => {
+          if (view === 'instructions') {
+            setShowInstructions(true);
+          } else {
+            handleViewChange(view);
+          }
+        }}
       />
 
 
@@ -382,6 +390,11 @@ function GameDedaena() {
           </div>
         </div>
       )}
+
+      <InstructionsModal 
+        isOpen={showInstructions} 
+        onClose={() => setShowInstructions(false)} 
+      />
 
       {/* Progress indicator when position is not completed */}
       {!isCurrentPositionCompleted && (

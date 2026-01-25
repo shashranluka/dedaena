@@ -31,6 +31,12 @@ const BUTTONS = [
       <span className="card-icon">📋</span>
       <span className="card-hint">წინადადებები ({props.foundSentencesCount}/{props.sentencesCount})</span>
     </>
+  )},
+  { view: 'instructions', class: 'control-button', card: 'control-card', content: () => (
+    <>
+      <span className="card-icon">❓</span>
+      <span className="card-hint">ინსტრუქცია</span>
+    </>
   )}
 ];
 

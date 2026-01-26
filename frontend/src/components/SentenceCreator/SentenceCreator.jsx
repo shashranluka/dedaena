@@ -217,6 +217,22 @@ const SentenceCreator = ({
             ,
           </button>
           <button
+            className="sign-btn"
+            onClick={() => onWordAdd("!")}
+            title="ძახილის ნიშანი"
+            aria-label="დაამატე ძახილის ნიშანი"
+          >
+            !
+          </button>
+          <button
+            className="sign-btn"
+            onClick={() => onWordAdd("?")}
+            title="კითხვის ნიშანი"
+            aria-label="დაამატე კითხვის ნიშანი"
+          >
+            ?
+          </button>
+          <button
             className="sign-btn delete-btn"
             onClick={onRemoveLast}
             title="ბოლო სიმბოლოს წაშლა"

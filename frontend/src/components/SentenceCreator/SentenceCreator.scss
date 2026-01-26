@@ -1,78 +1,266 @@
 // SentenceCreator signs row styles
+// SentenceCreator - ასოების ღილაკები
+.letters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  // Tablet and larger
+  @media (min-width: 480px) {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  // Desktop
+  @media (min-width: 768px) {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+}
+
+.letter-btn {
+  background: linear-gradient(135deg, #2196F3, #1E88E5);
+  border: 2px solid #1976D2;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+
+  // Tablet and larger
+  @media (min-width: 480px) {
+    font-size: 1.4rem;
+    padding: 14px 20px;
+  }
+
+  // Desktop
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+    padding: 16px 22px;
+    border-radius: 10px;
+  }
+
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, #1E88E5, #1976D2);
+    border-color: #1565C0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    outline: none;
+  }
+
+  &:active {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+  }
+}
+
+// სასვენი ნიშნები და კონტროლების ზოლი
 .signs {
   display: flex;
-  gap: 20px;
-  padding: .5em;
-  margin: 8px 0 12px 0;
+  gap: 12px;
+  padding: 14px;
+  margin: 12px 0 16px 0;
   justify-content: center;
   align-items: center;
   border: 3px solid #E0E0E0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FAFAFA, #F5F5F5);
+
+  // Tablet and larger
+  @media (min-width: 480px) {
+    gap: 14px;
+    padding: 16px;
+    margin: 14px 0 18px 0;
+  }
+
+  // Desktop
+  @media (min-width: 768px) {
+    gap: 16px;
+    padding: 18px;
+    margin: 16px 0 20px 0;
+  }
 }
+
 .sign-btn {
-  background: #4CAF50;
-  border: 1.5px solid #43A047;
+  background: linear-gradient(135deg, #4CAF50, #45A049);
+  border: 2px solid #43A047;
   color: white;
-  font-size: 20px;
+  font-size: 1.2rem;
   font-weight: 600;
-  border-radius: 6px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 2px 8px;
-  transition: background 0.15s, border 0.15s, transform 0.15s;
+  border-radius: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
   cursor: pointer;
-}
-.sign-btn:hover {
-  background: #43A047;
-  border-color: #388E3C;
-  transform: translateY(-1px);
-}
-.sign-btn:active {
-  background: #388E3C;
-  transform: translateY(0);
-}
-.sign-btn:disabled {
-  background: #f9f9f9;
-  color: #bbb;
-  border-color: #eee;
-  cursor: not-allowed;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+
+  // Tablet and larger
+  @media (min-width: 480px) {
+    font-size: 1.3rem;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 10px 14px;
+  }
+
+  // Desktop
+  @media (min-width: 768px) {
+    font-size: 1.4rem;
+    min-width: 52px;
+    min-height: 52px;
+    padding: 12px 16px;
+    border-radius: 10px;
+  }
+
+  &.space-btn {
+    min-width: 120px;
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    border-color: #F57C00;
+
+    // Desktop
+    @media (min-width: 768px) {
+      min-width: 140px;
+    }
+
+    .space-text {
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+
+      // Desktop
+      @media (min-width: 768px) {
+        font-size: 1rem;
+      }
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #F57C00, #E65100);
+      border-color: #E65100;
+    }
+  }
+
+  &.delete-btn {
+    background: linear-gradient(135deg, #F44336, #E53935);
+    border-color: #D32F2F;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #E53935, #D32F2F);
+      border-color: #C62828;
+    }
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45A049, #388E3C);
+    border-color: #388E3C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    background: linear-gradient(135deg, #388E3C, #2E7D32);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+  }
+
+  &:disabled {
+    background: linear-gradient(135deg, #F5F5F5, #EEEEEE);
+    color: #BDBDBD;
+    border-color: #E0E0E0;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 }
 .create-sentence-div {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #E0E0E0;
+  border-radius: 14px;
+  border: 2px solid #E0E0E0;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  // Tablet and larger
+  @media (min-width: 480px) {
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
 
   .create-sentence-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background: #607D8B;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #607D8B, #546E7A);
     color: white;
     border-radius: 12px 12px 0 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    // Tablet and larger
+    @media (min-width: 480px) {
+      padding: 18px 20px;
+      border-radius: 14px 14px 0 0;
+    }
+
+    // Desktop
+    @media (min-width: 768px) {
+      padding: 20px 24px;
+      border-radius: 16px 16px 0 0;
+    }
 
     span {
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 1.05rem;
+      line-height: 1.3;
+
+      // Tablet and larger
+      @media (min-width: 480px) {
+        font-size: 1.1rem;
+      }
+
+      // Desktop
+      @media (min-width: 768px) {
+        font-size: 1.2rem;
+      }
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+
+      // Desktop
+      @media (min-width: 768px) {
+        gap: 12px;
+      }
     }
 
     .sound-toggle-btn {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       color: #607D8B;
       border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 1.2rem;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 1.3rem;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       
+      // Desktop
+      @media (min-width: 768px) {
+        padding: 12px 16px;
+        font-size: 1.4rem;
+      }
+
       &:hover {
         background: #f3e5f5;
         transform: scale(1.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       }
       
       &:active {
@@ -81,46 +269,32 @@
     }
 
     .next-quest {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       color: #9C27B0;
       border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       
+      // Desktop
+      @media (min-width: 768px) {
+        padding: 12px 20px;
+        font-size: 1rem;
+      }
+
       &:hover {
         background: #f3e5f5;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
       
       &:active {
         transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-    }
-
-    .close-create-sentence {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 2rem;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: background 0.15s;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       }
     }
   }
@@ -176,71 +350,124 @@
 
   .sentence-section {
     padding: 20px;
-    position: relative; // ✅ overlay-სთვის
-    background: #cdb28d;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    margin: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: relative;
+    background: linear-gradient(135deg, #cdb28d, #c4a57b);
+    border: 3px solid #b39775;
+    border-radius: 12px;
+    margin: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-    h4 {
-      margin: 0 0 10px 0;
-      color: #495057;
-      font-size: 0.9rem;
+    // Tablet and larger
+    @media (min-width: 480px) {
+      padding: 24px;
+      margin: 18px;
+    }
+
+    // Desktop
+    @media (min-width: 768px) {
+      padding: 28px;
+      margin: 20px;
     }
 
     .sentence-builder {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border: 3px solid #2196F3;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      min-height: 80px;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 18px;
+      min-height: 100px;
       display: flex;
       align-items: center;
-      position: relative; // ✅ overlay-სთვის
-      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15),
+      position: relative;
+      box-shadow: 0 4px 16px rgba(33, 150, 243, 0.2),
                   inset 0 2px 4px rgba(255, 255, 255, 0.8);
       transition: all 0.3s ease;
+
+      // Tablet and larger
+      @media (min-width: 480px) {
+        padding: 28px;
+        min-height: 110px;
+        margin-bottom: 20px;
+      }
+
+      // Desktop
+      @media (min-width: 768px) {
+        padding: 32px;
+        min-height: 120px;
+        margin-bottom: 24px;
+        border-radius: 16px;
+      }
 
       &::before {
         content: "📝 შეადგინე წინადადება აქ";
         position: absolute;
-        top: -12px;
-        left: 20px;
+        top: -14px;
+        left: 24px;
         background: #2196F3;
         color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.75rem;
+        padding: 6px 16px;
+        border-radius: 14px;
+        font-size: 0.85rem;
         font-weight: 600;
-        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4);
+
+        // Desktop
+        @media (min-width: 768px) {
+          font-size: 0.9rem;
+          padding: 8px 18px;
+        }
       }
 
       &:hover {
         border-color: #1976D2;
-        box-shadow: 0 6px 16px rgba(33, 150, 243, 0.25),
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3),
                     inset 0 2px 4px rgba(255, 255, 255, 0.8);
       }
 
       .sentence-words {
+        width: 100%;
+
         .sentence-word {
-          font-size: 1.4rem;
-          line-height: 1.5;
+          font-size: 1.5rem;
+          line-height: 1.6;
           color: #2c3e50;
           font-weight: 500;
+          word-wrap: break-word;
+
+          // Tablet and larger
+          @media (min-width: 480px) {
+            font-size: 1.6rem;
+          }
+
+          // Desktop
+          @media (min-width: 768px) {
+            font-size: 1.8rem;
+            line-height: 1.7;
+          }
         }
       }
 
       .sentence-placeholder {
         color: #6C757D;
         font-style: italic;
-        font-size: 1rem;
+        font-size: 1.05rem;
         text-align: center;
         width: 100%;
+        line-height: 1.5;
+
+        // Tablet and larger
+        @media (min-width: 480px) {
+          font-size: 1.1rem;
+        }
+
+        // Desktop
+        @media (min-width: 768px) {
+          font-size: 1.15rem;
+          line-height: 1.6;
+        }
       }
 
-      // ✅ ახალი overlay შეტყობინება
+      // შეტყობინებების overlay
       .sentence-message-overlay {
         position: absolute;
         top: 0;
@@ -250,31 +477,34 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(76, 175, 80, 0.95); // ✅ default მწვანე
-        border-radius: 8px;
-        padding: 12px;
+        background: rgba(76, 175, 80, 0.95);
+        border-radius: 12px;
+        padding: 16px;
         text-align: center;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 1.1rem;
         color: white;
         z-index: 10;
         backdrop-filter: blur(2px);
-        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-        
-        // ✅ წითელი ვარიანტი შეცდომისთვის
-        &.error {
-          background: rgba(244, 67, 54, 0.95);
-          box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+
+        // Desktop
+        @media (min-width: 768px) {
+          font-size: 1.2rem;
+          padding: 20px;
         }
         
-        // ✅ ყვითელი ვარიანტი გაფრთხილებისთვის
+        &.error {
+          background: rgba(244, 67, 54, 0.95);
+          box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+        }
+        
         &.warning {
           background: rgba(255, 152, 0, 0.95);
-          box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+          box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
         }
       }
 
-      // ✅ 3 წამიანი fade-out ანიმაცია
       .sentence-message-fadeout {
         animation: messageFadeIn 0.3s ease-in-out, messageFadeOut 2.7s ease-in-out 0.3s forwards;
       }
@@ -283,56 +513,74 @@
     .sentence-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
 
-      @media (min-width: 1024px) {
+      // Desktop
+      @media (min-width: 768px) {
         display: flex;
-        max-width: 500px;
+        max-width: 600px;
         margin: 0 auto;
-        gap: 15px;
+        gap: 16px;
       }
 
       button {
-        padding: 10px;
+        padding: 14px 16px;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.95rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+        // Desktop
+        @media (min-width: 768px) {
+          padding: 16px 20px;
+          font-size: 1rem;
+        }
 
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+          box-shadow: none;
         }
       }
 
       .check-sentence-btn {
-        background: #306e32;
+        background: linear-gradient(135deg, #4CAF50, #45A049);
         color: white;
 
         &:hover:not(:disabled) {
-          background: #45A049;
+          background: linear-gradient(135deg, #45A049, #388E3C);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        &:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
         }
       }
 
       .clear-sentence-btn {
-        background: #73201a;
+        background: linear-gradient(135deg, #F44336, #E53935);
         color: white;
 
         &:hover:not(:disabled) {
-          background: #DA190B;
+          background: linear-gradient(135deg, #E53935, #D32F2F);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+        }
+
+        &:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
         }
       }
     }
   }
 
-  // ✅ ძველი sentence-message წაშალეთ ან დატოვეთ fallback-ად
-  .sentence-message {
-    display: none; // ან სრულიად წაშალეთ
-  }
-
-  // ✅ ანიმაცია
+  // ანიმაციები
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -344,7 +592,6 @@
     }
   }
 
-  // ✅ შეტყობინებისთვის სპეციალური fadeIn
   @keyframes messageFadeIn {
     from {
       opacity: 0;
@@ -356,7 +603,6 @@
     }
   }
 
-  // ✅ შეტყობინებისთვის სპეციალური fadeOut
   @keyframes messageFadeOut {
     0% {
       opacity: 1;
@@ -367,65 +613,6 @@
     100% {
       opacity: 0;
       visibility: hidden;
-    }
-  }
-
-  .remaining-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    background: #F8F9FA;
-    border-radius: 0 0 12px 12px;
-    border-top: 1px solid #E9ECEF;
-
-    .remaining-count, .total-count {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .remaining-label, .total-label {
-        font-size: 0.8rem;
-        color: #6C757D;
-      }
-
-      .remaining-number, .total-number {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #495057;
-      }
-    }
-  }
-
-  .letters-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .letter-btn {
-    background: #2196F3;
-    border: 1.5px solid #1976D2;
-    border-radius: 6px;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background 0.15s, border 0.15s, transform 0.15s;
-
-    &:hover,
-    &:focus {
-      background: #1976D2;
-      border-color: #1565C0;
-      transform: translateY(-1px);
-      outline: none;
-    }
-
-    &:active {
-      background: #1565C0;
-      transform: translateY(0);
     }
   }
 }

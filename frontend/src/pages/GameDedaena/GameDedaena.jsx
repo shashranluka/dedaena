@@ -237,37 +237,63 @@ function GameDedaena() {
       />
 
 
+      {/* ტურების ნავიგაცია - ასოები და პროგრესი */}
       {dedaenaData && dedaenaData.length > 0 && (
-        <div className="tour-letter-buttons" style={{ margin: "16px 0" }}>
-          {dedaenaData.map((tour, idx) => {
-            let btnClass = "tour-letter-btn";
-            if (position === tour.position) {
-              btnClass += " active";
-            } else if (position > tour.position) {
-              btnClass += " before-selected";
-            } else if (position < tour.position) {
-              btnClass += " after-selected";
-            }
+        <div className="tour-letter-buttons">
+          {dedaenaData.map((tour, index) => {
+            // ღილაკის სტატუსის განსაზღვრა
+            const isActive = position === tour.position;
+            const isCompleted = position > tour.position;
+            const isUpcoming = position < tour.position;
+            
+            // CSS კლასების მიმაგრება
+            const buttonClasses = [
+              'tour-letter-btn',
+              isActive && 'active',
+              isCompleted && 'before-selected',
+              isUpcoming && 'after-selected'
+            ].filter(Boolean).join(' ');
+
+            // სტატისტიკის ჩვენება მონიშნულისა და დასრულებული ტურებისთვის
+            const showStats = index <= position - 1;
+            const letterStats = lettersStatsFromSentences[tour.letter] || 0;
+            const isStatsComplete = letterStats > 0;
+
             return (
-              <div key={tour.position} className="tour-letter-btn-wrapper">
-                <span className="tour-position-label">
+              <div 
+                key={tour.position} 
+                className="tour-letter-btn-wrapper"
+                role="listitem"
+              >
+                {/* პოზიციის ნომერი (ტურის რიგითი ნომერი) */}
+                <span 
+                  className="tour-position-label" 
+                  aria-label={`ტური ${tour.position}`}
+                >
                   {tour.position}
                 </span>
+
+                {/* ასოს ღილაკი - დაკლიკებით გადადის შესაბამის ტურზე */}
                 <button
-                  className={btnClass}
-                  onClick={() => {
-                    setPosition(tour.position)
-                  }
-                  }
-                  title={`ქვესტი ${tour.position} (${tour.letter})`}
+                  className={buttonClasses}
+                  onClick={() => setPosition(tour.position)}
+                  title={`ქვესტი ${tour.position} - ასო "${tour.letter}"`}
+                  aria-label={`გადადი ტურზე ${tour.position}, ასო ${tour.letter}`}
+                  aria-current={isActive ? 'true' : 'false'}
                 >
                   {tour.letter}
                 </button>
-                {idx < position &&
-                  <span className={`letter-stat ${lettersStatsFromSentences[tour.letter] > 0 ? 'completed' : 'not-completed'}`}>
-                    {lettersStatsFromSentences[tour.letter]}
+
+                {/* სტატისტიკის ინდიკატორი - ასოს გამოყენების რაოდენობა */}
+                {showStats && (
+                  <span 
+                    className={`letter-stat ${isStatsComplete ? 'completed' : 'not-completed'}`}
+                    title={`ასო "${tour.letter}" გამოყენებულია ${letterStats}-ჯერ წინადადებებში`}
+                    aria-label={`${letterStats} გამოყენება`}
+                  >
+                    {letterStats}
                   </span>
-                }
+                )}
               </div>
             );
           })}

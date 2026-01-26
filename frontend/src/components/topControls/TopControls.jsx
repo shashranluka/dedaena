@@ -29,7 +29,7 @@ const BUTTONS = [
   { view: 'showSentences', class: 'control-button', card: 'control-card', content: (props) => (
     <>
       <span className="card-icon">📋</span>
-      <span className="card-hint">წინადადებები ({props.foundSentencesCount}/{props.sentencesCount})</span>
+      <span className="card-hint">წინადადებები</span>
     </>
   )},
   { view: 'instructions', class: 'control-button', card: 'control-card', content: () => (
@@ -51,10 +51,11 @@ const TopControls = ({ activeView, onViewChange, ...props }) => {
         <div 
           key={btn.view}
           // className={`${btn.class} ${i % 2 === 0 ? 'odd-button' : 'even-button'}`} 
-          className={`${btn.class} odd-button`}
+          // className={`${btn.class} ${i % 3 === 0 ? 'first-button' : 'other-button'}`} 
+          // className={`${btn.class} odd-button `}
           onClick={() => toggleView(btn.view)}
         >
-          <div className={`${btn.card} ${activeView === btn.view ? 'active' : ''}`}>
+          <div className={`${btn.card} ${activeView === btn.view ? 'active' : ''} ${i % 3 === 0 ? 'first-button' : 'other-button'}`}>
             {btn.content(props)}
           </div>
         </div>

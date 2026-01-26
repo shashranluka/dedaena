@@ -19,7 +19,7 @@ export const initGA = () => {
       },
     });
     isInitialized = true;
-    console.log('Google Analytics initialized with ID:', MEASUREMENT_ID);
+    // console.log('Google Analytics initialized with ID:', MEASUREMENT_ID);
   }
 };
 

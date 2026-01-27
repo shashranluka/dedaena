@@ -29,6 +29,22 @@ function GameDedaena() {
   const [proverbIndex, setProverbIndex] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
 
+  // ხმის ჩართვა-გამორთვის state (localStorage-დან)
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('dedaena_sound_enabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // ხმის პარამეტრის შენახვა localStorage-ში
+  useEffect(() => {
+    localStorage.setItem('dedaena_sound_enabled', JSON.stringify(isSoundEnabled));
+  }, [isSoundEnabled]);
+
+  // ხმის ჩართვა-გამორთვა
+  const toggleSound = () => {
+    setIsSoundEnabled(prev => !prev);
+  };
+
   const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
 
 
@@ -132,13 +148,9 @@ function GameDedaena() {
   }, []);
 
   const checkSentence = useCallback(() => {
-    // ხმის პარამეტრის წაკითხვა localStorage-დან
-    const isSoundEnabled = localStorage.getItem('dedaena_sound_enabled');
-    const shouldPlaySound = isSoundEnabled !== null ? JSON.parse(isSoundEnabled) : true;
-
     // ხმის დაკვრის ფუნქცია
     const playSound = (soundType) => {
-      if (!shouldPlaySound) return;
+      if (!isSoundEnabled) return;
       const soundFiles = {
         success: '/sounds/testsuccess.mp3',
         repeated: '/sounds/testrepeated.mp3',
@@ -200,7 +212,7 @@ function GameDedaena() {
       });
       setUserSentence("");
     }
-  }, [userSentence, sentences, foundSentencesByPosition, position, dedaenaData]);
+  }, [userSentence, sentences, foundSentencesByPosition, position, dedaenaData, isSoundEnabled]);
 
   const handleAlphabetCardClick = useCallback((clickedPosition) => {
     setPosition(clickedPosition);
@@ -248,6 +260,9 @@ function GameDedaena() {
         wordsCount={words.length}
         foundSentencesCount={currentFoundSentences.length}
         sentencesCount={dedaenaData[position - 1]?.sentences.length || 0}
+        isSoundEnabled={isSoundEnabled}
+        onToggleSound={toggleSound}
+        onNextQuest={() => setPosition(position + 1)}
         onViewChange={(view) => {
           if (view === 'instructions') {
             setShowInstructions(true);
@@ -364,7 +379,8 @@ function GameDedaena() {
         totalSentences={dedaenaData[position - 1]?.sentences.length}
         sentenceMessage={sentenceMessage}
         sentenceMessageKey={sentenceMessageKey}
-        sentenceMessageType={sentenceMessageType} // ✅ ახალი prop
+        sentenceMessageType={sentenceMessageType}
+        isSoundEnabled={isSoundEnabled}
         onWordAdd={(value) => {
           if (typeof value === "string" && value.length === 1) {
             setUserSentence(prev => prev + value);

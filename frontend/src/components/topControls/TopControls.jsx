@@ -40,19 +40,18 @@ const BUTTONS = [
   )}
 ];
 
-const TopControls = ({ activeView, onViewChange, ...props }) => {
+const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, position, staticDataLength, onNextQuest, ...props }) => {
   const toggleView = useCallback((view) => {
     onViewChange(activeView === view ? null : view);
   }, [activeView, onViewChange]);
 
   return (
     <div className="top-controls">
+      {/* ხმის ჩართვა/გამორთვა */}
+
       {BUTTONS.map((btn, i) => (
         <div 
           key={btn.view}
-          // className={`${btn.class} ${i % 2 === 0 ? 'odd-button' : 'even-button'}`} 
-          // className={`${btn.class} ${i % 3 === 0 ? 'first-button' : 'other-button'}`} 
-          // className={`${btn.class} odd-button `}
           onClick={() => toggleView(btn.view)}
         >
           <div className={`${btn.card} ${activeView === btn.view ? 'active' : ''} ${i % 3 === 0 ? 'first-button' : 'other-button'}`}>
@@ -60,6 +59,26 @@ const TopControls = ({ activeView, onViewChange, ...props }) => {
           </div>
         </div>
       ))}
+      <button 
+        className="control-card sound-toggle-btn" 
+        onClick={onToggleSound}
+        title={isSoundEnabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
+        aria-label={isSoundEnabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
+      >
+        {isSoundEnabled ? "🔊" : "🔇"}
+      </button>
+
+      {/* შემდეგი ქვესტი */}
+      {position < staticDataLength && (
+        <button 
+          className="control-card next-quest-btn" 
+          onClick={onNextQuest}
+          title="შემდეგი ქვესტი"
+          aria-label="შემდეგი ქვესტი"
+        >
+          ➡️
+        </button>
+      )}
     </div>
   );
 };

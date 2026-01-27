@@ -12,6 +12,7 @@ import "./SentenceCreator.scss";
  * @param {string} sentenceMessage - შეტყობინება წინადადების შემოწმების შემდეგ
  * @param {number} sentenceMessageKey - უნიკალური key შეტყობინების რე-რენდერისთვის
  * @param {string} sentenceMessageType - შეტყობინების ტიპი (success/error/warning)
+ * @param {boolean} isSoundEnabled - ხმის ჩართვის სტატუსი
  * @param {Function} onWordAdd - ფუნქცია სიმბოლოს დასამატებლად
  * @param {Function} onPunctuationAdd - ფუნქცია სასვენი ნიშნის დასამატებლად
  * @param {Function} onCheck - ფუნქცია წინადადების შესამოწმებლად
@@ -30,6 +31,7 @@ const SentenceCreator = ({
   sentenceMessage,
   sentenceMessageKey,
   sentenceMessageType,
+  isSoundEnabled,
   onWordAdd,
   onPunctuationAdd,
   onCheck,
@@ -43,17 +45,6 @@ const SentenceCreator = ({
   // დარჩენილი წინადადებების რაოდენობის გამოთვლა
   const remainingSentencesCount = totalSentences - foundSentences.length;
 
-  // ხმის ჩართვა-გამორთვის state (localStorage-დან)
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('dedaena_sound_enabled');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-
-  // ხმის პარამეტრის შენახვა localStorage-ში
-  useEffect(() => {
-    localStorage.setItem('dedaena_sound_enabled', JSON.stringify(isSoundEnabled));
-  }, [isSoundEnabled]);
-
   // ასოს ხმის დაკვრის ფუნქცია
   const playLetterSound = (letter) => {
     if (!isSoundEnabled) return;
@@ -62,11 +53,6 @@ const SentenceCreator = ({
   };
 
 
-
-  // ხმის ჩართვა-გამორთვა
-  const toggleSound = () => {
-    setIsSoundEnabled(prev => !prev);
-  };
 
   // დაფის გასუფთავება ხმით
   const handleClearWithSound = () => {
@@ -82,29 +68,12 @@ const SentenceCreator = ({
 
   return (
     <div className="create-sentence-div">
-      {/* ჰედერი - სათაური და კონტროლები */}
-      <div className="create-sentence-header">
+      {/* ჰედერი - სათაური */}
+      {/* <div className="create-sentence-header">
         <span>
           შექმენი წინადადება ({foundSentences.length}/{totalSentences})
         </span>
-        <div className="header-controls">
-          <button 
-            className="sound-toggle-btn" 
-            onClick={toggleSound}
-            title={isSoundEnabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
-            aria-label={isSoundEnabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
-          >
-            {isSoundEnabled ? "🔊" : "🔇"}
-          </button>
-          <button 
-            className="next-quest" 
-            onClick={() => setPosition(position + 1)}
-            title="შემდეგი ქვესტი"
-          >
-            შემდეგი ქვესტი
-          </button>
-        </div>
-      </div>
+      </div> */}
 
 
       {/* მთავარი სექცია */}
@@ -159,7 +128,7 @@ const SentenceCreator = ({
           <button
             className="sign-btn space-btn"
             onClick={() => onWordAdd(" ")}
-            title="ჰარი"
+            title="ადგილის გამოტოვება"
             aria-label="დაამატე ჰარი"
           >
             <span className="space-text">ჰარი</span>

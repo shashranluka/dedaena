@@ -115,6 +115,7 @@ const SentenceCreator = ({
             <div className="sentence-words">
               <span className="sentence-word">
                 {userSentence}
+                <span className="cursor-blink">|</span>
               </span>
             </div>
           ) : (

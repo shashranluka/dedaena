@@ -614,7 +614,7 @@
         width: 90%;
         font-size: 0.7rem;
         // padding: 5px 8px;
-        border-radius: 10px;
+        border-radius: 50%;
         font-weight: 600;
         // min-width: 24px;
         text-align: center;
@@ -652,17 +652,18 @@
         }
 
         .tour-letter-btn {
-          min-width: 44px;
-          max-width: 44px;
+          // min-width: 44px;
+          // max-width: 44px;
           height: 44px;
           font-size: 1.1rem;
           border-radius: 7px;
         }
 
         .letter-stat {
+          width: 70%;
           font-size: 0.75rem;
           padding: 3px 9px;
-          min-width: 26px;
+          // min-width: 26px;
         }
       }
     }
@@ -686,8 +687,8 @@
         }
 
         .tour-letter-btn {
-          min-width: 50px;
-          max-width: 50px;
+          // min-width: 50px;
+          // max-width: 50px;
           height: 50px;
           font-size: 1.2rem;
           border-radius: 8px;
@@ -705,7 +706,7 @@
         .letter-stat {
           font-size: 0.8rem;
           padding: 4px 10px;
-          min-width: 28px;
+          // min-width: 28px;
         }
       }
     }

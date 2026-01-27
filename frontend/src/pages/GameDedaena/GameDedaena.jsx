@@ -132,10 +132,28 @@ function GameDedaena() {
   }, []);
 
   const checkSentence = useCallback(() => {
+    // ხმის პარამეტრის წაკითხვა localStorage-დან
+    const isSoundEnabled = localStorage.getItem('dedaena_sound_enabled');
+    const shouldPlaySound = isSoundEnabled !== null ? JSON.parse(isSoundEnabled) : true;
+
+    // ხმის დაკვრის ფუნქცია
+    const playSound = (soundType) => {
+      if (!shouldPlaySound) return;
+      const soundFiles = {
+        success: '/sounds/testsuccess.mp3',
+        repeated: '/sounds/testrepeated.mp3',
+        error: '/sounds/testerror.mp3',
+        warning: '/sounds/testwarning.mp3'
+      };
+      const audio = new Audio(soundFiles[soundType]);
+      audio.play().catch(err => console.log('Audio play failed:', err));
+    };
+
     if (userSentence.length === 0) {
       setSentenceMessage("შეადგინე წინადადება!");
-      setSentenceMessageType("warning"); // ✅ ყვითელი
+      setSentenceMessageType("warning");
       setSentenceMessageKey(Date.now());
+      playSound('warning');
       return;
     }
 
@@ -152,16 +170,19 @@ function GameDedaena() {
         [position]: [...currentSentences, userSentence]
       }));
       setSentenceMessage("სწორი წინადადება!");
-      setSentenceMessageType("success"); // ✅ მწვანე
+      setSentenceMessageType("success");
       setSentenceMessageKey(Date.now());
+      playSound('success');
     } else if (currentSentences.some(s => s.toLowerCase() === normalizedUserSentence)) {
       setSentenceMessage("ეს წინადადება უკვე შედგენილია!");
-      setSentenceMessageType("warning"); // ✅ ყვითელი
+      setSentenceMessageType("repeated");
       setSentenceMessageKey(Date.now());
+      playSound('repeated');
     } else {
       setSentenceMessage("სხვა სცადე!");
-      setSentenceMessageType("error"); // ✅ წითელი
+      setSentenceMessageType("error");
       setSentenceMessageKey(Date.now());
+      playSound('error');
     }
     if (isCorrect) {
       setLettersStatsFromSentences(prev => {
@@ -216,7 +237,7 @@ function GameDedaena() {
 
   return (
     <div className="gamededaena-page">
-      <h2>{version_data.name}ს დედაენა</h2>
+      {/* <h2>{version_data.name}ს დედაენა</h2> */}
 
       <TopControls
         activeView={activeView}

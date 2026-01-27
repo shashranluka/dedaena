@@ -61,56 +61,19 @@ const SentenceCreator = ({
     audio.play().catch(err => console.log('Audio play failed:', err));
   };
 
-  // სხვადასხვა მოქმედებებისთვის ხმების დაკვრა
-  const playActionSound = (action) => {
-    if (!isSoundEnabled) return;
-    
-    let soundFile = '';
-    switch(action) {
-      case 'success':
-        soundFile = '/sounds/testsuccess.mp3'; // წარმატებული შემოწმება
-        break;
-      case 'error':
-        soundFile = '/sounds/testerror.mp3'; // არასწორი წინადადება
-        break;
-      case 'clear':
-        soundFile = '/sounds/testclear.mp3'; // დაფის გასუფთავება
-        break;
-      case 'warning':
-        soundFile = '/sounds/testwarning.mp3'; // გაფრთხილება
-        break;
-      default:
-        return;
-    }
-    
-    const audio = new Audio(soundFile);
-    audio.play().catch(err => console.log('Audio play failed:', err));
-  };
+
 
   // ხმის ჩართვა-გამორთვა
   const toggleSound = () => {
     setIsSoundEnabled(prev => !prev);
   };
 
-  // წინადადების შემოწმება ხმით
-  const handleCheckWithSound = () => {
-    onCheck();
-    // sentenceMessageType-ის მიხედვით შესაბამისი ხმის დაკვრა
-    // დავუშვათ რომ onCheck-ის შემდეგ განახლდება sentenceMessageType
-    setTimeout(() => {
-      if (sentenceMessageType === 'success') {
-        playActionSound('success');
-      } else if (sentenceMessageType === 'error') {
-        playActionSound('error');
-      } else if (sentenceMessageType === 'warning') {
-        playActionSound('warning');
-      }
-    }, 100);
-  };
-
   // დაფის გასუფთავება ხმით
   const handleClearWithSound = () => {
-    playActionSound('clear');
+    if (isSoundEnabled) {
+      const audio = new Audio('/sounds/testclear.mp3');
+      audio.play().catch(err => console.log('Audio play failed:', err));
+    }
     onClear();
   };
 
@@ -247,7 +210,7 @@ const SentenceCreator = ({
         <div className="sentence-actions">
           <button
             className="check-sentence-btn"
-            onClick={handleCheckWithSound}
+            onClick={onCheck}
             disabled={isInputEmpty}
             aria-label="შეამოწმე წინადადება"
           >

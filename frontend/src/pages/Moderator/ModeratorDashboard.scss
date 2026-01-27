@@ -585,7 +585,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
   z-index: 100;
 }
 // --- NEW: Tour Letter Button Styles ---
-.tour-letter-buttons {
+.moderator-tour-letter-buttons {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -595,8 +595,8 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica 
   margin: 8px 0;
 
   .tour-letter-btn {
-    min-width: 2em;
-    max-width: 2em;
+    // min-width: 2em;
+    // max-width: 2em;
     height: 2em;
     padding: 0;
     font-size: 1.1em;

@@ -563,7 +563,7 @@ const handleDelete = (item) => {
         </div>
         <div className="pos-sticky">
 
-          <div className="tour-letter-buttons">
+          <div className="moderator-tour-letter-buttons">
             {Array.from({ length: 33 }).map((_, idx) => {
               const tour = dedaenaData[idx];
               if (!tour) return null;

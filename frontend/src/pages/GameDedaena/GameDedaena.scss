@@ -568,8 +568,9 @@
       }
 
       .tour-letter-btn {
-        min-width: 40px;
-        max-width: 40px;
+        // min-width: 40px;
+        // max-width: 40px;
+        width: 95%;
         height: 40px;
         padding: 0;
         font-size: 1rem;
@@ -610,11 +611,12 @@
       }
 
       .letter-stat {
+        width: 90%;
         font-size: 0.7rem;
-        padding: 5px 8px;
-        border-radius: 4px;
+        // padding: 5px 8px;
+        border-radius: 10px;
         font-weight: 600;
-        min-width: 24px;
+        // min-width: 24px;
         text-align: center;
 
         &.completed {
@@ -633,7 +635,7 @@
 
     // Tablet breakpoint - 480px
     @media (min-width: 480px) {
-      gap: 6px;
+      // gap: 6px;
       margin: 12px 0;
       padding: 6px 0;
 
@@ -642,7 +644,7 @@
       }
 
       .tour-letter-btn-wrapper {
-        min-width: 52px;
+        // min-width: 52px;
         gap: 3px;
 
         .tour-position-label {
@@ -667,7 +669,7 @@
 
     // Desktop breakpoint - 768px
     @media (min-width: 768px) {
-      gap: 8px;
+      // gap: 8px;
       margin: 16px 0;
       padding: 8px 0;
 
@@ -676,7 +678,7 @@
       }
 
       .tour-letter-btn-wrapper {
-        min-width: 60px;
+        // min-width: 60px;
         gap: 4px;
 
         .tour-position-label {

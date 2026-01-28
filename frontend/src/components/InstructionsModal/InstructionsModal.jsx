@@ -67,18 +67,18 @@ const InstructionsModal = ({ isOpen, onClose }) => {
       <div className="instructions-modal" onClick={e => e.stopPropagation()}>
         <div className="header-controls">
           <div className="language-toggle">
-            <button 
+            {/* <button 
               className={language === "ka" ? "active" : ""} 
               onClick={() => setLanguage("ka")}
             >
               ქარ
-            </button>
-            <button 
+            </button> */}
+            {/* <button 
               className={language === "en" ? "active" : ""} 
               onClick={() => setLanguage("en")}
             >
               ENG
-            </button>
+            </button> */}
           </div>
           <button
             className="close-instructions-btn"

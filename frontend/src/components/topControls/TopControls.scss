@@ -5,13 +5,13 @@
   gap: 4px;
   margin-bottom: 16px;
   flex-wrap: wrap;
-  padding: 0 12px;
+  // padding: 0 12px;
 
   // Tablet and larger
   @media (min-width: 480px) {
-    gap: 14px;
+    gap: 8px;
     margin-bottom: 18px;
-    padding: 0 14px;
+    // padding: 0 14px;
   }
 
   // Desktop

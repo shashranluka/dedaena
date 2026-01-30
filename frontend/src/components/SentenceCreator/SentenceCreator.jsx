@@ -42,8 +42,22 @@ const SentenceCreator = ({
   position,
   setPosition
 }) => {
+  // cursor-ის პოზიცია წინადადებაში
+  const [cursorPosition, setCursorPosition] = useState(0);
+
   // დარჩენილი წინადადებების რაოდენობის გამოთვლა
   const remainingSentencesCount = totalSentences - foundSentences.length;
+
+  // cursor-ის პოზიციის სინქრონიზაცია userSentence-თან
+  useEffect(() => {
+    // თუ წინადადება გასუფთავდა, cursor-იც დაბრუნდეს საწყის პოზიციაზე
+    if (userSentence.length === 0) {
+      setCursorPosition(0);
+    } else if (cursorPosition > userSentence.length) {
+      // თუ cursor არის წინადადების სიგრძეზე მეტ პოზიციაზე, დააბრუნე ბოლოში
+      setCursorPosition(userSentence.length);
+    }
+  }, [userSentence.length]);
 
   // ასოს ხმის დაკვრის ფუნქცია
   const playLetterSound = (letter) => {
@@ -65,7 +79,7 @@ const SentenceCreator = ({
       // ასოების დამუშავება
       if (letters && letters.includes(key)) {
         event.preventDefault();
-        onWordAdd(key);
+        handleCharacterAdd(key);
         playLetterSound(key);
         return;
       }
@@ -74,20 +88,46 @@ const SentenceCreator = ({
       switch (key) {
         case ' ':
           event.preventDefault();
-          onWordAdd(' ');
+          handleCharacterAdd(' ');
           break;
         case '.':
         case ',':
         case '!':
         case '?':
           event.preventDefault();
-          onWordAdd(key);
+          handleCharacterAdd(key);
           break;
         case 'Backspace':
-          if (!isInputEmpty) {
+          if (!isInputEmpty && cursorPosition > 0) {
             event.preventDefault();
-            onRemoveLast();
+            handleBackspace();
           }
+          break;
+        case 'Delete':
+          if (!isInputEmpty && cursorPosition < userSentence.length) {
+            event.preventDefault();
+            handleDelete();
+          }
+          break;
+        case 'ArrowLeft':
+          if (cursorPosition > 0) {
+            event.preventDefault();
+            setCursorPosition(cursorPosition - 1);
+          }
+          break;
+        case 'ArrowRight':
+          if (cursorPosition < userSentence.length) {
+            event.preventDefault();
+            setCursorPosition(cursorPosition + 1);
+          }
+          break;
+        case 'Home':
+          event.preventDefault();
+          setCursorPosition(0);
+          break;
+        case 'End':
+          event.preventDefault();
+          setCursorPosition(userSentence.length);
           break;
         case 'Enter':
           if (!isInputEmpty) {
@@ -105,15 +145,58 @@ const SentenceCreator = ({
           break;
       }
     };
-    console.log("Attaching keydown listener");
     window.addEventListener('keydown', handleKeyPress);
     
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [letters,  isSoundEnabled, onWordAdd, onRemoveLast, onCheck, userSentence]);
+  }, [letters, isSoundEnabled, userSentence, cursorPosition]);
 
+  // სიმბოლოს დამატება cursor-ის პოზიციაზე
+  const handleCharacterAdd = (char) => {
+    const before = userSentence.slice(0, cursorPosition);
+    const after = userSentence.slice(cursorPosition);
+    const newSentence = before + char + after;
+    
+    // განვაახლოთ parent-ის state მთელი წინადადებით
+    onClear(); // ჯერ გავასუფთავოთ
+    for (let i = 0; i < newSentence.length; i++) {
+      onWordAdd(newSentence[i]);
+    }
+    
+    setCursorPosition(cursorPosition + 1);
+  };
 
+  // Backspace - წაშლა cursor-ის წინ
+  const handleBackspace = () => {
+    if (cursorPosition === 0) return;
+    
+    const before = userSentence.slice(0, cursorPosition - 1);
+    const after = userSentence.slice(cursorPosition);
+    const newSentence = before + after;
+    
+    onClear();
+    for (let i = 0; i < newSentence.length; i++) {
+      onWordAdd(newSentence[i]);
+    }
+    
+    setCursorPosition(cursorPosition - 1);
+  };
+
+  // Delete - წაშლა cursor-ის შემდეგ
+  const handleDelete = () => {
+    if (cursorPosition >= userSentence.length) return;
+    
+    const before = userSentence.slice(0, cursorPosition);
+    const after = userSentence.slice(cursorPosition + 1);
+    const newSentence = before + after;
+    
+    onClear();
+    for (let i = 0; i < newSentence.length; i++) {
+      onWordAdd(newSentence[i]);
+    }
+    // cursor პოზიცია რჩება იგივე
+  };
 
   // დაფის გასუფთავება ხმით
   const handleClearWithSound = () => {
@@ -122,6 +205,7 @@ const SentenceCreator = ({
       audio.play().catch(err => console.log('Audio play failed:', err));
     }
     onClear();
+    setCursorPosition(0);
   };
 
   // ღილაკების disabled სტატუსი
@@ -144,8 +228,9 @@ const SentenceCreator = ({
           {userSentence.length > 0 ? (
             <div className="sentence-words">
               <span className="sentence-word">
-                {userSentence}
+                {userSentence.slice(0, cursorPosition)}
                 <span className="cursor-blink">|</span>
+                {userSentence.slice(cursorPosition)}
               </span>
             </div>
           ) : (
@@ -172,7 +257,7 @@ const SentenceCreator = ({
                 key={`${letter}-${index}`}
                 className="letter-btn"
                 onClick={() => {
-                  onWordAdd(letter);
+                  handleCharacterAdd(letter);
                   playLetterSound(letter);
                 }}
                 title={`დაამატე ასო "${letter}" წინადადებაში`}
@@ -188,7 +273,7 @@ const SentenceCreator = ({
         <div className="signs">
           <button
             className="sign-btn space-btn"
-            onClick={() => onWordAdd(" ")}
+            onClick={() => handleCharacterAdd(" ")}
             title="ადგილის გამოტოვება"
             aria-label="დაამატე ჰარი"
           >
@@ -196,7 +281,7 @@ const SentenceCreator = ({
           </button>
           <button
             className="sign-btn"
-            onClick={() => onWordAdd(".")}
+            onClick={() => handleCharacterAdd(".")}
             title="წერტილი"
             aria-label="დაამატე წერტილი"
           >
@@ -204,7 +289,7 @@ const SentenceCreator = ({
           </button>
           <button
             className="sign-btn"
-            onClick={() => onWordAdd(",")}
+            onClick={() => handleCharacterAdd(",")}
             title="მძიმე"
             aria-label="დაამატე მძიმე"
           >
@@ -212,7 +297,7 @@ const SentenceCreator = ({
           </button>
           <button
             className="sign-btn"
-            onClick={() => onWordAdd("!")}
+            onClick={() => handleCharacterAdd("!")}
             title="ძახილის ნიშანი"
             aria-label="დაამატე ძახილის ნიშანი"
           >
@@ -220,7 +305,7 @@ const SentenceCreator = ({
           </button>
           <button
             className="sign-btn"
-            onClick={() => onWordAdd("?")}
+            onClick={() => handleCharacterAdd("?")}
             title="კითხვის ნიშანი"
             aria-label="დაამატე კითხვის ნიშანი"
           >
@@ -228,10 +313,10 @@ const SentenceCreator = ({
           </button>
           <button
             className="sign-btn delete-btn"
-            onClick={onRemoveLast}
-            title="ბოლო სიმბოლოს წაშლა"
-            aria-label="წაშალე ბოლო სიმბოლო"
-            disabled={isInputEmpty}
+            onClick={handleBackspace}
+            title="Backspace - წაშლა cursor-ის წინ"
+            aria-label="წაშალე სიმბოლო cursor-ის წინ"
+            disabled={isInputEmpty || cursorPosition === 0}
           >
             ⬅️
           </button>

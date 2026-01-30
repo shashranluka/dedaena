@@ -52,6 +52,67 @@ const SentenceCreator = ({
     audio.play().catch(err => console.log('Audio play failed:', err));
   };
 
+  // კლავიატურიდან აკრეფის ფუნქციონალი
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // თავიდან აცილება ძირითადი ინპუტებისთვის
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      const key = event.key;
+
+      // ასოების დამუშავება
+      if (letters && letters.includes(key)) {
+        event.preventDefault();
+        onWordAdd(key);
+        playLetterSound(key);
+        return;
+      }
+
+      // სასვენი ნიშნები და სპეციალური ღილაკები
+      switch (key) {
+        case ' ':
+          event.preventDefault();
+          onWordAdd(' ');
+          break;
+        case '.':
+        case ',':
+        case '!':
+        case '?':
+          event.preventDefault();
+          onWordAdd(key);
+          break;
+        case 'Backspace':
+          if (!isInputEmpty) {
+            event.preventDefault();
+            onRemoveLast();
+          }
+          break;
+        case 'Enter':
+          if (!isInputEmpty) {
+            event.preventDefault();
+            onCheck();
+          }
+          break;
+        case 'Escape':
+          if (!isInputEmpty) {
+            event.preventDefault();
+            handleClearWithSound();
+          }
+          break;
+        default:
+          break;
+      }
+    };
+    console.log("Attaching keydown listener");
+    window.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [letters,  isSoundEnabled, onWordAdd, onRemoveLast, onCheck, userSentence]);
+
 
 
   // დაფის გასუფთავება ხმით

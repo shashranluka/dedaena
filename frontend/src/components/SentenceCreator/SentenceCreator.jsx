@@ -47,6 +47,7 @@ const SentenceCreator = ({
 
   // დარჩენილი წინადადებების რაოდენობის გამოთვლა
   const remainingSentencesCount = totalSentences - foundSentences.length;
+  const isInputEmpty = userSentence.length === 0;
 
   // cursor-ის პოზიციის სინქრონიზაცია userSentence-თან
   useEffect(() => {
@@ -209,7 +210,6 @@ const SentenceCreator = ({
   };
 
   // ღილაკების disabled სტატუსი
-  const isInputEmpty = userSentence.length === 0;
 
   return (
     <div className="create-sentence-div">

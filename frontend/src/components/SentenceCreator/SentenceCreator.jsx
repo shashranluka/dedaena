@@ -150,7 +150,7 @@ const SentenceCreator = ({
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [letters, isSoundEnabled, userSentence, cursorPosition]);
+  }, [letters, isInputEmpty, isSoundEnabled, userSentence, cursorPosition]);
 
   // სიმბოლოს დამატება cursor-ის პოზიციაზე
   const handleCharacterAdd = (char) => {
@@ -235,7 +235,7 @@ const SentenceCreator = ({
             </div>
           ) : (
             <div className="sentence-placeholder">
-              წინადადების შესადგენად დააკლიკე ასოებისა და სასვენ ნიშნების ბარათებს.
+              წინადადების შესადგენად დააკლიკე ასოებისა და სასვენი ნიშნების ბარათებს.
             </div>
           )}
           {/* შეტყობინებების overlay */}

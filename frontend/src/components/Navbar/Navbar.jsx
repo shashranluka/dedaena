@@ -50,8 +50,8 @@ function Navbar() {
       {/* Logo/Brand */}
       <div className="navbar-brand">
         <Link to="/" className="brand-link">
-          <span className="brand-icon">📚</span>
-          <span className="brand-text">დედაენა</span>
+          <img className="brand-icon" src="/img/logo_red.png" alt="დედაენა ლოგო" />
+          {/* <span className="brand-text">დედაენა</span> */}
         </Link>
       </div>
 

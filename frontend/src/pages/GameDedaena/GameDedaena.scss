@@ -249,6 +249,53 @@
     margin: 24px 0;
   }
 
+  .middle-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 12px 0;
+
+    .middle-controls-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      label {
+        font-weight: 600;
+        color: #333;
+      }
+
+      select {
+        padding: 6px 10px;
+        border: 1px solid #d0d0d0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: #fff;
+        color: #333;
+      }
+    }
+
+    .composition-list-btn {
+      padding: 8px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #f8f8f8;
+      color: #333;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      align-items: stretch;
+
+      .middle-controls-left {
+        justify-content: space-between;
+      }
+    }
+  }
+
   .open-gift-btn {
     background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
     color: #1a1a1a;

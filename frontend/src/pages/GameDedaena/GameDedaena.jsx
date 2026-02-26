@@ -23,6 +23,7 @@ function GameDedaena() {
   const [sentenceMessageKey, setSentenceMessageKey] = useState(0);
   const [sentenceMessageType, setSentenceMessageType] = useState("success"); // ✅ ახალი state
   const [activeView, setActiveView] = useState('sentence');
+  const [compositionType, setCompositionType] = useState('sentences');
   const [position, setPosition] = useState(2);
   const [werili, setWerili] = useState();
   const [showGift, setShowGift] = useState(false);
@@ -47,6 +48,7 @@ function GameDedaena() {
 
   const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
 
+  console.log("GameDedaena rendered with position:", dedaenaData, "words:", words, "sentences:", sentences, "position:", position);
 
   const currentFoundWords = useMemo(() => foundWordsByPosition[position] || [], [foundWordsByPosition, position]);
   const currentFoundSentences = useMemo(() => foundSentencesByPosition[position] || [], [foundSentencesByPosition, position]);
@@ -272,6 +274,27 @@ function GameDedaena() {
         }}
       />
 
+      <div className="middle-controls">
+        <div className="middle-controls-left">
+          <label htmlFor="composition-select">შედგენა:</label>
+          <select
+            id="composition-select"
+            value={compositionType}
+            onChange={(e) => setCompositionType(e.target.value)}
+          >
+            <option value="words">სიტყვების</option>
+            <option value="sentences">წინადადებების</option>
+          </select>
+        </div>
+
+        <button
+          type="button"
+          className="composition-list-btn"
+          onClick={() => setActiveView(compositionType === 'words' ? 'words' : 'showSentences')}
+        >
+          {compositionType === 'words' ? 'სიტყვების' : 'წინადადებების'} სია
+        </button>
+      </div>
 
       {/* ტურების ნავიგაცია - ასოები და პროგრესი */}
       {dedaenaData && dedaenaData.length > 0 && (
@@ -357,7 +380,7 @@ function GameDedaena() {
         />
       )}
 
-      {activeView === 'create' && (
+      {compositionType === 'words' && (
         <WordCreator
           letters={letters}
           selected={selected}
@@ -371,33 +394,33 @@ function GameDedaena() {
         />
       )}
 
-      {/* {activeView === 'sentence' && ( */}
-      <SentenceCreator
-        allFoundWords={allFoundWords}
-        userSentence={userSentence}
-        foundSentences={currentFoundSentences}
-        totalSentences={dedaenaData[position - 1]?.sentences.length}
-        sentenceMessage={sentenceMessage}
-        sentenceMessageKey={sentenceMessageKey}
-        sentenceMessageType={sentenceMessageType}
-        isSoundEnabled={isSoundEnabled}
-        onWordAdd={(value) => {
-          if (typeof value === "string" && value.length === 1) {
-            setUserSentence(prev => prev + value);
-          } else {
-            setUserSentence(prev => prev.length > 0 ? prev + " " + value : value);
-          }
-        }}
-        onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
-        onCheck={checkSentence}
-        onRemoveLast={handleRemoveLast}
-        onClear={clearSentence}
-        onClose={() => setActiveView(null)}
-        letters={letters}
-        position={position}
-        setPosition={setPosition}
-      />
-      {/* )} */}
+      {compositionType === 'sentences' && (
+        <SentenceCreator
+          allFoundWords={allFoundWords}
+          userSentence={userSentence}
+          foundSentences={currentFoundSentences}
+          totalSentences={dedaenaData[position - 1]?.sentences.length}
+          sentenceMessage={sentenceMessage}
+          sentenceMessageKey={sentenceMessageKey}
+          sentenceMessageType={sentenceMessageType}
+          isSoundEnabled={isSoundEnabled}
+          onWordAdd={(value) => {
+            if (typeof value === "string" && value.length === 1) {
+              setUserSentence(prev => prev + value);
+            } else {
+              setUserSentence(prev => prev.length > 0 ? prev + " " + value : value);
+            }
+          }}
+          onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
+          onCheck={checkSentence}
+          onRemoveLast={handleRemoveLast}
+          onClear={clearSentence}
+          onClose={() => setActiveView(null)}
+          letters={letters}
+          position={position}
+          setPosition={setPosition}
+        />
+      )}
 
       {activeView === 'showSentences' && (
         <SentenceList

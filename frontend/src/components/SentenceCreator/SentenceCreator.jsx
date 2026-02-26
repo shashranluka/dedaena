@@ -248,90 +248,19 @@ const SentenceCreator = ({
             </div>
           )}
         </div>
-
-        {/* ასოების ზოლი */}
-        {letters && letters.length > 0 && (
-          <div className="letters-row">
-            {letters.map((letter, index) => (
-              <button
-                key={`${letter}-${index}`}
-                className="letter-btn"
-                onClick={() => {
-                  handleCharacterAdd(letter);
-                  playLetterSound(letter);
-                }}
-                title={`დაამატე ასო "${letter}" წინადადებაში`}
-                aria-label={`დაამატე ასო ${letter}`}
-              >
-                {letter}
-              </button>
-            ))}
-          </div>
-        )}
         
-        {/* სასვენი ნიშნები და კონტროლები */}
-        <div className="signs">
-          <button
-            className="sign-btn space-btn"
-            onClick={() => handleCharacterAdd(" ")}
-            title="ადგილის გამოტოვება"
-            aria-label="დაამატე ჰარი"
-          >
-            <span className="space-text">ჰარი</span>
-          </button>
-          <button
-            className="sign-btn"
-            onClick={() => handleCharacterAdd(".")}
-            title="წერტილი"
-            aria-label="დაამატე წერტილი"
-          >
-            .
-          </button>
-          <button
-            className="sign-btn"
-            onClick={() => handleCharacterAdd(",")}
-            title="მძიმე"
-            aria-label="დაამატე მძიმე"
-          >
-            ,
-          </button>
-          <button
-            className="sign-btn"
-            onClick={() => handleCharacterAdd("!")}
-            title="ძახილის ნიშანი"
-            aria-label="დაამატე ძახილის ნიშანი"
-          >
-            !
-          </button>
-          <button
-            className="sign-btn"
-            onClick={() => handleCharacterAdd("?")}
-            title="კითხვის ნიშანი"
-            aria-label="დაამატე კითხვის ნიშანი"
-          >
-            ?
-          </button>
-          <button
-            className="sign-btn delete-btn"
-            onClick={handleBackspace}
-            title="Backspace - წაშლა cursor-ის წინ"
-            aria-label="წაშალე სიმბოლო cursor-ის წინ"
-            disabled={isInputEmpty || cursorPosition === 0}
-          >
-            ⬅️
-          </button>
-        </div>
-
+        
         {/* მოქმედების ღილაკები */}
         <div className="sentence-actions">
           <button
-            className="check-sentence-btn"
-            onClick={onCheck}
-            disabled={isInputEmpty}
-            aria-label="შეამოწმე წინადადება"
-          >
-            ✓ წინადადების შემოწმება
-          </button>
+              className="sign-btn delete-btn"
+              onClick={handleBackspace}
+              title="Backspace - წაშლა cursor-ის წინ"
+              aria-label="წაშალე სიმბოლო cursor-ის წინ"
+              disabled={isInputEmpty || cursorPosition === 0}
+            >
+              ⬅️
+            </button>
           <button
             className="clear-sentence-btn"
             onClick={handleClearWithSound}
@@ -340,6 +269,90 @@ const SentenceCreator = ({
           >
             🗑️ დაფის გასუფთავება
           </button>
+          <button
+            className="check-sentence-btn"
+            onClick={onCheck}
+            disabled={isInputEmpty}
+            aria-label="შეამოწმე წინადადება"
+          >
+            ✓ წინადადების შემოწმება
+          </button>
+        </div>
+
+
+        <div className="letters-signs-row">
+          {/* სასვენი ნიშნები და კონტროლები */}
+          <div className="signs">
+            {/* <button
+              className="sign-btn delete-btn"
+              onClick={handleBackspace}
+              title="Backspace - წაშლა cursor-ის წინ"
+              aria-label="წაშალე სიმბოლო cursor-ის წინ"
+              disabled={isInputEmpty || cursorPosition === 0}
+            >
+              ⬅️
+            </button> */}
+            <button
+              className="sign-btn space-btn"
+              onClick={() => handleCharacterAdd(" ")}
+              title="ადგილის გამოტოვება"
+              aria-label="დაამატე ჰარი"
+            >
+              <span className="space-text">ჰარი</span>
+            </button>
+            <button
+              className="sign-btn"
+              onClick={() => handleCharacterAdd(".")}
+              title="წერტილი"
+              aria-label="დაამატე წერტილი"
+            >
+              .
+            </button>
+            <button
+              className="sign-btn"
+              onClick={() => handleCharacterAdd(",")}
+              title="მძიმე"
+              aria-label="დაამატე მძიმე"
+            >
+              ,
+            </button>
+            <button
+              className="sign-btn"
+              onClick={() => handleCharacterAdd("!")}
+              title="ძახილის ნიშანი"
+              aria-label="დაამატე ძახილის ნიშანი"
+            >
+              !
+            </button>
+            <button
+              className="sign-btn"
+              onClick={() => handleCharacterAdd("?")}
+              title="კითხვის ნიშანი"
+              aria-label="დაამატე კითხვის ნიშანი"
+            >
+              ?
+            </button>
+          </div>
+
+          {/* ასოების ზოლი */}
+          {letters && letters.length > 0 && (
+            <div className="letters-row">
+              {letters.map((letter, index) => (
+                <button
+                  key={`${letter}-${index}`}
+                  className="letter-btn"
+                  onClick={() => {
+                    handleCharacterAdd(letter);
+                    playLetterSound(letter);
+                  }}
+                  title={`დაამატე ასო "${letter}" წინადადებაში`}
+                  aria-label={`დაამატე ასო ${letter}`}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

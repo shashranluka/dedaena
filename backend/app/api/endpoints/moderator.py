@@ -121,6 +121,7 @@ async def toggle_is_playable(
     current_user: dict = Depends(get_current_moderator_user)
 ):
     table_map = {
+        "words": ("words", "word"),
         "sentences": ("sentences", "sentence"),
         "proverbs": ("proverbs", "proverb"),
         "toreads": ("toreads", "toread"),

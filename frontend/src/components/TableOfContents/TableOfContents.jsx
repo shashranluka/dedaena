@@ -38,10 +38,11 @@ const TableOfContents = ({
               <span className="card-position">{idx + 1}</span>
 
               <div className="card-content">
-                {/* <div className="content-dot words">
+                <div className="content-dot words">
                   <span className="icon">🔤</span>
+                  <span className="">სიტყვა</span>
                   <span className="count">{wordsCount}</span>
-                </div> */}
+                </div>
                 <div className="content-dot sentences">
                   <span className="icon">📝</span>
                   <span className="">წინადადება</span>

@@ -13,7 +13,7 @@ export const useGameData = (version_data, position) => {
   // const [alphabetData, setAlphabetData] = useState({}); // ყველა ასოს დეტალური ინფორმაცია
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // console.log("dedaenaData:", dedaenaData);
+  console.log("dedaenaData:", dedaenaData);
   // Full alphabet load
   useEffect(() => {
     const loadDedaenaData = async () => {
@@ -23,7 +23,7 @@ export const useGameData = (version_data, position) => {
         if (!response.status) throw new Error('Failed to load alphabet');
         setDedaenaData(response.data.data);
         setStaticData(response.data);
-        // console.log("Fetched dedaena data:", response.data);
+        console.log("Fetched dedaena data:", response.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -32,7 +32,7 @@ export const useGameData = (version_data, position) => {
     };
     loadDedaenaData();
   }, [version_data.dedaena_table]);
-  // console.log("Dedaena data in hook:",position, dedaenaData[position-1]);
+  console.log("Dedaena data in hook:",position, dedaenaData[position-1]);
   // setWords(dedaenaData[position-1].words || []);
   // setSentences(dedaenaData[position-1]?.sentences || []);
   // Position data load

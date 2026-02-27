@@ -46,7 +46,21 @@ function GameDedaena() {
     setIsSoundEnabled(prev => !prev);
   };
 
-  const { letters, words, sentences, dedaenaData, loading, error } = useGameData(version_data, position);
+  const { letters, dedaenaData, loading, error } = useGameData(version_data, position);
+
+  const words = useMemo(() => {
+    const rawWords = dedaenaData[position - 1]?.words || [];
+    return rawWords
+      .map((item) => (typeof item === "string" ? item : item?.word || ""))
+      .filter(Boolean);
+  }, [dedaenaData, position]);
+
+  const sentences = useMemo(() => {
+    const rawSentences = dedaenaData[position - 1]?.sentences || [];
+    return rawSentences
+      .map((item) => (typeof item === "string" ? item : item?.sentence || ""))
+      .filter(Boolean);
+  }, [dedaenaData, position]);
 
   console.log("GameDedaena rendered with position:", dedaenaData, "words:", words, "sentences:", sentences, "position:", position);
 

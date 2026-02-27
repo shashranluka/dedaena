@@ -85,7 +85,7 @@ const ModeratorDashboard = () => {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setDedaenaData(response.data.data || []);
-      // console.log("Fetched dedaena data:", response.data.data);
+      console.log("Fetched dedaena data:", response.data.data);
       setError(null);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message;
@@ -190,6 +190,7 @@ const ModeratorDashboard = () => {
         id: item.id,
         arrayIndex: index,
         tourPosition: tour.position,
+        is_playable: item.is_playable,
         tourLetter: tour.letter,
       }));
       (tour.sentences || []).forEach((item, index) => items.push({
@@ -828,6 +829,23 @@ const handleDelete = (item) => {
                         <span className={`tour-position${isSelectedTour ? ' highlight' : ''}`}>
                           ტური #{item.tourPosition}
                         </span>
+                      </div>
+                      <div className="playable-toggle" style={{ marginTop: 8 }}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={!!item.is_playable}
+                            disabled={actionLoading}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleTogglePlayable(item);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span style={{ marginLeft: 6 }}>
+                            {item.is_playable ? 'თამაშისთვის ჩართულია' : 'თამაშისთვის გამორთულია'}
+                          </span>
+                        </label>
                       </div>
                       <div className="header-right">
                         <span className="item-number">#{idx + 1}</span>

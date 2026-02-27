@@ -430,7 +430,7 @@
       border: 3px solid #2196F3;
       border-radius: 14px;
       padding: 24px;
-      margin-bottom: 18px;
+      // margin-bottom: 18px;
       min-height: 100px;
       display: flex;
       align-items: center;
@@ -614,7 +614,8 @@
       // grid-template-columns: 1fr 1fr;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 7px;
+      margin: .5em 0;
 
       .sentence-main-actions {
         display: flex;

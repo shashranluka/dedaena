@@ -1,6 +1,7 @@
 import React from "react";
 import "./WordCreator.scss";
 
+
 const WordCreator = ({ 
   letters, 
   selected, 
@@ -13,6 +14,12 @@ const WordCreator = ({
   onClose 
 }) => {
   const remainingWordsCount = totalWords - foundWords.length;
+
+  // Sound effect for letter click (like SentenceCreator)
+  const playLetterSound = (letter) => {
+    const audio = new Audio(`/audio/letters/${letter}.mp3`);
+    audio.play().catch(err => console.log('Audio play failed:', err));
+  };
 
   return (
     <div className="create-words-div">
@@ -28,7 +35,10 @@ const WordCreator = ({
           <button
             key={`${l}-${index}`}
             className="letter-btn"
-            onClick={() => onLetterClick(l)}
+            onClick={() => {
+              onLetterClick(l);
+              playLetterSound(l);
+            }}
           >
             {l}
           </button>

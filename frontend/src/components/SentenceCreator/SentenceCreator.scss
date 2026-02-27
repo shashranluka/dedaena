@@ -1,11 +1,56 @@
 // SentenceCreator signs row styles
 // SentenceCreator - ასოების ღილაკები
 .letters-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  justify-items: start;
+  gap: 8px;
   margin-bottom: 16px;
+
+  .letter-btn {
+    background: linear-gradient(135deg, #2196F3, #1E88E5);
+    border: 2px solid #1976D2;
+    border-radius: 8px;
+    width: 40px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+    padding: 12px 10px;
+    // padding: 5px 9px;
+    max-width: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+
+    // Tablet and larger
+    @media (min-width: 480px) {
+      font-size: 1.4rem;
+      padding: 14px 20px;
+    }
+
+    // Desktop
+    @media (min-width: 768px) {
+      font-size: 1.5rem;
+      padding: 16px 22px;
+      border-radius: 10px;
+    }
+
+    &:hover,
+    &:focus {
+      background: linear-gradient(135deg, #1E88E5, #1976D2);
+      border-color: #1565C0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+      outline: none;
+    }
+
+    &:active {
+      background: linear-gradient(135deg, #1976D2, #1565C0);
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+    }
+  }
+
 
   // Tablet and larger
   @media (min-width: 480px) {
@@ -27,7 +72,7 @@
   font-size: 1.3rem;
   font-weight: bold;
   color: white;
-  padding: 12px 18px;
+  padding: 12px 10px;
   // padding: 5px 9px;
   max-width: 50px;
   cursor: pointer;
@@ -65,6 +110,8 @@
 
 // სასვენი ნიშნები და კონტროლების ზოლი
 .signs {
+  box-sizing: border-box;
+  width: 50px;
   display: flex;
   gap: 10px;
   padding: 14px;
@@ -126,8 +173,8 @@
 
   &.space-btn {
     // min-width: 100px;
-    width: auto ;
-    padding: .3em;
+    width: fit-content;
+    // padding: .3em;
     background: linear-gradient(135deg, #FF9800, #F57C00);
     border-color: #F57C00;
 
@@ -545,14 +592,14 @@
         flex: 0 0 auto;
         flex-wrap: wrap;
         margin: 0;
-        width: 50px;
+        width: 70px;
         // align-items: center;
       }
 
       .letters-row {
         flex: 1;
         margin-bottom: 0;
-        justify-content:left;
+        justify-items: start;
         max-height: 300px;
         overflow-y: auto;
         overflow-x: hidden;
@@ -565,8 +612,20 @@
     .sentence-actions {
       // display: grid;
       // grid-template-columns: 1fr 1fr;
-      display: flex;  
+      display: flex;
+      align-items: center;
       gap: 12px;
+
+      .sentence-main-actions {
+        display: flex;
+        gap: 12px;
+        box-sizing: border-box;
+
+        .clear-sentence-btn,
+        .check-sentence-btn {
+          width: 50%;
+        }
+      }
 
       // Desktop
       @media (min-width: 768px) {
@@ -575,6 +634,10 @@
         justify-content: space-around;
         margin: 0 auto;
         gap: 16px;
+
+        .sentence-main-actions {
+          gap: 16px;
+        }
       }
 
       button {
@@ -630,6 +693,11 @@
           transform: translateY(0);
           box-shadow: 0 2px 4px rgba(229, 115, 115, 0.2);
         }
+      }
+
+      .delete-btn {
+        width: 70px;
+        flex: 0 0 70px;
       }
     }
   }

@@ -147,7 +147,7 @@ const SentenceCreator = ({
       }
     };
     window.addEventListener('keydown', handleKeyPress);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
@@ -158,40 +158,40 @@ const SentenceCreator = ({
     const before = userSentence.slice(0, cursorPosition);
     const after = userSentence.slice(cursorPosition);
     const newSentence = before + char + after;
-    
+
     // განვაახლოთ parent-ის state მთელი წინადადებით
     onClear(); // ჯერ გავასუფთავოთ
     for (let i = 0; i < newSentence.length; i++) {
       onWordAdd(newSentence[i]);
     }
-    
+
     setCursorPosition(cursorPosition + 1);
   };
 
   // Backspace - წაშლა cursor-ის წინ
   const handleBackspace = () => {
     if (cursorPosition === 0) return;
-    
+
     const before = userSentence.slice(0, cursorPosition - 1);
     const after = userSentence.slice(cursorPosition);
     const newSentence = before + after;
-    
+
     onClear();
     for (let i = 0; i < newSentence.length; i++) {
       onWordAdd(newSentence[i]);
     }
-    
+
     setCursorPosition(cursorPosition - 1);
   };
 
   // Delete - წაშლა cursor-ის შემდეგ
   const handleDelete = () => {
     if (cursorPosition >= userSentence.length) return;
-    
+
     const before = userSentence.slice(0, cursorPosition);
     const after = userSentence.slice(cursorPosition + 1);
     const newSentence = before + after;
-    
+
     onClear();
     for (let i = 0; i < newSentence.length; i++) {
       onWordAdd(newSentence[i]);
@@ -235,12 +235,12 @@ const SentenceCreator = ({
             </div>
           ) : (
             <div className="sentence-placeholder">
-              წინადადების შესადგენად დააკლიკე ასოებისა და სასვენი ნიშნების ბარათებს.
+              წინადადების შესადგენად დააჭირე ასოებისა და სასვენი ნიშნების ბარათებს.
             </div>
           )}
           {/* შეტყობინებების overlay */}
           {sentenceMessage && (
-            <div 
+            <div
               key={sentenceMessageKey}
               className={`sentence-message-overlay sentence-message-fadeout ${sentenceMessageType || 'success'}`}
             >
@@ -248,35 +248,37 @@ const SentenceCreator = ({
             </div>
           )}
         </div>
-        
-        
+
+
         {/* მოქმედების ღილაკები */}
         <div className="sentence-actions">
           <button
-              className="sign-btn delete-btn"
-              onClick={handleBackspace}
-              title="Backspace - წაშლა cursor-ის წინ"
-              aria-label="წაშალე სიმბოლო cursor-ის წინ"
-              disabled={isInputEmpty || cursorPosition === 0}
+            className="sign-btn delete-btn"
+            onClick={handleBackspace}
+            title="Backspace - წაშლა cursor-ის წინ"
+            aria-label="წაშალე სიმბოლო cursor-ის წინ"
+            disabled={isInputEmpty || cursorPosition === 0}
+          >
+            ⬅️
+          </button>
+          <div className="sentence-main-actions">
+            <button
+              className="clear-sentence-btn"
+              onClick={handleClearWithSound}
+              disabled={isInputEmpty}
+              aria-label="გაასუფთავე დაფა"
             >
-              ⬅️
+              🗑️ გასუფთავება
             </button>
-          <button
-            className="clear-sentence-btn"
-            onClick={handleClearWithSound}
-            disabled={isInputEmpty}
-            aria-label="გაასუფთავე დაფა"
-          >
-            🗑️ დაფის გასუფთავება
-          </button>
-          <button
-            className="check-sentence-btn"
-            onClick={onCheck}
-            disabled={isInputEmpty}
-            aria-label="შეამოწმე წინადადება"
-          >
-            ✓ წინადადების შემოწმება
-          </button>
+            <button
+              className="check-sentence-btn"
+              onClick={onCheck}
+              disabled={isInputEmpty}
+              aria-label="შეამოწმე წინადადება"
+            >
+              ✓ შემოწმება
+            </button>
+          </div>
         </div>
 
 

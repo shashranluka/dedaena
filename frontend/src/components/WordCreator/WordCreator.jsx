@@ -11,7 +11,10 @@ const WordCreator = ({
   onLetterClick, 
   onCheck, 
   onClear, 
-  onClose 
+  onClose,
+  showPicture,
+  pictureUrl,
+  onPictureClose
 }) => {
   console.log("Rendering WordCreator with letters:", letters, "selected:", selected, "foundWords:", foundWords, "totalWords:", totalWords);
   const remainingWordsCount = totalWords - foundWords.length;
@@ -24,6 +27,15 @@ const WordCreator = ({
 
   return (
     <div className="create-words-div">
+      {/* სურათის მოდალი თუ showPicture === true და pictureUrl არის */}
+      {showPicture && pictureUrl && (
+        <div className="word-picture-modal-overlay">
+          <div className="word-picture-modal">
+            <img className="word-picture-img" src={pictureUrl} alt="სიტყვის სურათი" />
+            <button className="close-picture-btn" onClick={onPictureClose}>დახურვა</button>
+          </div>
+        </div>
+      )}
       <div className="create-words-header">
         <span>შექმენი სიტყვები ({foundWords.length}/{totalWords})</span>
         <button className="close-create-words" onClick={onClose}>×</button>

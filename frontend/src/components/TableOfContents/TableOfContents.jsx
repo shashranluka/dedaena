@@ -46,10 +46,10 @@ const TableOfContents = ({
                 <div className="content-dot words">
                   <span className="icon">🔤</span>
                   <span className="">სიტყვა</span>
+                  <span className="count">{wordsCount}</span>
                   {wordsWithImageCount > 0 && (
                     <span className="image-count" title="სურათიანი სიტყვები">🖼️ {wordsWithImageCount}</span>
                   )}
-                  <span className="count">{wordsCount}</span>
                 </div>
                 <div className="content-dot sentences">
                   <span className="icon">📝</span>

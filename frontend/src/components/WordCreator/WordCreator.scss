@@ -1,3 +1,45 @@
+
+// Word picture modal overlay (fullscreen)
+.word-picture-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-picture-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.word-picture-img {
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+}
+
+.close-picture-btn {
+  margin-top: 24px;
+  font-size: 1.2rem;
+  padding: 12px 32px;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
 .create-words-div {
   background: white;
   border-radius: 12px;

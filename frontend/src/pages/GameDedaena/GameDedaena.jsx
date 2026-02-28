@@ -29,6 +29,8 @@ function GameDedaena() {
   const [showGift, setShowGift] = useState(false);
   const [proverbIndex, setProverbIndex] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showPicture, setShowPicture] = useState(false);
+  const [pictureUrl, setPictureUrl] = useState("");
 
   // ხმის ჩართვა-გამორთვის state (localStorage-დან)
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
@@ -135,6 +137,23 @@ function GameDedaena() {
         [position]: [...currentWords, word]
       }));
       setMessage("სწორია!");
+      
+      // მოძებნე შესაბამისი ობიექტი dedaenaData-ში და შეამოწმე აქვს თუ არა image_url
+      const rawWords = dedaenaData[position - 1]?.words || [];
+      let matchedObj = null;
+      for (const item of rawWords) {
+        if ((typeof item === 'string' && item === word) || (typeof item === 'object' && item?.word === word)) {
+          matchedObj = item;
+          break;
+        }
+      }
+      if (matchedObj && typeof matchedObj === 'object' && matchedObj.image_url) {
+        console.log("Word found:", word, "at position:", position, "IMAGE:", matchedObj.image_url);
+        setShowPicture(true);
+        setPictureUrl(matchedObj.image_url);
+      } else {
+        console.log("Word found:", word, "at position:", position, "NO IMAGE");
+      }
     } else if (currentWords.includes(word)) {
       setMessage("ეს სიტყვა უკვე მოძებნილია!");
     } else {
@@ -405,6 +424,11 @@ function GameDedaena() {
           onCheck={handleCheck}
           onClear={handleClear}
           onClose={() => setActiveView(null)}
+          isSoundEnabled={isSoundEnabled}
+          // onClearWithSound={handleClearWithSound}
+          showPicture={showPicture}
+          pictureUrl={pictureUrl}
+          onPictureClose={() => setShowPicture(false)}
         />
       )}
 

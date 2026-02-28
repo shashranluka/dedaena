@@ -13,6 +13,7 @@ const WordCreator = ({
   onClear, 
   onClose 
 }) => {
+  console.log("Rendering WordCreator with letters:", letters, "selected:", selected, "foundWords:", foundWords, "totalWords:", totalWords);
   const remainingWordsCount = totalWords - foundWords.length;
 
   // Sound effect for letter click (like SentenceCreator)

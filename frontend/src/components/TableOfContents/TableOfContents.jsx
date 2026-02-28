@@ -24,6 +24,11 @@ const TableOfContents = ({
           const proverbsCount = pageInfo.proverbs ? pageInfo.proverbs.length : 0;
           const toreadsCount = pageInfo.toreads ? pageInfo.toreads.length : 0;
 
+          // Count words with image_url
+          const wordsWithImageCount = pageInfo.words
+            ? pageInfo.words.filter(w => w && w.image_url && w.image_url !== '' && w.image_url !== null).length
+            : 0;
+
           // const positionFoundWords = foundWordsByPosition[idx + 1] || [];
           // const positionFoundSentences = foundSentencesByPosition[idx + 1] || [];
 
@@ -41,6 +46,9 @@ const TableOfContents = ({
                 <div className="content-dot words">
                   <span className="icon">🔤</span>
                   <span className="">სიტყვა</span>
+                  {wordsWithImageCount > 0 && (
+                    <span className="image-count" title="სურათიანი სიტყვები">🖼️ {wordsWithImageCount}</span>
+                  )}
                   <span className="count">{wordsCount}</span>
                 </div>
                 <div className="content-dot sentences">

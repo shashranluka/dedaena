@@ -1,9 +1,6 @@
 $bp-tablet: 480px;
 $bp-desktop: 768px;
 $controls-column-width: 70px;
-$signs-toggle-width: 26px;
-$signs-toggle-width-desktop: 28px;
-$signs-toggle-width-coarse: 30px;
 
 @mixin tablet {
   @media (min-width: $bp-tablet) {
@@ -439,74 +436,17 @@ $signs-toggle-width-coarse: 30px;
         display: flex;
         align-items: stretch;
         flex: 0 0 auto;
-        width: $signs-toggle-width;
-        min-width: $signs-toggle-width;
+        width: 0;
+        min-width: 0;
+        overflow: hidden;
         transition: width 0.25s ease;
-
-        @media (pointer: coarse) {
-          width: $signs-toggle-width-coarse;
-          min-width: $signs-toggle-width-coarse;
-        }
-
-        @include desktop {
-          width: $signs-toggle-width-desktop;
-          min-width: $signs-toggle-width-desktop;
-        }
-
-        .signs-toggle {
-          width: $signs-toggle-width;
-          min-width: $signs-toggle-width;
-          min-height: 142px;
-          padding: 8px 1px;
-          border: 2px solid #b39775;
-          border-radius: 10px;
-          background: linear-gradient(180deg, #d6b183, #c49e6f);
-          color: #3e2d18;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
-          transition: background 0.2s ease, transform 0.2s ease;
-          touch-action: manipulation;
-          -webkit-tap-highlight-color: transparent;
-
-          @media (pointer: coarse) {
-            width: $signs-toggle-width-coarse;
-            min-width: $signs-toggle-width-coarse;
-          }
-
-          &:hover {
-            background: linear-gradient(180deg, #cda779, #b98f5b);
-            transform: translateX(1px);
-          }
-
-          .signs-toggle-label {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            line-height: 1;
-          }
-
-          .signs-toggle-icon {
-            font-size: 0.9rem;
-            line-height: 1;
-          }
-
-          @include desktop {
-            width: $signs-toggle-width-desktop;
-            min-width: $signs-toggle-width-desktop;
-          }
-        }
 
         .signs {
           box-sizing: border-box;
-          width: 0;
+          width: $controls-column-width;
           opacity: 0;
+          transform: translateX(-100%);
+          transform-origin: left center;
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
@@ -515,11 +455,11 @@ $signs-toggle-width-coarse: 30px;
           justify-content: center;
           align-content: flex-start;
           border: 0 solid #e0e0e0;
-          border-radius: 0 10px 10px 0;
+          border-radius: 10px;
           background: linear-gradient(135deg, #eacba0, #e2bf8e);
           overflow: hidden;
           pointer-events: none;
-          transition: width 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+          transition: transform 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
 
           .sign-btn {
             width: auto;
@@ -563,23 +503,16 @@ $signs-toggle-width-coarse: 30px;
           width: $controls-column-width;
           min-width: $controls-column-width;
 
-          .signs-toggle {
-            border-radius: 10px 0 0 10px;
-          }
-
           .signs {
-            width: calc($controls-column-width - $signs-toggle-width);
+            width: $controls-column-width;
             opacity: 1;
+            transform: translateX(0);
             padding: 10px;
             border-width: 3px;
             pointer-events: auto;
 
-            @media (pointer: coarse) {
-              width: calc($controls-column-width - $signs-toggle-width-coarse);
-            }
-
             @include desktop {
-              width: calc($controls-column-width - $signs-toggle-width-desktop);
+              width: $controls-column-width;
               padding: 12px;
             }
           }
@@ -599,6 +532,7 @@ $signs-toggle-width-coarse: 30px;
         padding-right: 6px;
 
         @include tablet {
+        grid-template-columns: repeat(auto-fill, minmax(39px, 1fr));
           gap: 12px;
         }
 
@@ -734,6 +668,27 @@ $signs-toggle-width-coarse: 30px;
       .delete-btn {
         width: $controls-column-width;
         flex: 0 0 $controls-column-width;
+      }
+
+      .signs-toggle-inline {
+        width: $controls-column-width;
+        flex: 0 0 $controls-column-width;
+        min-width: $controls-column-width;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 6px;
+
+        .signs-toggle-icon {
+          font-size: 0.9rem;
+          font-weight: 800;
+          letter-spacing: 0.8px;
+          line-height: 1;
+        }
+
+        @include desktop {
+          padding: 12px 8px;
+        }
       }
     }
   }

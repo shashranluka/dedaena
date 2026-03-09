@@ -9,7 +9,7 @@ import SentenceList from "../../components/SentenceList/SentenceList";
 import SentenceCreator from "../../components/SentenceCreator/SentenceCreator";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import InstructionsModal from "../../components/InstructionsModal/InstructionsModal";
-
+import TourI from "../../components/tourI/TourI";
 
 const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_with_ids" };
 
@@ -281,6 +281,7 @@ function GameDedaena() {
   // არჩეული ტურის ანდაზებიდან proverbIndex-ით
   const proverbs = dedaenaData[position - 1]?.proverbs || [];
   const currentProverb = proverbs[proverbIndex]?.proverb || "";
+  const isTourISelected = currentLetter === "ი";
 
   return (
     <div className="gamededaena-page">
@@ -309,15 +310,16 @@ function GameDedaena() {
 
       <div className="middle-controls">
         <div className="middle-controls-left">
-          <label htmlFor="composition-select">შედგენა:</label>
+          <label htmlFor="composition-select">აირჩიეთ:</label>
           <select
             id="composition-select"
             value={compositionType}
             onChange={(e) => setCompositionType(e.target.value)}
           >
-            <option value="words">სიტყვების</option>
-            <option value="sentences">წინადადებების</option>
+            <option value="words">სიტყვების შედგენა</option>
+            <option value="sentences">წინადადებების შედგენა</option>
           </select>
+          {/* <label htmlFor="composition-select">შედგენა</label> */}
         </div>
 
         <button
@@ -413,51 +415,57 @@ function GameDedaena() {
         />
       )}
 
-      {compositionType === 'words' && (
-        <WordCreator
-          letters={letters}
-          selected={selected}
-          foundWords={currentFoundWords}
-          totalWords={words.length}
-          message={message}
-          onLetterClick={handleLetterClick}
-          onCheck={handleCheck}
-          onClear={handleClear}
-          onClose={() => setActiveView(null)}
-          isSoundEnabled={isSoundEnabled}
-          // onClearWithSound={handleClearWithSound}
-          showPicture={showPicture}
-          pictureUrl={pictureUrl}
-          onPictureClose={() => setShowPicture(false)}
-        />
-      )}
+      {isTourISelected ? (
+        <TourI />
+      ) : (
+        <>
+          {compositionType === 'words' && (
+            <WordCreator
+              letters={letters}
+              selected={selected}
+              foundWords={currentFoundWords}
+              totalWords={words.length}
+              message={message}
+              onLetterClick={handleLetterClick}
+              onCheck={handleCheck}
+              onClear={handleClear}
+              onClose={() => setActiveView(null)}
+              isSoundEnabled={isSoundEnabled}
+              // onClearWithSound={handleClearWithSound}
+              showPicture={showPicture}
+              pictureUrl={pictureUrl}
+              onPictureClose={() => setShowPicture(false)}
+            />
+          )}
 
-      {compositionType === 'sentences' && (
-        <SentenceCreator
-          allFoundWords={allFoundWords}
-          userSentence={userSentence}
-          foundSentences={currentFoundSentences}
-          totalSentences={dedaenaData[position - 1]?.sentences.length}
-          sentenceMessage={sentenceMessage}
-          sentenceMessageKey={sentenceMessageKey}
-          sentenceMessageType={sentenceMessageType}
-          isSoundEnabled={isSoundEnabled}
-          onWordAdd={(value) => {
-            if (typeof value === "string" && value.length === 1) {
-              setUserSentence(prev => prev + value);
-            } else {
-              setUserSentence(prev => prev.length > 0 ? prev + " " + value : value);
-            }
-          }}
-          onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
-          onCheck={checkSentence}
-          onRemoveLast={handleRemoveLast}
-          onClear={clearSentence}
-          onClose={() => setActiveView(null)}
-          letters={letters}
-          position={position}
-          setPosition={setPosition}
-        />
+          {compositionType === 'sentences' && (
+            <SentenceCreator
+              allFoundWords={allFoundWords}
+              userSentence={userSentence}
+              foundSentences={currentFoundSentences}
+              totalSentences={dedaenaData[position - 1]?.sentences.length}
+              sentenceMessage={sentenceMessage}
+              sentenceMessageKey={sentenceMessageKey}
+              sentenceMessageType={sentenceMessageType}
+              isSoundEnabled={isSoundEnabled}
+              onWordAdd={(value) => {
+                if (typeof value === "string" && value.length === 1) {
+                  setUserSentence(prev => prev + value);
+                } else {
+                  setUserSentence(prev => prev.length > 0 ? prev + " " + value : value);
+                }
+              }}
+              onPunctuationAdd={(punct) => setUserSentence(userSentence + punct)}
+              onCheck={checkSentence}
+              onRemoveLast={handleRemoveLast}
+              onClear={clearSentence}
+              onClose={() => setActiveView(null)}
+              letters={letters}
+              position={position}
+              setPosition={setPosition}
+            />
+          )}
+        </>
       )}
 
       {activeView === 'showSentences' && (

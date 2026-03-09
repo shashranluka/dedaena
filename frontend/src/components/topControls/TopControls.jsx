@@ -26,12 +26,12 @@ const BUTTONS = [
   //     <span className="card-hint">შექმენი წინადადება</span>
   //   </>
   // )},
-  { view: 'showSentences', class: 'control-button', card: 'control-card', content: (props) => (
-    <>
-      <span className="card-icon">📋</span>
-      <span className="card-hint">წინადადებები</span>
-    </>
-  )},
+  // { view: 'showSentences', class: 'control-button', card: 'control-card', content: (props) => (
+  //   <>
+  //     <span className="card-icon">📋</span>
+  //     <span className="card-hint">წინადადებები</span>
+  //   </>
+  // )},
   { view: 'instructions', class: 'control-button', card: 'control-card', content: () => (
     <>
       <span className="card-icon">❓</span>
@@ -40,7 +40,7 @@ const BUTTONS = [
   )}
 ];
 
-const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, position, staticDataLength, onNextQuest, ...props }) => {
+const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, position, staticDataLength, onPrevQuest, onNextQuest, ...props }) => {
   const toggleView = useCallback((view) => {
     onViewChange(activeView === view ? null : view);
   }, [activeView, onViewChange]);
@@ -48,6 +48,16 @@ const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, 
   return (
     <div className="top-controls">
       {/* ხმის ჩართვა/გამორთვა */}
+
+      {/* <button
+        type="button"
+        className="control-card next-quest-btn prev-quest-btn"
+        onClick={onPrevQuest}
+        title="წინა ქვესტი"
+        aria-label="წინა ქვესტი"
+      >
+        ⬅️
+      </button> */}
 
       {BUTTONS.map((btn, i) => (
         <div 
@@ -69,8 +79,9 @@ const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, 
       </button>
 
       {/* შემდეგი ქვესტი */}
-      {position < staticDataLength && (
+      {/* {position < staticDataLength && ( */}
         <button 
+          type="button"
           className="control-card next-quest-btn" 
           onClick={onNextQuest}
           title="შემდეგი ქვესტი"
@@ -78,7 +89,7 @@ const TopControls = ({ activeView, onViewChange, isSoundEnabled, onToggleSound, 
         >
           ➡️
         </button>
-      )}
+      {/* )} */}
     </div>
   );
 };

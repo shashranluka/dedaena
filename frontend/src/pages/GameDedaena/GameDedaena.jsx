@@ -332,7 +332,14 @@ function GameDedaena() {
         sentencesCount={dedaenaData[position - 1]?.sentences.length || 0}
         isSoundEnabled={isSoundEnabled}
         onToggleSound={toggleSound}
-        onNextQuest={() => setPosition(position + 1)}
+        onPrevQuest={() => {
+          if (dedaenaData.length === 0) return;
+          setPosition(prev => (prev <= 1 ? dedaenaData.length : prev - 1));
+        }}
+        onNextQuest={() => {
+          if (dedaenaData.length === 0) return;
+          setPosition(prev => (prev >= dedaenaData.length ? 1 : prev + 1));
+        }}
         onViewChange={(view) => {
           if (view === 'instructions') {
             setShowInstructions(true);

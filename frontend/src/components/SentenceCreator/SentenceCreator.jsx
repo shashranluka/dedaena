@@ -44,6 +44,7 @@ const SentenceCreator = ({
 }) => {
   // cursor-ის პოზიცია წინადადებაში
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isSignsOpen, setIsSignsOpen] = useState(false);
 
   // დარჩენილი წინადადებების რაოდენობის გამოთვლა
   const remainingSentencesCount = totalSentences - foundSentences.length;
@@ -283,57 +284,71 @@ const SentenceCreator = ({
 
 
         <div className="letters-signs-row">
-          {/* სასვენი ნიშნები და კონტროლები */}
-          <div className="signs">
-            {/* <button
-              className="sign-btn delete-btn"
-              onClick={handleBackspace}
-              title="Backspace - წაშლა cursor-ის წინ"
-              aria-label="წაშალე სიმბოლო cursor-ის წინ"
-              disabled={isInputEmpty || cursorPosition === 0}
-            >
-              ⬅️
-            </button> */}
+          {/* სასვენი ნიშნების მარცხენა drawer */}
+          <div className={`signs-drawer ${isSignsOpen ? "open" : ""}`}>
             <button
-              className="sign-btn space-btn"
-              onClick={() => handleCharacterAdd(" ")}
-              title="ადგილის გამოტოვება"
-              aria-label="დაამატე ჰარი"
+              type="button"
+              className="signs-toggle"
+              onClick={() => setIsSignsOpen((prev) => !prev)}
+              aria-expanded={isSignsOpen}
+              aria-controls="sentence-signs-panel"
+              title={isSignsOpen ? "დამალე სასვენი ნიშნები" : "აჩვენე სასვენი ნიშნები"}
             >
-              <span className="space-text">ჰარი</span>
+              <span className="signs-toggle-label">ნიშნები</span>
+              <span className="signs-toggle-icon">{isSignsOpen ? "❮" : "❯"}</span>
             </button>
-            <button
-              className="sign-btn"
-              onClick={() => handleCharacterAdd(".")}
-              title="წერტილი"
-              aria-label="დაამატე წერტილი"
+
+            <div
+              id="sentence-signs-panel"
+              className="signs"
+              aria-hidden={!isSignsOpen}
             >
-              .
-            </button>
-            <button
-              className="sign-btn"
-              onClick={() => handleCharacterAdd(",")}
-              title="მძიმე"
-              aria-label="დაამატე მძიმე"
-            >
-              ,
-            </button>
-            <button
-              className="sign-btn"
-              onClick={() => handleCharacterAdd("!")}
-              title="ძახილის ნიშანი"
-              aria-label="დაამატე ძახილის ნიშანი"
-            >
-              !
-            </button>
-            <button
-              className="sign-btn"
-              onClick={() => handleCharacterAdd("?")}
-              title="კითხვის ნიშანი"
-              aria-label="დაამატე კითხვის ნიშანი"
-            >
-              ?
-            </button>
+              <button
+                className="sign-btn space-btn"
+                onClick={() => handleCharacterAdd(" ")}
+                title="ადგილის გამოტოვება"
+                aria-label="დაამატე ჰარი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                <span className="space-text">ჰარი</span>
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd(".")}
+                title="წერტილი"
+                aria-label="დაამატე წერტილი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                .
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd(",")}
+                title="მძიმე"
+                aria-label="დაამატე მძიმე"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                ,
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd("!")}
+                title="ძახილის ნიშანი"
+                aria-label="დაამატე ძახილის ნიშანი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                !
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd("?")}
+                title="კითხვის ნიშანი"
+                aria-label="დაამატე კითხვის ნიშანი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                ?
+              </button>
+            </div>
           </div>
 
           {/* ასოების ზოლი */}

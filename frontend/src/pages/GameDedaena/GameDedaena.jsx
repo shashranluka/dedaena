@@ -128,40 +128,74 @@ function GameDedaena() {
   }, []);
 
   const handleCheck = useCallback(() => {
+    const playSound = (soundType) => {
+      if (!isSoundEnabled) return;
+      const soundFiles = {
+        success: '/sounds/testsuccess.mp3',
+        repeated: '/sounds/testrepeated.mp3',
+        error: '/sounds/testerror.mp3',
+        warning: '/sounds/testwarning.mp3'
+      };
+      const audio = new Audio(soundFiles[soundType]);
+      audio.play().catch(err => console.log('Audio play failed:', err));
+    };
+
     const word = selected.join("");
+    if (word.length === 0) {
+      setMessage("შეადგინე სიტყვა!");
+      playSound('warning');
+      return;
+    }
+
+    const normalizeWord = (value) => String(value || "").trim().replace(/[-–—]/g, '');
     const currentWords = foundWordsByPosition[position] || [];
-    const pureWords = words.map(w => w.trim().replace(/[-–—]/g, ''));
+    const pureWords = words.map(normalizeWord);
+
+    const rawWords = dedaenaData[position - 1]?.words || [];
+    let matchedObj = null;
+    for (const item of rawWords) {
+      const candidate = typeof item === 'string' ? item : item?.word;
+      if (normalizeWord(candidate) === word) {
+        matchedObj = item;
+        break;
+      }
+    }
+
+    const showWordImageIfExists = () => {
+      if (matchedObj && typeof matchedObj === 'object' && matchedObj.image_url) {
+        console.log("Word found:", word, "at position:", position, "IMAGE:", matchedObj.image_url);
+        setShowPicture(true);
+        setPictureUrl(matchedObj.image_url);
+        return true;
+      }
+      return false;
+    };
+
     if (pureWords.includes(word) && !currentWords.includes(word)) {
       setFoundWordsByPosition(prev => ({
         ...prev,
         [position]: [...currentWords, word]
       }));
       setMessage("სწორია!");
-      
-      // მოძებნე შესაბამისი ობიექტი dedaenaData-ში და შეამოწმე აქვს თუ არა image_url
-      const rawWords = dedaenaData[position - 1]?.words || [];
-      let matchedObj = null;
-      for (const item of rawWords) {
-        if ((typeof item === 'string' && item === word) || (typeof item === 'object' && item?.word === word)) {
-          matchedObj = item;
-          break;
-        }
-      }
-      if (matchedObj && typeof matchedObj === 'object' && matchedObj.image_url) {
-        console.log("Word found:", word, "at position:", position, "IMAGE:", matchedObj.image_url);
-        setShowPicture(true);
-        setPictureUrl(matchedObj.image_url);
-      } else {
+      playSound('success');
+
+      if (!showWordImageIfExists()) {
         console.log("Word found:", word, "at position:", position, "NO IMAGE");
       }
     } else if (currentWords.includes(word)) {
       setMessage("ეს სიტყვა უკვე მოძებნილია!");
+      playSound('repeated');
+
+      if (!showWordImageIfExists()) {
+        console.log("Word already found:", word, "at position:", position, "NO IMAGE");
+      }
     } else {
       setMessage("სხვა სცადე!");
+      playSound('error');
       // setMessage("არასწორი კომბინაცია!");
     }
     setSelected([]);
-  }, [selected, words, foundWordsByPosition, position]);
+  }, [selected, words, foundWordsByPosition, position, dedaenaData, isSoundEnabled]);
 
   const handleClear = useCallback(() => {
     setSelected([]);

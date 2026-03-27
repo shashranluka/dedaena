@@ -11,9 +11,11 @@ function CookieConsentBanner({ visible, onAccept, onReject }) {
     <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="ქუქიების თანხმობა">
       <div className="cookie-banner__content">
         <p className="cookie-banner__text">
-          ჩვენ ვიყენებთ ანალიტიკურ ქუქიებს საიტის გამოყენების გასაანალიზებლად. შეგიძლიათ დაეთანხმოთ
+          გთხოვთ ნებართვას Google Analytics-ის გამოყენებაზე, რათა გავაანალიზოთ, როგორ იყენებენ მომხმარებლები საიტს და გავაუმჯობესოთ მისი ფუნქციონირება.
+          
+          {/* ჩვენ ვიყენებთ ანალიტიკურ ქუქიებს საიტის გამოყენების გასაანალიზებლად. შეგიძლიათ დაეთანხმოთ
           ან უარყოთ ანალიტიკური თვალთვალი. იხილეთ ჩვენი{' '}
-          <Link to="/privacy">კონფიდენციალურობის პოლიტიკა</Link>.
+          <Link to="/privacy">კონფიდენციალურობის პოლიტიკა</Link>. */}
         </p>
         <div className="cookie-banner__actions">
           <button
@@ -21,14 +23,14 @@ function CookieConsentBanner({ visible, onAccept, onReject }) {
             className="cookie-banner__button cookie-banner__button--secondary"
             onClick={onReject}
           >
-            არ ვეთანხმები
+            უარყოფა
           </button>
           <button
             type="button"
             className="cookie-banner__button cookie-banner__button--primary"
             onClick={onAccept}
           >
-            ვეთანხმები
+            ნების დართვა
           </button>
         </div>
       </div>

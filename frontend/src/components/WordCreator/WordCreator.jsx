@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./WordCreator.scss";
 
 
@@ -15,7 +15,10 @@ const WordCreator = ({
   onClose,
   showPicture,
   pictureUrl,
-  onPictureClose
+  onPictureClose,
+  showVowelChallenge,
+  vowelChallengeWord,
+  onVowelChallengeComplete
 }) => {
   console.log("Rendering WordCreator with letters:", letters, "selected:", selected, "foundWords:", foundWords, "totalWords:", totalWords);
   const remainingWordsCount = totalWords - foundWords.length;
@@ -25,6 +28,22 @@ const WordCreator = ({
       ? "warning"
       : "error";
   const isInputEmpty = selected.length === 0;
+  const [clickedVowelIndexes, setClickedVowelIndexes] = useState([]);
+
+  const VOWELS = useMemo(() => new Set(["ა", "ე", "ი", "ო", "უ"]), []);
+  const challengeLetters = useMemo(() => (vowelChallengeWord || "").split(""), [vowelChallengeWord]);
+  const requiredVowelIndexes = useMemo(
+    () => challengeLetters.map((letter, index) => (VOWELS.has(letter) ? index : null)).filter((value) => value !== null),
+    [challengeLetters, VOWELS]
+  );
+  const isVowelChallengeComplete = requiredVowelIndexes.length > 0
+    && requiredVowelIndexes.every((index) => clickedVowelIndexes.includes(index));
+
+  useEffect(() => {
+    if (showVowelChallenge) {
+      setClickedVowelIndexes([]);
+    }
+  }, [showVowelChallenge, vowelChallengeWord]);
 
   // Sound effect for letter click (like SentenceCreator)
   const playLetterSound = (letter) => {
@@ -58,9 +77,63 @@ const WordCreator = ({
     onClear();
   };
 
+  const handleVowelCardClick = (letter, index) => {
+    if (isSoundEnabled) {
+      const soundPath = VOWELS.has(letter) ? '/sounds/testsuccess.mp3' : '/sounds/testerror.mp3';
+      const audio = new Audio(soundPath);
+      audio.play().catch(err => console.log('Audio play failed:', err));
+    }
+
+    if (!VOWELS.has(letter)) {
+      return;
+    }
+
+    setClickedVowelIndexes((prev) => {
+      if (prev.includes(index)) {
+        return prev;
+      }
+      return [...prev, index];
+    });
+  };
+
   return (
     <div className="create-words-div">
       {/* სურათის მოდალი თუ showPicture === true და pictureUrl არის */}
+      {showVowelChallenge && vowelChallengeWord && (
+        <div className="vowel-challenge-overlay">
+          <div className="vowel-challenge-modal">
+            <h3>იპოვე ხმოვნები</h3>
+            <p>დააჭირე სიტყვის ხმოვნებს:</p>
+
+            <div className="vowel-challenge-word" role="group" aria-label="სიტყვის ასოები">
+              {challengeLetters.map((letter, index) => {
+                const isVowel = VOWELS.has(letter);
+                const isSelected = clickedVowelIndexes.includes(index);
+                return (
+                  <button
+                    key={`${letter}-${index}`}
+                    type="button"
+                    className={`vowel-card ${isSelected ? 'is-selected' : ''}`}
+                    onClick={() => handleVowelCardClick(letter, index)}
+                  >
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              className="continue-to-picture-btn"
+              onClick={onVowelChallengeComplete}
+              disabled={!isVowelChallengeComplete}
+            >
+              სურათის ნახვა
+            </button>
+          </div>
+        </div>
+      )}
+
       {showPicture && pictureUrl && (
         <div className="word-picture-modal-overlay">
           <div className="word-picture-modal">

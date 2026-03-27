@@ -31,6 +31,8 @@ function GameDedaena() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [showPicture, setShowPicture] = useState(false);
   const [pictureUrl, setPictureUrl] = useState("");
+  const [showVowelChallenge, setShowVowelChallenge] = useState(false);
+  const [vowelChallengeWord, setVowelChallengeWord] = useState("");
 
   // ხმის ჩართვა-გამორთვის state (localStorage-დან)
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
@@ -164,8 +166,10 @@ function GameDedaena() {
     const showWordImageIfExists = () => {
       if (matchedObj && typeof matchedObj === 'object' && matchedObj.image_url) {
         console.log("Word found:", word, "at position:", position, "IMAGE:", matchedObj.image_url);
-        setShowPicture(true);
         setPictureUrl(matchedObj.image_url);
+        setVowelChallengeWord(word);
+        setShowVowelChallenge(true);
+        setShowPicture(false);
         return true;
       }
       return false;
@@ -473,9 +477,19 @@ function GameDedaena() {
               onClose={() => setActiveView(null)}
               isSoundEnabled={isSoundEnabled}
               // onClearWithSound={handleClearWithSound}
+              showVowelChallenge={showVowelChallenge}
+              vowelChallengeWord={vowelChallengeWord}
+              onVowelChallengeComplete={() => {
+                setShowVowelChallenge(false);
+                setShowPicture(true);
+              }}
               showPicture={showPicture}
               pictureUrl={pictureUrl}
-              onPictureClose={() => setShowPicture(false)}
+              onPictureClose={() => {
+                setShowPicture(false);
+                setPictureUrl("");
+                setVowelChallengeWord("");
+              }}
             />
           )}
 

@@ -182,8 +182,10 @@ $controls-column-width: 70px;
   .sentence-section {
     padding: 10px;
     position: relative;
-    background: linear-gradient(135deg, #cdb28d, #c4a57b);
-    border: 3px solid #b39775;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.2), transparent 38%),
+      linear-gradient(140deg, #355c7d 0%, #2f4f69 55%, #28475f 100%);
+    border: 3px solid #2a4660;
     border-radius: 0 0 12px 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
@@ -520,8 +522,10 @@ $controls-column-width: 70px;
       }
 
       .letters-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        // display: grid;
+        // grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
         justify-items: start;
         flex: 1;
         gap: 8px;
@@ -585,12 +589,14 @@ $controls-column-width: 70px;
 
     .sentence-actions {
       display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 7px;
       margin: 0.5em 0;
 
       .sentence-main-actions {
         display: flex;
+        width: 100%;
         gap: 12px;
         box-sizing: border-box;
 
@@ -601,9 +607,9 @@ $controls-column-width: 70px;
       }
 
       @include desktop {
-        max-width: 600px;
-        justify-content: space-around;
-        margin: 0 auto;
+        // max-width: 600px;
+        // justify-content: space-around;
+        // margin: 0 auto;
         gap: 16px;
 
         .sentence-main-actions {

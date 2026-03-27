@@ -1,0 +1,29 @@
+.legal-page {
+  min-height: calc(100vh - 80px);
+  padding: 2rem 1rem;
+  background: #f8fafc;
+}
+
+.legal-page__container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.5rem;
+
+  h1 {
+    margin-top: 0;
+    color: #0f172a;
+  }
+
+  p {
+    color: #1f2937;
+    line-height: 1.6;
+  }
+
+  a {
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+}

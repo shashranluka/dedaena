@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar.jsx';
+import CookieConsentBanner from './components/CookieConsentBanner/CookieConsentBanner.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { initGA, trackPageView } from './services/analytics';
+import {
+  getAnalyticsConsentState,
+  initGA,
+  initializeConsentMode,
+  setAnalyticsConsent as persistAnalyticsConsent,
+  trackPageView,
+} from './services/analytics';
 
 // Pages
-import Home from './pages/Home/Home.jsx';
 import LettersPage from './pages/LettersPage/LettersPage.jsx';
 import Gogebashvili from './pages/Gogebashvili/Gogebashvili';
 import GameDedaena from './pages/GameDedaena/GameDedaena';
@@ -13,28 +19,45 @@ import Registration from './pages/Registration/Registration.jsx';
 import Login from './pages/Login/Login.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import ModeratorDashboard from './pages/Moderator/ModeratorDashboard.jsx';
+import Terms from './pages/Terms/Terms.jsx';
+import Privacy from './pages/Privacy/Privacy.jsx';
 
 // Component to track page views on route changes
-function Analytics() {
+function Analytics({ enabled }) {
   const location = useLocation();
 
   useEffect(() => {
-    trackPageView(location.pathname + location.search);
-  }, [location]);
+    if (enabled) {
+      trackPageView(location.pathname);
+    }
+  }, [enabled, location.pathname]);
 
   return null;
 }
 
 function App() {
+  const [analyticsConsent, setAnalyticsConsentState] = useState(() => getAnalyticsConsentState());
+  const showConsentBanner = analyticsConsent === null;
+
   useEffect(() => {
-    // Initialize Google Analytics when app loads
-    initGA();
+    initializeConsentMode();
   }, []);
+
+  useEffect(() => {
+    if (analyticsConsent === 'granted') {
+      initGA();
+    }
+  }, [analyticsConsent]);
+
+  const handleConsentChoice = (granted) => {
+    persistAnalyticsConsent(granted);
+    setAnalyticsConsentState(granted ? 'granted' : 'denied');
+  };
 
   console.log("App rendered");
   return (
     <BrowserRouter>
-      <Analytics />
+      <Analytics enabled={analyticsConsent === 'granted'} />
       <Navbar />
       <Routes>
         {/* Public Routes */}
@@ -44,6 +67,8 @@ function App() {
         <Route path="/gamededaena" element={<GameDedaena />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         {/* Moderator Routes - admin და moderator-ებისთვის */}
         <Route
@@ -65,6 +90,12 @@ function App() {
           }
         />
       </Routes>
+
+      <CookieConsentBanner
+        visible={showConsentBanner}
+        onAccept={() => handleConsentChoice(true)}
+        onReject={() => handleConsentChoice(false)}
+      />
     </BrowserRouter>
   );
 }

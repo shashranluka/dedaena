@@ -8,12 +8,98 @@ from sqlalchemy import text
 from app.database import get_db
 from app.schemas.sentence import SentenceUpdate, SentenceUpdateResponse
 from app.schemas.word import AddWordToTourRequest
+from app.schemas.story import StoryCreateRequest, StoryUpdateRequest, StoryTogglePlayableRequest
 from app.api.dependencies import get_current_moderator_user
 # from app.core.audit import log_audit_event
 import json
+import re
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from app.core.audit import log_audit_event
+
+
+def split_story_into_sentences(story_text: str) -> list:
+    """ისტორიის ტექსტის წინადადებებად დაშლა (ფრონტენდის ლოგიკის იდენტური)"""
+    if not story_text or not story_text.strip():
+        return []
+    sentences = re.split(r'(?<=[.!?])\s+|\n+', story_text.strip())
+    return [s.strip() for s in sentences if s.strip()]
+
+
+def insert_sentences_for_story(db, sentences: list, user_id: int) -> list:
+    """წინადადებების ჩასმა sentences ცხრილში, დაბრუნებული ID-ების სია"""
+    sentence_ids = []
+    for sentence in sentences:
+        result = db.execute(
+            text("""
+                INSERT INTO sentences (sentence, created_by, updated_by, is_playable)
+                VALUES (:sentence, :user_id, :user_id, false)
+                RETURNING id
+            """),
+            {"sentence": sentence, "user_id": user_id}
+        ).fetchone()
+        if result:
+            sentence_ids.append(result.id)
+    return sentence_ids
+
+
+def delete_sentences_by_ids(db, sentence_ids: list):
+    """წინადადებების წაშლა ID-ების მიხედვით"""
+    if not sentence_ids:
+        return
+    db.execute(
+        text("DELETE FROM sentences WHERE id = ANY(:ids)"),
+        {"ids": sentence_ids}
+    )
+
+
+DEDAENA_TABLE = "gogebashvili_1_with_ids"
+
+
+def assign_sentences_to_tours(db, sentence_ids: list, sentences: list):
+    """წინადადებების ID-ების მინიჭება შესაბამის ტურებს gogebashvili ცხრილში"""
+    if not sentence_ids or not sentences:
+        return
+    # ტურების წამოღება (მაღალი position-იდან დაბალისკენ - იდენტური ფრონტენდის ლოგიკასთან)
+    tours = db.execute(
+        text(f"SELECT position, letter, sentences_ids FROM {DEDAENA_TABLE} ORDER BY position DESC")
+    ).fetchall()
+
+    # ყოველი წინადადისთვის ტურის გამოცნობა
+    tour_new_ids = {}  # position -> [new sentence ids]
+    for sentence, sid in zip(sentences, sentence_ids):
+        for tour in tours:
+            if tour.letter in sentence:
+                tour_new_ids.setdefault(tour.position, []).append(sid)
+                break
+
+    # თითოეული ტურის sentences_ids განახლება
+    for tour in tours:
+        if tour.position in tour_new_ids:
+            current_ids = list(tour.sentences_ids or [])
+            updated_ids = current_ids + tour_new_ids[tour.position]
+            db.execute(
+                text(f"UPDATE {DEDAENA_TABLE} SET sentences_ids = :ids WHERE position = :position"),
+                {"ids": updated_ids, "position": tour.position}
+            )
+
+
+def remove_sentences_from_tours(db, sentence_ids: list):
+    """წინადადებების ID-ების ამოღება gogebashvili ცხრილის ტურებიდან"""
+    if not sentence_ids:
+        return
+    ids_set = set(sentence_ids)
+    tours = db.execute(
+        text(f"SELECT position, sentences_ids FROM {DEDAENA_TABLE} WHERE sentences_ids && :ids"),
+        {"ids": sentence_ids}
+    ).fetchall()
+    for tour in tours:
+        current_ids = list(tour.sentences_ids or [])
+        updated_ids = [i for i in current_ids if i not in ids_set]
+        db.execute(
+            text(f"UPDATE {DEDAENA_TABLE} SET sentences_ids = :ids WHERE position = :position"),
+            {"ids": updated_ids, "position": tour.position}
+        )
 
 
 router = APIRouter()
@@ -391,6 +477,272 @@ async def handle_dynamic_content_action(
     except Exception as e:
         db.rollback()
         print(f"   ❌ Error in dynamic action: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+
+
+# ============================================
+# ✅ STORIES CRUD ENDPOINTS
+# ============================================
+
+@router.get("/stories")
+async def get_stories(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_moderator_user)
+):
+    try:
+        result = db.execute(
+            text("SELECT * FROM stories ORDER BY id DESC")
+        ).fetchall()
+        stories = [dict(row._mapping) for row in result]
+        return {"success": True, "count": len(stories), "data": stories}
+    except Exception as e:
+        print(f"   ❌ Error fetching stories: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+
+
+@router.post("/stories")
+async def create_story(
+    request: StoryCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_moderator_user)
+):
+    try:
+        # 1. ისტორიის ჩასმა
+        result = db.execute(
+            text("""
+                INSERT INTO stories (title, story, story_type, source, created_by, updated_by, is_playable)
+                VALUES (:title, :story, :story_type, :source, :user_id, :user_id, false)
+                RETURNING *
+            """),
+            {
+                "title": request.title.strip(),
+                "story": request.story.strip(),
+                "story_type": request.story_type or "სხვა",
+                "source": request.source.strip() if request.source else None,
+                "user_id": current_user["id"],
+            }
+        ).fetchone()
+        story = dict(result._mapping)
+
+        # 2. ტექსტის წინადადებებად დაშლა და sentences ცხრილში ჩასმა
+        sentences = split_story_into_sentences(request.story.strip())
+        sentence_ids = insert_sentences_for_story(db, sentences, current_user["id"])
+
+        # 3. sentences_ids განახლება stories ცხრილში
+        if sentence_ids:
+            db.execute(
+                text("UPDATE stories SET sentences_ids = :ids WHERE id = :id"),
+                {"ids": sentence_ids, "id": story["id"]}
+            )
+            story["sentences_ids"] = sentence_ids
+
+        # 4. წინადადებების მინიჭება შესაბამის ტურებს gogebashvili ცხრილში
+        assign_sentences_to_tours(db, sentence_ids, sentences)
+
+        db.commit()
+
+        try:
+            log_audit_event(
+                user_id=current_user['id'],
+                username=current_user['username'],
+                action="CREATE",
+                table_name="stories",
+                record_id=story["id"],
+                new_value=request.title.strip()
+            )
+        except Exception as audit_err:
+            print(f"⚠️ Failed to log audit event: {audit_err}")
+
+        return {"success": True, "message": f"ისტორია წარმატებით შეიქმნა ({len(sentence_ids)} წინადადება)", "data": story}
+
+    except Exception as e:
+        db.rollback()
+        print(f"   ❌ Error creating story: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+
+
+@router.patch("/stories/{story_id}")
+async def update_story(
+    story_id: int,
+    request: StoryUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_moderator_user)
+):
+    try:
+        existing = db.execute(
+            text("SELECT * FROM stories WHERE id = :id"),
+            {"id": story_id}
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="ისტორია ვერ მოიძებნა")
+
+        old_data = dict(existing._mapping)
+
+        fields_to_update = {}
+        if request.title is not None:
+            fields_to_update["title"] = request.title.strip()
+        if request.story is not None:
+            fields_to_update["story"] = request.story.strip()
+        if request.story_type is not None:
+            fields_to_update["story_type"] = request.story_type
+        if request.source is not None:
+            fields_to_update["source"] = request.source.strip()
+
+        if not fields_to_update:
+            raise HTTPException(status_code=400, detail="განახლებისთვის ველები არ არის მითითებული")
+
+        # თუ ტექსტი შეიცვალა, ძველი წინადადებები წაიშლება და ახლები ჩაემატება
+        if request.story is not None:
+            old_sentence_ids = old_data.get("sentences_ids") or []
+            remove_sentences_from_tours(db, old_sentence_ids)
+            delete_sentences_by_ids(db, old_sentence_ids)
+
+            new_sentences = split_story_into_sentences(request.story.strip())
+            new_sentence_ids = insert_sentences_for_story(db, new_sentences, current_user["id"])
+            fields_to_update["sentences_ids"] = new_sentence_ids
+            assign_sentences_to_tours(db, new_sentence_ids, new_sentences)
+
+        fields_to_update["updated_by"] = current_user["id"]
+
+        set_clause = ", ".join(f"{k} = :{k}" for k in fields_to_update)
+        fields_to_update["id"] = story_id
+
+        db.execute(
+            text(f"UPDATE stories SET {set_clause}, updated_at = NOW() WHERE id = :id"),
+            fields_to_update
+        )
+        db.commit()
+
+        updated = db.execute(
+            text("SELECT * FROM stories WHERE id = :id"),
+            {"id": story_id}
+        ).fetchone()
+        story = dict(updated._mapping)
+
+        try:
+            log_audit_event(
+                user_id=current_user['id'],
+                username=current_user['username'],
+                action="UPDATE",
+                table_name="stories",
+                record_id=story_id,
+                old_value=old_data.get("title", ""),
+                new_value=story.get("title", "")
+            )
+        except Exception as audit_err:
+            print(f"⚠️ Failed to log audit event: {audit_err}")
+
+        return {"success": True, "message": "ისტორია წარმატებით განახლდა", "data": story}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        print(f"   ❌ Error updating story: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+
+
+@router.delete("/stories/{story_id}")
+async def delete_story(
+    story_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_moderator_user)
+):
+    try:
+        existing = db.execute(
+            text("SELECT * FROM stories WHERE id = :id"),
+            {"id": story_id}
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="ისტორია ვერ მოიძებნა")
+
+        old_data = dict(existing._mapping)
+
+        # ისტორიის წინადადებების წაშლა sentences ცხრილიდან და gogebashvili ტურებიდან
+        old_sentence_ids = old_data.get("sentences_ids") or []
+        remove_sentences_from_tours(db, old_sentence_ids)
+        delete_sentences_by_ids(db, old_sentence_ids)
+
+        db.execute(
+            text("DELETE FROM stories WHERE id = :id"),
+            {"id": story_id}
+        )
+        db.commit()
+
+        try:
+            log_audit_event(
+                user_id=current_user['id'],
+                username=current_user['username'],
+                action="DELETE",
+                table_name="stories",
+                record_id=story_id,
+                old_value=old_data.get("title", "")
+            )
+        except Exception as audit_err:
+            print(f"⚠️ Failed to log audit event: {audit_err}")
+
+        return {"success": True, "message": "ისტორია წარმატებით წაიშალა"}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        print(f"   ❌ Error deleting story: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
+
+
+@router.patch("/stories/{story_id}/toggle_playable")
+async def toggle_story_playable(
+    story_id: int,
+    request: StoryTogglePlayableRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_moderator_user)
+):
+    try:
+        existing = db.execute(
+            text("SELECT id, is_playable, sentences_ids FROM stories WHERE id = :id"),
+            {"id": story_id}
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="ისტორია ვერ მოიძებნა")
+
+        old_value = str(existing.is_playable) if existing.is_playable is not None else "None"
+
+        db.execute(
+            text("UPDATE stories SET is_playable = :is_playable, updated_by = :user_id, updated_at = NOW() WHERE id = :id"),
+            {"is_playable": request.is_playable, "user_id": current_user["id"], "id": story_id}
+        )
+
+        # შესაბამისი წინადადებების is_playable-ც განახლდეს
+        story_sentence_ids = existing.sentences_ids or []
+        if story_sentence_ids:
+            db.execute(
+                text("UPDATE sentences SET is_playable = :is_playable, updated_by = :user_id WHERE id = ANY(:ids)"),
+                {"is_playable": request.is_playable, "user_id": current_user["id"], "ids": story_sentence_ids}
+            )
+
+        db.commit()
+
+        try:
+            log_audit_event(
+                user_id=current_user['id'],
+                username=current_user['username'],
+                action="TOGGLE_PLAYABLE",
+                table_name="stories",
+                record_id=story_id,
+                old_value=old_value,
+                new_value=str(request.is_playable)
+            )
+        except Exception as audit_err:
+            print(f"⚠️ Failed to log audit event: {audit_err}")
+
+        return {"success": True, "id": story_id, "is_playable": request.is_playable}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        print(f"   ❌ Error toggling story playable: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
 
 

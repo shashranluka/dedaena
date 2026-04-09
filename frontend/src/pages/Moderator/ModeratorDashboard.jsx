@@ -54,6 +54,7 @@ const normalizeWord = (word) => {
 const ModeratorDashboard = () => {
   const [user, setUser] = useState(null);
   const [dedaenaData, setDedaenaData] = useState([]);
+  const [storiesData, setStoriesData] = useState([]);
   console.log("Dedaena data:", dedaenaData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,7 +65,7 @@ const ModeratorDashboard = () => {
   const [tourFilter, setTourFilter] = useState('all');
   const [editingItem, setEditingItem] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({ content: '', tourPosition: '' });
+  const [formData, setFormData] = useState({ content: '', tourPosition: '', title: '', storyType: 'სხვა', source: '' });
   const [detectedTour, setDetectedTour] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState([]);
@@ -80,12 +81,14 @@ const ModeratorDashboard = () => {
     setLoading(true);
     try {
       const token = getToken();
-      const response = await api.get(
-        `/moderator/dedaena/${VERSION_DATA.dedaena_table}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-      setDedaenaData(response.data.data || []);
-      console.log("Fetched dedaena data:", response.data.data);
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const [dedaenaRes, storiesRes] = await Promise.all([
+        api.get(`/moderator/dedaena/${VERSION_DATA.dedaena_table}`, { headers }),
+        api.get('/moderator/stories', { headers }),
+      ]);
+      setDedaenaData(dedaenaRes.data.data || []);
+      setStoriesData(storiesRes.data.data || []);
+      console.log("Fetched dedaena data:", dedaenaRes.data.data);
       setError(null);
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message;
@@ -108,6 +111,27 @@ const ModeratorDashboard = () => {
         { ...data, table_name: VERSION_DATA.dedaena_table },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
+      await fetchData();
+      cancelEdit();
+    } catch (err) {
+      showErrorMessage(err);
+      throw err;
+    } finally {
+      setActionLoading(false);
+    }
+  }, [fetchData]);
+
+  // --- Story-specific CRUD ---
+  const handleStoryAction = useCallback(async (method, endpoint, data = null) => {
+    setActionLoading(true);
+    try {
+      const token = getToken();
+      const config = { headers: { 'Authorization': `Bearer ${token}` } };
+      if (method === 'delete') {
+        await api.delete(endpoint, config);
+      } else {
+        await api[method](endpoint, data, config);
+      }
       await fetchData();
       cancelEdit();
     } catch (err) {
@@ -229,9 +253,21 @@ const ModeratorDashboard = () => {
 
   const handleTogglePlayable = async (item) => {
     try {
-      // console.log("Toggling playable for item:", item);
       setActionLoading(true);
       const token = getToken();
+
+      if (activeTab === 'stories') {
+        await api.patch(
+          `/moderator/stories/${item.id}/toggle_playable`,
+          { is_playable: !item.is_playable },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        setStoriesData(prev => prev.map(s =>
+          s.id === item.id ? { ...s, is_playable: !s.is_playable } : s
+        ));
+        return;
+      }
+
       let endpointType = item.type.slice(0, -1);
       item.is_playable = !item.is_playable;
       await api.patch(
@@ -267,21 +303,29 @@ const ModeratorDashboard = () => {
 
 
   const currentData = useMemo(() => {
-    console.log("Current data:", allItems);
+    if (activeTab === 'stories') {
+      return storiesData.filter(item => {
+        const matchesSearch = !searchQuery ||
+          (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.story || '').toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch;
+      });
+    }
     return allItems.filter(item => {
       const matchesTab = item.type === activeTab;
       const matchesTour = tourFilter === 'all' || item.tourPosition === parseInt(tourFilter, 10);
       const matchesSearch = !searchQuery || item.content.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesTab && matchesTour && matchesSearch;
     });
-  }, [allItems, activeTab, tourFilter, searchQuery]);
+  }, [allItems, storiesData, activeTab, tourFilter, searchQuery]);
   console.log("Current data:", currentData);
   const totalCounts = useMemo(() => ({
     words: allItems.filter(i => i.type === 'words').length,
     sentences: allItems.filter(i => i.type === 'sentences').length,
     proverbs: allItems.filter(i => i.type === 'proverbs').length,
     toreads: allItems.filter(i => i.type === 'toreads').length,
-  }), [allItems]);
+    stories: storiesData.length,
+  }), [allItems, storiesData]);
 
   function getLettersStatsFromSentences(playableSentences, addOrSub) {
     // lettersStats: ობიექტი { "ა": 0, "ბ": 0, ... }
@@ -363,6 +407,19 @@ const ModeratorDashboard = () => {
   };
 
   const handleAdd = () => {
+    if (activeTab === 'stories') {
+      if (!formData.title.trim() || !formData.content.trim()) {
+        alert('სათაური და ტექსტი არ უნდა იყოს ცარიელი.');
+        return;
+      }
+      handleStoryAction('post', '/moderator/stories', {
+        title: formData.title.trim(),
+        story: formData.content.trim(),
+        story_type: formData.storyType,
+        source: formData.source.trim() || null,
+      });
+      return;
+    }
     const finalPosition = formData.tourPosition || detectedTour?.position;
     if (!formData.content.trim() || !finalPosition) { alert("ტექსტი და ტური არ უნდა იყოს ცარიელი."); return; }
     const payload = {
@@ -375,7 +432,19 @@ const ModeratorDashboard = () => {
   };
 
   const handleEdit = (item) => {
-    console.log(item);
+    if (activeTab === 'stories') {
+      if (!formData.title.trim() || !formData.content.trim()) {
+        alert('სათაური და ტექსტი არ უნდა იყოს ცარიელი.');
+        return;
+      }
+      handleStoryAction('patch', `/moderator/stories/${item.id}`, {
+        title: formData.title.trim(),
+        story: formData.content.trim(),
+        story_type: formData.storyType,
+        source: formData.source.trim() || null,
+      });
+      return;
+    }
     if (!formData.content.trim()) { alert('ტექსტი არ უნდა იყოს ცარიელი.'); return; }
 
     const payload = {
@@ -399,7 +468,11 @@ const ModeratorDashboard = () => {
   };
 
 const handleDelete = (item) => {
-    console.log("Deleting item:", item);
+    if (activeTab === 'stories') {
+      if (!window.confirm(`დარწმუნებული ხართ რომ გსურთ წაშლა?\n\n"${item.title}"`)) return;
+      handleStoryAction('delete', `/moderator/stories/${item.id}`);
+      return;
+    }
     if (!window.confirm(`დარწმუნებული ხართ რომ გსურთ წაშლა?\n\n"${item.content}"`)) return;
     const payload = {
       content: item.content,
@@ -423,6 +496,16 @@ const handleDelete = (item) => {
   const startEdit = (item) => {
     setIsAdding(false);
     setEditingItem(item);
+    if (activeTab === 'stories') {
+      setFormData({
+        content: item.story || '',
+        tourPosition: '',
+        title: item.title || '',
+        storyType: item.story_type || 'სხვა',
+        source: item.source || '',
+      });
+      return;
+    }
     setFormData({ content: item.content, tourPosition: item.tourPosition.toString() });
     detectTour(item.content);
   };
@@ -430,7 +513,7 @@ const handleDelete = (item) => {
   const cancelEdit = () => {
     setEditingItem(null);
     setIsAdding(false);
-    setFormData({ content: '', tourPosition: '' });
+    setFormData({ content: '', tourPosition: '', title: '', storyType: 'სხვა', source: '' });
     setDetectedTour(null);
   };
 
@@ -509,10 +592,11 @@ const handleDelete = (item) => {
 
           {/* filter-tabs */}
           <div className="filter-tabs">
-            {['words', 'sentences', 'proverbs', 'reading'].map(tab => {
-              // თუ არჩეულია კონკრეტული ტური, მხოლოდ ამ ტურის რაოდენობა გამოჩნდეს
+            {['words', 'sentences', 'proverbs', 'reading', 'stories'].map(tab => {
               let count = 0;
-              if (tourFilter !== 'all') {
+              if (tab === 'stories') {
+                count = storiesData.length;
+              } else if (tourFilter !== 'all') {
                 count = allItems.filter(
                   i => i.type === tab && i.tourPosition === parseInt(tourFilter, 10)
                 ).length;
@@ -529,6 +613,7 @@ const handleDelete = (item) => {
                   {tab === 'sentences' && <>📄 წინადადებები ({count})</>}
                   {tab === 'proverbs' && <>📚 ანდაზები ({count})</>}
                   {tab === 'reading' && <>📖 კითხვა ({count})</>}
+                  {tab === 'stories' && <>📖 ამბები ({count})</>}
                 </button>
               );
             })}
@@ -562,6 +647,7 @@ const handleDelete = (item) => {
           {/* <button className="btn-add" onClick={startAdd} disabled={actionLoading}>➕ დამატება</button>
           <div className="results-count"><span>ნაპოვნია: <strong>{currentData.length}</strong></span></div> */}
         </div>
+        {activeTab !== 'stories' && (
         <div className="pos-sticky">
 
           <div className="moderator-tour-letter-buttons">
@@ -670,10 +756,11 @@ const handleDelete = (item) => {
             })}
           </div> */}
         </div>
+        )}
 
         <div className="content-cards">
           {/* ✅ ანალიზის საერთო ღილაკი */}
-          {activeTab !== 'words' && currentData.length > 0 && (
+          {activeTab !== 'words' && activeTab !== 'stories' && currentData.length > 0 && (
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <button
                 className="btn-toggle-analysis"
@@ -694,7 +781,7 @@ const handleDelete = (item) => {
           )}
 
           {/* წინადადებები, ანდაზები, კითხვა (items-list) */}
-          {activeTab !== 'words' && (
+          {activeTab !== 'words' && activeTab !== 'stories' && (
             <div className="items-list">
               {(() => {
                 // ჯერ playable, შემდეგ დანარჩენი
@@ -868,6 +955,75 @@ const handleDelete = (item) => {
               )}
             </div>
           )}
+
+          {/* ისტორიების ბარათები */}
+          {activeTab === 'stories' && (
+            <div className="items-list">
+              {currentData.map((story, idx) => (
+                <div key={story.id} className={`story-card${story.is_playable ? ' playable' : ''}`}>
+                  <div className="card-header">
+                    <div className="story-meta">
+                      <span className="story-type-badge">{story.story_type || 'სხვა'}</span>
+                      {story.source && <span className="story-source">წყარო: {story.source}</span>}
+                    </div>
+                    <div className="playable-toggle" style={{ marginTop: 8 }}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={!!story.is_playable}
+                          disabled={actionLoading}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleTogglePlayable(story);
+                          }}
+                        />
+                        <span style={{ marginLeft: 6 }}>
+                          {story.is_playable ? 'ჩართულია' : 'გამორთულია'}
+                        </span>
+                      </label>
+                    </div>
+                    <div className="header-right">
+                      <span className="item-number">#{idx + 1}</span>
+                      <div className="card-actions">
+                        <button onClick={() => startEdit(story)} className="btn-edit" disabled={actionLoading || !!editingItem}>✏️</button>
+                        <button onClick={() => handleDelete(story)} className="btn-delete" disabled={actionLoading || !!editingItem}>🗑️</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="card-content">
+                    <h4 className="item-title">{story.title}</h4>
+                    <p className="item-text">{story.story}</p>
+                    <div className="story-sentences-analysis">
+                      <h5 className="analysis-title">📝 წინადადებები:</h5>
+                      {(story.story || '')
+                        .split(/(?<=[.!?])\s+|\n+/)
+                        .filter(s => s.trim())
+                        .map((sentence, sIdx) => {
+                          const tour = dedaenaData.slice().reverse().find(t => sentence.includes(t.letter));
+                          return (
+                            <div key={sIdx} className="story-sentence-row">
+                              <span className="sentence-text">{sentence.trim()}</span>
+                              {tour ? (
+                                <span className="sentence-tour-badge">
+                                  {tour.letter} <small>#{tour.position}</small>
+                                </span>
+                              ) : (
+                                <span className="sentence-tour-badge no-tour">—</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {currentData.length === 0 && !isAdding && !editingItem && (
+                <div className="no-results">
+                  <p>{searchQuery ? '🔍 შედეგები არ მოიძებნა' : '📭 ისტორიები არ არის'}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         {/* // ...existing code... */}
 
@@ -920,29 +1076,79 @@ const handleDelete = (item) => {
         <div className="modal-overlay" onClick={cancelEdit}>
           <div className="edit-form-modal" onClick={(e) => e.stopPropagation()}>
             <h3>{isAdding ? '➕ ახლის დამატება' : `✏️ რედაქტირება`}</h3>
-            <div className="form-row">
-              <textarea value={formData.content} onChange={(e) => handleContentChange(e.target.value)} placeholder="შეიყვანეთ ტექსტი..." className="form-textarea" rows={4} autoFocus />
-            </div>
-            {detectedTour && (
-              <div className={`detected-tour ${detectedTour.confidence}`}>
-                <div className="detected-info">
-                  <span className="detected-icon">🎯</span>
-                  <span className="detected-text">აღმოჩენილი ტური: <strong>{detectedTour.letter}</strong> (#{detectedTour.position})</span>
+            {activeTab === 'stories' ? (
+              <>
+                <div className="form-row">
+                  <label className="form-label">სათაური</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="შეიყვანეთ სათაური..."
+                    className="form-input"
+                    autoFocus
+                  />
                 </div>
-                {!formData.tourPosition && <button className="btn-apply-tour" onClick={applyDetectedTour} type="button">✅ გამოყენება</button>}
-              </div>
+                <div className="form-row">
+                  <label className="form-label">ტექსტი</label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="შეიყვანეთ ისტორიის ტექსტი..."
+                    className="form-textarea"
+                    rows={6}
+                  />
+                </div>
+                <div className="form-row">
+                  <label className="form-label">ტიპი</label>
+                  <select
+                    value={formData.storyType}
+                    onChange={(e) => setFormData({ ...formData, storyType: e.target.value })}
+                    className="form-select"
+                  >
+                    {['ისტორია', 'ამბავი', 'მოთხრობა', 'იგავი', 'სხვა'].map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label className="form-label">წყარო</label>
+                  <input
+                    type="text"
+                    value={formData.source}
+                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                    placeholder="წყარო (არასავალდებულო)"
+                    className="form-input"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="form-row">
+                  <textarea value={formData.content} onChange={(e) => handleContentChange(e.target.value)} placeholder="შეიყვანეთ ტექსტი..." className="form-textarea" rows={4} autoFocus />
+                </div>
+                {detectedTour && (
+                  <div className={`detected-tour ${detectedTour.confidence}`}>
+                    <div className="detected-info">
+                      <span className="detected-icon">🎯</span>
+                      <span className="detected-text">აღმოჩენილი ტური: <strong>{detectedTour.letter}</strong> (#{detectedTour.position})</span>
+                    </div>
+                    {!formData.tourPosition && <button className="btn-apply-tour" onClick={applyDetectedTour} type="button">✅ გამოყენება</button>}
+                  </div>
+                )}
+                <div className="form-row">
+                  <label className="form-label">ტური {formData.tourPosition && '(არჩეული)'}</label>
+                  <select value={formData.tourPosition} onChange={(e) => setFormData({ ...formData, tourPosition: e.target.value })} className="form-select">
+                    <option value="">{detectedTour ? 'ან აირჩიეთ სხვა ტური' : 'აირჩიეთ ტური'}</option>
+                    {dedaenaData.map(tour => (<option key={tour.position} value={tour.position} className={detectedTour?.position === tour.position ? 'suggested' : ''}>{tour.letter} - ტური #{tour.position}{detectedTour?.position === tour.position ? ' (შემოთავაზებული)' : ''}</option>))}
+                  </select>
+                </div>
+              </>
             )}
-            <div className="form-row">
-              <label className="form-label">ტური {formData.tourPosition && '(არჩეული)'}</label>
-              <select value={formData.tourPosition} onChange={(e) => setFormData({ ...formData, tourPosition: e.target.value })} className="form-select">
-                <option value="">{detectedTour ? 'ან აირჩიეთ სხვა ტური' : 'აირჩიეთ ტური'}</option>
-                {dedaenaData.map(tour => (<option key={tour.position} value={tour.position} className={detectedTour?.position === tour.position ? 'suggested' : ''}>{tour.letter} - ტური #{tour.position}{detectedTour?.position === tour.position ? ' (შემოთავაზებული)' : ''}</option>))}
-              </select>
-            </div>
             <div className="form-actions">
               <button
                 onClick={isAdding ? handleAdd : () => handleEdit(editingItem)}
-                disabled={actionLoading || (!formData.tourPosition && !detectedTour)}
+                disabled={actionLoading || (activeTab === 'stories' ? (!formData.title.trim() || !formData.content.trim()) : (!formData.tourPosition && !detectedTour))}
                 className="btn-save">{actionLoading ? '⏳' : '✅'} შენახვა
               </button>
               <button

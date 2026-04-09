@@ -8,8 +8,17 @@ from app.schemas.sentence import (
     SentenceUpdateResponse
 )
 
+from app.schemas.story import (
+    StoryCreateRequest,
+    StoryUpdateRequest,
+    StoryTogglePlayableRequest
+)
+
 __all__ = [
     "SentenceEditInfo",
     "SentenceUpdate",
-    "SentenceUpdateResponse"
+    "SentenceUpdateResponse",
+    "StoryCreateRequest",
+    "StoryUpdateRequest",
+    "StoryTogglePlayableRequest",
 ]

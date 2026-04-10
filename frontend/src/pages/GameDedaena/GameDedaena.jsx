@@ -17,6 +17,7 @@ function GameDedaena() {
   const [selected, setSelected] = useState([]);
   const [foundWordsByPosition, setFoundWordsByPosition] = useState({});
   const [foundSentencesByPosition, setFoundSentencesByPosition] = useState({});
+  const [foundSentenceIdsByPosition, setFoundSentenceIdsByPosition] = useState({});
   const [message, setMessage] = useState("");
   const [userSentence, setUserSentence] = useState("");
   const [sentenceMessage, setSentenceMessage] = useState("");
@@ -50,8 +51,8 @@ function GameDedaena() {
     setIsSoundEnabled(prev => !prev);
   };
 
-  const { letters, dedaenaData, loading, error } = useGameData(version_data, position);
-
+  const { letters, dedaenaData, stories, loading, error } = useGameData(version_data, position);
+  console.log("GameDedaena data:", letters, dedaenaData, stories, loading, error);
   const words = useMemo(() => {
     const rawWords = dedaenaData[position - 1]?.words || [];
     return rawWords
@@ -245,15 +246,22 @@ function GameDedaena() {
     const normalizedUserSentence = userSentence.trim().toLowerCase();
     const currentSentences = foundSentencesByPosition[position] || [];
 
-    const isCorrect = dedaenaData[position - 1]?.sentences.some(item =>
+    const matchedItem = dedaenaData[position - 1]?.sentences.find(item =>
       item.sentence.trim().toLowerCase() === normalizedUserSentence
     );
+    const isCorrect = !!matchedItem;
 
     if (isCorrect && !currentSentences.includes(userSentence)) {
       setFoundSentencesByPosition(prev => ({
         ...prev,
         [position]: [...currentSentences, userSentence]
       }));
+      if (matchedItem?.id) {
+        setFoundSentenceIdsByPosition(prev => ({
+          ...prev,
+          [position]: [...(prev[position] || []), matchedItem.id]
+        }));
+      }
       setSentenceMessage("სწორი წინადადება!");
       setSentenceMessageType("success");
       setSentenceMessageKey(Date.now());
@@ -461,7 +469,11 @@ function GameDedaena() {
       )}
 
       {isTourISelected ? (
-        <TourI />
+        <TourI
+          stories={stories}
+          dedaenaData={dedaenaData}
+          foundSentenceIdsByPosition={foundSentenceIdsByPosition}
+        />
       ) : (
         <>
           {compositionType === 'words' && (

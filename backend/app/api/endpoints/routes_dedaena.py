@@ -84,12 +84,18 @@ async def get_dedaena_data(
                 "proverbs": proverbs,
                 "toreads": toreads
             })
-        
+        # playable ისტორიების ამოღება
+        stories_result = db.execute(
+            text("SELECT id, title, story, story_type, source, sentences_ids FROM stories WHERE is_playable = true ORDER BY id")
+        ).fetchall()
+        stories = [dict(row._mapping) for row in stories_result]
+
         return {
             "success": True,
             "table_name": table_name,
             "count": len(dedaenaData),
-            "data": dedaenaData
+            "data": dedaenaData,
+            "stories": stories
         }
     except Exception as e:
         # ...error handling...

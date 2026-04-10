@@ -9,6 +9,7 @@ export const useGameData = (version_data, position) => {
   const [proverbs, setProverbs] = useState([]);
   const [readingData, setReadingData] = useState([]);
   const [dedaenaData, setDedaenaData] = useState([]);
+  const [stories, setStories] = useState([]);
   const [staticData, setStaticData] = useState([]);
   // const [alphabetData, setAlphabetData] = useState({}); // ყველა ასოს დეტალური ინფორმაცია
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,7 @@ export const useGameData = (version_data, position) => {
         const response = await api.get(`/dedaena/${version_data.dedaena_table}`);
         if (!response.status) throw new Error('Failed to load alphabet');
         setDedaenaData(response.data.data);
+        setStories(response.data.stories || []);
         setStaticData(response.data);
         console.log("Fetched dedaena data:", response.data);
       } catch (err) {
@@ -32,7 +34,7 @@ export const useGameData = (version_data, position) => {
     };
     loadDedaenaData();
   }, [version_data.dedaena_table]);
-  console.log("Dedaena data in hook:",position, dedaenaData[position-1]);
+  console.log("Dedaena data in hook:",position, dedaenaData[position-1], staticData, stories);
   // setWords(dedaenaData[position-1].words || []);
   // setSentences(dedaenaData[position-1]?.sentences || []);
   // Position data load
@@ -59,5 +61,5 @@ export const useGameData = (version_data, position) => {
     loadPositionData();
   }, [version_data.dedaena_table, position]);
 
-  return { letters, words, sentences, proverbs, readingData, dedaenaData, staticData, loading, error };
+  return { letters, words, sentences, proverbs, readingData, dedaenaData, staticData, stories, loading, error };
 };

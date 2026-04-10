@@ -1,7 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "./TourI.scss";
 
 export default function TourI({ stories = [], dedaenaData = [], foundSentenceIdsByPosition = {} }) {
+    const [revealFulltext, setRevealFulltext] = useState({});
+    const [revealSentences, setRevealSentences] = useState({});
     // ყველა ნაპოვნი წინადადების ID-ების Set (ყველა ტურიდან)
     const allFoundSentenceIds = useMemo(() => {
         const ids = new Set();
@@ -55,20 +57,50 @@ export default function TourI({ stories = [], dedaenaData = [], foundSentenceIds
                             <div className="story-reader-source">წყარო: {story.source}</div>
                         )}
 
+                        <div className="story-toggle-buttons">
+                            <button
+                                className={`story-toggle-btn${revealFulltext[story.id] ? ' active' : ''}`}
+                                onClick={() => setRevealFulltext(prev => ({ ...prev, [story.id]: !prev[story.id] }))}
+                            >
+                                {revealFulltext[story.id] ? '📖 ტექსტის დაფარვა' : '📖 ტექსტის გამოჩენა'}
+                            </button>
+                            <button
+                                className={`story-toggle-btn${revealSentences[story.id] ? ' active' : ''}`}
+                                onClick={() => setRevealSentences(prev => ({ ...prev, [story.id]: !prev[story.id] }))}
+                            >
+                                {revealSentences[story.id] ? '📝 წინადადებების დაფარვა' : '📝 წინადადებების გამოჩენა'}
+                            </button>
+                        </div>
+
+                        <div className="story-reader-fulltext">
+                            {story.story
+                                ? story.story.split('\n').map((line, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        <span className={revealFulltext[story.id] ? 'revealed' : 'masked'}>
+                                            {revealFulltext[story.id] ? line : line.replace(/[ა-ჰ]/g, '█')}
+                                        </span>
+                                        {i < arr.length - 1 && <br />}
+                                    </React.Fragment>
+                                ))
+                                : <span className="masked">ტექსტი არ არის ხელმისაწვდომი</span>
+                            }
+                        </div>
+
                         <div className="story-reader-sentences">
                             {sentenceIds.map((sid, idx) => {
                                 const info = sentenceMap.get(sid);
                                 const isFound = allFoundSentenceIds.has(sid);
+                                const isRevealed = revealSentences[story.id] || isFound;
                                 const text = info?.text || `წინადადება #${sid}`;
 
                                 return (
                                     <div
                                         key={sid}
-                                        className={`story-sentence ${isFound ? 'found' : 'hidden'}`}
+                                        className={`story-sentence ${isRevealed ? 'found' : 'hidden'}`}
                                     >
                                         <span className="story-sentence-number">{idx + 1}.</span>
                                         <span className="story-sentence-text">
-                                            {isFound ? text : text.replace(/[ა-ჰ]/g, '█')}
+                                            {isRevealed ? text : text.replace(/[ა-ჰ]/g, '█')}
                                         </span>
                                         {info && (
                                             <span className={`story-sentence-tour${isFound ? ' found' : ''}`}>

@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
 import "./TourI.scss";
 
-export default function TourI({ stories = [], dedaenaData = [], foundSentenceIdsByPosition = {} }) {
+export default function TourI({ stories = [], dedaenaData = [], foundSentenceIdsByPosition = {}, onSaveProgress, isAuthenticated = false }) {
     const [revealFulltext, setRevealFulltext] = useState({});
     const [revealSentences, setRevealSentences] = useState({});
+    const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'success' | 'error'
     // ყველა ნაპოვნი წინადადების ID-ების Set (ყველა ტურიდან)
     const allFoundSentenceIds = useMemo(() => {
         const ids = new Set();
@@ -32,14 +33,52 @@ export default function TourI({ stories = [], dedaenaData = [], foundSentenceIds
         return (
             <div className="tour-i-container">
                 <h2 className="tour-i-title">📖 ისტორიები</h2>
+                {isAuthenticated && (
+                    <button
+                        className={`save-progress-btn${saveStatus ? ` ${saveStatus}` : ''}`}
+                        onClick={handleSave}
+                        disabled={saveStatus === 'saving'}
+                    >
+                        {saveStatus === 'saving' ? '💾 ინახება...' :
+                         saveStatus === 'success' ? '✅ შენახულია!' :
+                         saveStatus === 'error' ? '❌ შეცდომა' :
+                         '💾 პროგრესის შენახვა'}
+                    </button>
+                )}
                 <p className="tour-i-empty">ჯერ ისტორიები არ არის დამატებული.</p>
             </div>
         );
     }
 
+    const handleSave = async () => {
+        if (!onSaveProgress) return;
+        setSaveStatus('saving');
+        try {
+            await onSaveProgress();
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus(null), 2000);
+        } catch (err) {
+            console.error('Save failed:', err);
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus(null), 3000);
+        }
+    };
+
     return (
         <div className="tour-i-container">
             <h2 className="tour-i-title">📖 ისტორიები</h2>
+            {isAuthenticated && (
+                <button
+                    className={`save-progress-btn${saveStatus ? ` ${saveStatus}` : ''}`}
+                    onClick={handleSave}
+                    disabled={saveStatus === 'saving'}
+                >
+                    {saveStatus === 'saving' ? '💾 ინახება...' :
+                     saveStatus === 'success' ? '✅ შენახულია!' :
+                     saveStatus === 'error' ? '❌ შეცდომა' :
+                     '💾 პროგრესის შენახვა'}
+                </button>
+            )}
             {stories.map(story => {
                 const sentenceIds = story.sentences_ids || [];
                 const foundCount = sentenceIds.filter(id => allFoundSentenceIds.has(id)).length;

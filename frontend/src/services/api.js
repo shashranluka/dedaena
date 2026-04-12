@@ -44,3 +44,17 @@ const api = axios.create({
 // );
 
 export default api;
+
+export async function saveProgress(token, data) {
+  const response = await api.post('/dedaena/progress/save', data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function loadProgress(token, tableName) {
+  const response = await api.get(`/dedaena/progress/${tableName}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}

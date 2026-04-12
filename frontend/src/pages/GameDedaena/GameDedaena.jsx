@@ -10,6 +10,8 @@ import SentenceCreator from "../../components/SentenceCreator/SentenceCreator";
 import StatsPanel from "../../components/StatsPanel/StatsPanel";
 import InstructionsModal from "../../components/InstructionsModal/InstructionsModal";
 import TourI from "../../components/tourI/TourI";
+import { saveProgress, loadProgress } from "../../services/api";
+import { isAuthenticated, getToken } from "../../services/auth";
 
 const version_data = { name: "იაკობ გოგებაშვილი", dedaena_table: "gogebashvili_1_with_ids" };
 
@@ -34,6 +36,7 @@ function GameDedaena() {
   const [pictureUrl, setPictureUrl] = useState("");
   const [showVowelChallenge, setShowVowelChallenge] = useState(false);
   const [vowelChallengeWord, setVowelChallengeWord] = useState("");
+  const [viewedProverbIdsByPosition, setViewedProverbIdsByPosition] = useState({});
 
   // ხმის ჩართვა-გამორთვის state (localStorage-დან)
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
@@ -53,6 +56,65 @@ function GameDedaena() {
 
   const { letters, dedaenaData, stories, loading, error } = useGameData(version_data, position);
   console.log("GameDedaena data:", letters, dedaenaData, stories, loading, error);
+
+  // პროგრესის ჩატვირთვა ბაზიდან (ავტორიზებული მომხმარებლისთვის)
+  const [progressLoaded, setProgressLoaded] = useState(false);
+  useEffect(() => {
+    if (!isAuthenticated() || progressLoaded || dedaenaData.length === 0) return;
+    const token = getToken();
+    if (!token) return;
+    loadProgress(token, version_data.dedaena_table)
+      .then(data => {
+        const wordIdSet = new Set(data.found_word_ids || []);
+        const sentenceIdSet = new Set(data.found_sentence_ids || []);
+        const proverbIdSet = new Set(data.found_proverb_ids || []);
+
+        if (wordIdSet.size > 0 || sentenceIdSet.size > 0 || proverbIdSet.size > 0) {
+          const normalizeWord = (v) => String(v || "").trim().replace(/[-–—]/g, '');
+          const newFoundWords = {};
+          const newFoundSentences = {};
+          const newFoundSentenceIds = {};
+          const newViewedProverbs = {};
+
+          dedaenaData.forEach((pos) => {
+            const p = pos.position;
+            // სიტყვები
+            const foundW = (pos.words || [])
+              .filter(w => wordIdSet.has(w.id))
+              .map(w => normalizeWord(w.word));
+            if (foundW.length > 0) newFoundWords[p] = foundW;
+
+            // წინადადებები
+            const foundSids = (pos.sentences || [])
+              .filter(s => sentenceIdSet.has(s.id))
+              .map(s => s.id);
+            if (foundSids.length > 0) newFoundSentenceIds[p] = foundSids;
+
+            const foundStexts = (pos.sentences || [])
+              .filter(s => sentenceIdSet.has(s.id))
+              .map(s => s.sentence);
+            if (foundStexts.length > 0) newFoundSentences[p] = foundStexts;
+
+            // ანდაზები
+            const foundP = (pos.proverbs || [])
+              .filter(pr => proverbIdSet.has(pr.id))
+              .map(pr => pr.id);
+            if (foundP.length > 0) newViewedProverbs[p] = foundP;
+          });
+
+          setFoundWordsByPosition(newFoundWords);
+          setFoundSentencesByPosition(newFoundSentences);
+          setFoundSentenceIdsByPosition(newFoundSentenceIds);
+          setViewedProverbIdsByPosition(newViewedProverbs);
+        }
+        setProgressLoaded(true);
+      })
+      .catch(err => {
+        console.error('Failed to load progress:', err);
+        setProgressLoaded(true);
+      });
+  }, [dedaenaData, progressLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const words = useMemo(() => {
     const rawWords = dedaenaData[position - 1]?.words || [];
     return rawWords
@@ -473,6 +535,30 @@ function GameDedaena() {
           stories={stories}
           dedaenaData={dedaenaData}
           foundSentenceIdsByPosition={foundSentenceIdsByPosition}
+          isAuthenticated={isAuthenticated()}
+          onSaveProgress={async () => {
+            const token = getToken();
+            // სიტყვების ID-ების შეგროვება (normalized word → word obj ID)
+            const normalizeWord = (v) => String(v || "").trim().replace(/[-–—]/g, '');
+            const wordIds = [];
+            dedaenaData.forEach(pos => {
+              const found = foundWordsByPosition[pos.position] || [];
+              (pos.words || []).forEach(w => {
+                if (found.includes(normalizeWord(w.word))) wordIds.push(w.id);
+              });
+            });
+            // წინადადებების ID-ების flatten
+            const sentenceIds = Object.values(foundSentenceIdsByPosition).flat();
+            // ანდაზების ID-ების flatten
+            const proverbIds = Object.values(viewedProverbIdsByPosition).flat();
+
+            await saveProgress(token, {
+              dedaena_table: version_data.dedaena_table,
+              found_word_ids: wordIds,
+              found_sentence_ids: sentenceIds,
+              found_proverb_ids: proverbIds,
+            });
+          }}
         />
       ) : (
         <>
@@ -557,7 +643,16 @@ function GameDedaena() {
                 });
                 return updated;
               });
-              setShowGift(true)
+              setShowGift(true);
+              // ანდაზის ნახვის ტრეკინგი
+              const currentProverbObj = proverbs[proverbIndex];
+              if (currentProverbObj?.id) {
+                setViewedProverbIdsByPosition(prev => {
+                  const existing = prev[position] || [];
+                  if (existing.includes(currentProverbObj.id)) return prev;
+                  return { ...prev, [position]: [...existing, currentProverbObj.id] };
+                });
+              }
             }
             }
           >

@@ -4,12 +4,13 @@ Dedaena Routes
 from sqlalchemy import text, bindparam
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from app.api.dependencies import get_db, get_current_moderator_user
+from app.api.dependencies import get_db, get_current_moderator_user, get_current_user
 import json
 from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.config import get_db_connection
+from app.schemas.progress import SaveProgressRequest
 
 router = APIRouter()
 
@@ -26,6 +27,78 @@ class StaticInfo(BaseModel):
 @router.get("/")
 async def dedaena_root():
     return {"message": "Dedaena API", "version": "1.0.0"}
+
+
+@router.post("/progress/save")
+async def save_progress(
+    data: SaveProgressRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """მომხმარებლის პროგრესის შენახვა (UPSERT)"""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO user_progress (user_id, dedaena_table, found_word_ids, found_sentence_ids, found_proverb_ids, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
+                ON CONFLICT (user_id, dedaena_table)
+                DO UPDATE SET
+                    found_word_ids = EXCLUDED.found_word_ids,
+                    found_sentence_ids = EXCLUDED.found_sentence_ids,
+                    found_proverb_ids = EXCLUDED.found_proverb_ids,
+                    updated_at = NOW()
+            """, (
+                current_user["id"],
+                data.dedaena_table,
+                data.found_word_ids,
+                data.found_sentence_ids,
+                data.found_proverb_ids,
+            ))
+            conn.commit()
+        return {"success": True, "message": "პროგრესი შენახულია"}
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ პროგრესის შენახვის შეცდომა: {e}")
+        raise HTTPException(status_code=500, detail="პროგრესის შენახვა ვერ მოხერხდა")
+    finally:
+        conn.close()
+
+
+@router.get("/progress/{table_name}")
+async def load_progress(
+    table_name: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """მომხმარებლის შენახული პროგრესის ჩატვირთვა"""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT found_word_ids, found_sentence_ids, found_proverb_ids, updated_at
+                FROM user_progress
+                WHERE user_id = %s AND dedaena_table = %s
+            """, (current_user["id"], table_name))
+            row = cur.fetchone()
+            if not row:
+                return {
+                    "success": True,
+                    "found_word_ids": [],
+                    "found_sentence_ids": [],
+                    "found_proverb_ids": [],
+                    "updated_at": None
+                }
+            return {
+                "success": True,
+                "found_word_ids": row[0] or [],
+                "found_sentence_ids": row[1] or [],
+                "found_proverb_ids": row[2] or [],
+                "updated_at": row[3].isoformat() if row[3] else None
+            }
+    except Exception as e:
+        print(f"❌ პროგრესის ჩატვირთვის შეცდომა: {e}")
+        raise HTTPException(status_code=500, detail="პროგრესის ჩატვირთვა ვერ მოხერხდა")
+    finally:
+        conn.close()
 
 
 @router.get("/{table_name}")

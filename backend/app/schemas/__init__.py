@@ -14,6 +14,10 @@ from app.schemas.story import (
     StoryTogglePlayableRequest
 )
 
+from app.schemas.progress import (
+    SaveProgressRequest
+)
+
 __all__ = [
     "SentenceEditInfo",
     "SentenceUpdate",
@@ -21,4 +25,5 @@ __all__ = [
     "StoryCreateRequest",
     "StoryUpdateRequest",
     "StoryTogglePlayableRequest",
+    "SaveProgressRequest",
 ]

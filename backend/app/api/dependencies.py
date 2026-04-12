@@ -45,3 +45,25 @@ async def get_current_moderator_user(
         "is_admin": is_admin,
         "is_moder": is_moder
     }
+
+
+async def get_current_user(
+    authorization: str = Header(None)
+):
+    """JWT token-დან მომხმარებლის ამოღება (ნებისმიერი ავტორიზებული user)"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid token")
+    
+    token = authorization.replace("Bearer ", "")
+    payload = decode_access_token(token)
+    
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    return {
+        "id": payload.get("id"),
+        "username": payload.get("username"),
+        "role": payload.get("role"),
+        "is_admin": payload.get("is_admin", False),
+        "is_moder": payload.get("is_moder", False)
+    }

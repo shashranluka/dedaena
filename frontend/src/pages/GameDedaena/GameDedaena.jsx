@@ -59,6 +59,7 @@ function GameDedaena() {
 
   // პროგრესის ჩატვირთვა ბაზიდან (ავტორიზებული მომხმარებლისთვის)
   const [progressLoaded, setProgressLoaded] = useState(false);
+  const [savedProgress, setSavedProgress] = useState({ words: {}, sentenceIds: {}, proverbIds: {} });
   useEffect(() => {
     if (!isAuthenticated() || progressLoaded || dedaenaData.length === 0) return;
     const token = getToken();
@@ -106,6 +107,11 @@ function GameDedaena() {
           setFoundSentencesByPosition(newFoundSentences);
           setFoundSentenceIdsByPosition(newFoundSentenceIds);
           setViewedProverbIdsByPosition(newViewedProverbs);
+          setSavedProgress({
+            words: JSON.parse(JSON.stringify(newFoundWords)),
+            sentenceIds: JSON.parse(JSON.stringify(newFoundSentenceIds)),
+            proverbIds: JSON.parse(JSON.stringify(newViewedProverbs)),
+          });
         }
         setProgressLoaded(true);
       })
@@ -535,6 +541,9 @@ function GameDedaena() {
           stories={stories}
           dedaenaData={dedaenaData}
           foundSentenceIdsByPosition={foundSentenceIdsByPosition}
+          foundWordsByPosition={foundWordsByPosition}
+          viewedProverbIdsByPosition={viewedProverbIdsByPosition}
+          savedProgress={savedProgress}
           isAuthenticated={isAuthenticated()}
           onSaveProgress={async () => {
             const token = getToken();
@@ -557,6 +566,12 @@ function GameDedaena() {
               found_word_ids: wordIds,
               found_sentence_ids: sentenceIds,
               found_proverb_ids: proverbIds,
+            });
+            // save-ის შემდეგ snapshot განახლდეს
+            setSavedProgress({
+              words: JSON.parse(JSON.stringify(foundWordsByPosition)),
+              sentenceIds: JSON.parse(JSON.stringify(foundSentenceIdsByPosition)),
+              proverbIds: JSON.parse(JSON.stringify(viewedProverbIdsByPosition)),
             });
           }}
         />

@@ -157,9 +157,9 @@ async def get_dedaena_data(
                 "proverbs": proverbs,
                 "toreads": toreads
             })
-        # playable ისტორიების ამოღება
+        # ყველა ისტორიის ამოღება
         stories_result = db.execute(
-            text("SELECT id, title, story, story_type, source, sentences_ids FROM stories WHERE is_playable = true ORDER BY id")
+            text("SELECT id, title, story, story_type, source, sentences_ids, is_playable FROM stories ORDER BY id")
         ).fetchall()
         stories = [dict(row._mapping) for row in stories_result]
 

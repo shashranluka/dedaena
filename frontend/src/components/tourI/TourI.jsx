@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import FullStoryGame from "../fullStoryGame/FullStoryGame";
 import "./TourI.scss";
 
 export default function TourI({
@@ -14,7 +15,8 @@ export default function TourI({
     const [revealFulltext, setRevealFulltext] = useState({});
     const [revealSentences, setRevealSentences] = useState({});
     const [saveStatus, setSaveStatus] = useState(null);
-    const [openSection, setOpenSection] = useState(null); // 'words' | 'sentences' | 'proverbs' | null
+    const [openSection, setOpenSection] = useState(null);
+    const [fullscreenStory, setFullscreenStory] = useState(null); // 'words' | 'sentences' | 'proverbs' | null
 
     // ყველა ნაპოვნი წინადადების ID-ების Set (ყველა ტურიდან)
     const allFoundSentenceIds = useMemo(() => {
@@ -300,9 +302,14 @@ export default function TourI({
                     </button>
                     {openSection === 'stories' && (
                         <div className="collected-section-body">
-                            {Object.entries(storiesByType).map(([type, typeStories]) => (
-                                <div key={type} className="stories-type-group">
-                                    <h4 className="stories-type-label">{storyTypeLabels[type] || `📄 ${type}`}</h4>
+                            {Object.entries(storiesByType).map(([type, typeStories]) => {
+                                const allCompleted = typeStories.every(story => {
+                                    const sIds = story.sentences_ids || [];
+                                    return sIds.length > 0 && sIds.every(id => allFoundSentenceIds.has(id));
+                                });
+                                return (
+                                <div key={type} className={`stories-type-group${allCompleted ? ' completed' : ''}`}>
+                                    <h4 className="stories-type-label">{storyTypeLabels[type] || `📄 ${type}`}{allCompleted && ' ✅'}</h4>
                                     {typeStories.map(story => {
                                         const sentenceIds = story.sentences_ids || [];
                                         const foundCount = sentenceIds.filter(id => allFoundSentenceIds.has(id)).length;
@@ -344,15 +351,33 @@ export default function TourI({
                                                     </div>
                                                     <span className="story-progress-text">{foundCount}/{totalCount}</span>
                                                 </div>
+                                                {foundCount === totalCount && totalCount > 0 && (
+                                                    <button
+                                                        className="story-reveal-btn"
+                                                        onClick={() => setFullscreenStory(story)}
+                                                    >
+                                                        📖 სრული ტექსტის ნახვა
+                                                    </button>
+                                                )}
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ))}
+                            );
+                            })}
                         </div>
                     )}
                 </div>
             </div>
+
+            {fullscreenStory && (
+                <FullStoryGame
+                    story={fullscreenStory}
+                    sentenceMap={sentenceMap}
+                    allFoundSentenceIds={allFoundSentenceIds}
+                    onClose={() => setFullscreenStory(null)}
+                />
+            )}
 
             {/* {stories.map(story => {
                 const sentenceIds = story.sentences_ids || [];

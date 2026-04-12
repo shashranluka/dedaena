@@ -183,6 +183,12 @@
   &:last-child {
     margin-bottom: 0;
   }
+
+  &.completed {
+    background: #e8f5e9;
+    border-radius: 8px;
+    padding: 8px;
+  }
 }
 
 .stories-type-label {
@@ -269,6 +275,39 @@
   text-align: right;
 }
 
+.story-reveal-btn {
+  display: block;
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid #4caf50;
+  border-radius: 6px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #c8e6c9;
+  }
+
+  &.active {
+    background: #c8e6c9;
+    border-color: #388e3c;
+  }
+}
+
+.story-fulltext {
+  margin-top: 8px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #333;
+}
+
 .tour-i-empty {
   text-align: center;
   color: #888;
@@ -347,7 +386,7 @@
 .story-reader-fulltext {
   padding: 12px 14px;
   margin-bottom: 14px;
-  background: #fafafa;
+  background: #5f5d5d;
   border-radius: 8px;
   font-size: 16px;
   line-height: 1.8;
@@ -388,7 +427,7 @@
   &.hidden {
     background: #f5f5f5;
     .story-sentence-text {
-      color: #bbb;
+      color: #000000;
       letter-spacing: 1px;
       user-select: none;
     }

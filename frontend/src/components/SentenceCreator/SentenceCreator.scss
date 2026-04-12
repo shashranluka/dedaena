@@ -519,7 +519,7 @@ $controls-column-width: 70px;
         flex-wrap: wrap;
         // display: grid;
         // grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-        justify-items: start;
+        justify-content: center;
         flex: 1;
         gap: 8px;
         margin-bottom: 0;

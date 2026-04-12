@@ -253,47 +253,6 @@ const SentenceCreator = ({
 
 
         {/* მოქმედების ღილაკები */}
-        <div className="sentence-actions">
-          <button
-            type="button"
-            className="sign-btn signs-toggle-inline"
-            onClick={() => setIsSignsOpen((prev) => !prev)}
-            aria-expanded={isSignsOpen}
-            aria-controls="sentence-signs-panel"
-            title={isSignsOpen ? "დამალე სასვენი ნიშნები" : "აჩვენე სასვენი ნიშნები"}
-          >
-            <span className="signs-toggle-icon" aria-hidden="true">.,?!</span>
-          </button>
-          <div className="sentence-main-actions">
-            <button
-              className="sign-btn delete-btn"
-              onClick={handleBackspace}
-              title="Backspace - წაშლა cursor-ის წინ"
-              aria-label="წაშალე სიმბოლო cursor-ის წინ"
-              disabled={isInputEmpty || cursorPosition === 0}
-            >
-              ⬅️
-            </button>
-            <button
-              className="clear-sentence-btn"
-              onClick={handleClearWithSound}
-              disabled={isInputEmpty}
-              aria-label="გაასუფთავე დაფა"
-            >
-              🗑️
-            </button>
-            <button
-              className="check-sentence-btn"
-              onClick={onCheck}
-              disabled={isInputEmpty}
-              aria-label="შეამოწმე წინადადება"
-            >
-              ✓
-            </button>
-          </div>
-        </div>
-
-
         <div className="letters-signs-row">
           {/* ასოების ზოლი */}
           {letters && letters.length > 0 && (
@@ -402,6 +361,45 @@ const SentenceCreator = ({
                 tabIndex={isSignsOpen ? 0 : -1}
               >
                 :
+              </button>
+            </div>
+          </div>
+          <div className="sentence-actions">
+            <button
+            type="button"
+            className="sign-btn signs-toggle-inline"
+            onClick={() => setIsSignsOpen((prev) => !prev)}
+            aria-expanded={isSignsOpen}
+            aria-controls="sentence-signs-panel"
+            title={isSignsOpen ? "დამალე სასვენი ნიშნები" : "აჩვენე სასვენი ნიშნები"}
+          >
+            <span className="signs-toggle-icon" aria-hidden="true">.,?!</span>
+          </button>
+            <div className="sentence-main-actions">
+              <button
+                className="sign-btn delete-btn"
+                onClick={handleBackspace}
+                title="Backspace - წაშლა cursor-ის წინ"
+                aria-label="წაშალე სიმბოლო cursor-ის წინ"
+                disabled={isInputEmpty || cursorPosition === 0}
+              >
+                ⬅️
+              </button>
+              <button
+                className="clear-sentence-btn"
+                onClick={handleClearWithSound}
+                disabled={isInputEmpty}
+                aria-label="გაასუფთავე დაფა"
+              >
+                🗑️
+              </button>
+              <button
+                className="check-sentence-btn"
+                onClick={onCheck}
+                disabled={isInputEmpty}
+                aria-label="შეამოწმე წინადადება"
+              >
+                ✓
               </button>
             </div>
           </div>

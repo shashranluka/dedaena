@@ -309,6 +309,17 @@ export default function TourI({
                                         const totalCount = sentenceIds.length;
                                         const progress = totalCount > 0 ? Math.round((foundCount / totalCount) * 100) : 0;
 
+                                        // პოზიციები, რომლებშიც ტექსტია განაწილებული
+                                        const positionLetters = [];
+                                        const seenPositions = new Set();
+                                        sentenceIds.forEach(id => {
+                                            const info = sentenceMap.get(id);
+                                            if (info && !seenPositions.has(info.tourPosition)) {
+                                                seenPositions.add(info.tourPosition);
+                                                positionLetters.push(info.tourLetter);
+                                            }
+                                        });
+
                                         return (
                                             <div key={story.id} className="story-card-mini">
                                                 <div className="story-card-mini-header">
@@ -317,6 +328,13 @@ export default function TourI({
                                                         <span className="story-card-mini-source">{story.source}</span>
                                                     )}
                                                 </div>
+                                                {positionLetters.length > 0 && (
+                                                    <div className="story-card-mini-positions">
+                                                        {positionLetters.map((letter, i) => (
+                                                            <span key={i} className="story-position-badge">{letter}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 <div className="story-card-mini-progress">
                                                     <div className="story-progress-bar">
                                                         <div

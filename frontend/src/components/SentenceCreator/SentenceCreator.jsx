@@ -96,6 +96,7 @@ const SentenceCreator = ({
         case ',':
         case '!':
         case '?':
+        case ':':
           event.preventDefault();
           handleCharacterAdd(key);
           break;
@@ -294,7 +295,27 @@ const SentenceCreator = ({
 
 
         <div className="letters-signs-row">
-          {/* სასვენი ნიშნების მარცხენა drawer */}
+          {/* ასოების ზოლი */}
+          {letters && letters.length > 0 && (
+            <div className="letters-row">
+              {letters.map((letter, index) => (
+                <button
+                  key={`${letter}-${index}`}
+                  className="letter-btn"
+                  onClick={() => {
+                    handleCharacterAdd(letter);
+                    playLetterSound(letter);
+                  }}
+                  title={`დაამატე ასო "${letter}" წინადადებაში`}
+                  aria-label={`დაამატე ასო ${letter}`}
+                >
+                  {letter}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* სასვენი ნიშნების ქვედა ზოლი */}
           <div className={`signs-drawer ${isSignsOpen ? "open" : ""}`}>
             <div
               id="sentence-signs-panel"
@@ -346,28 +367,44 @@ const SentenceCreator = ({
               >
                 ?
               </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd("—")}
+                title="ტირე"
+                aria-label="დაამატე ტირე"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                —
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd("\u201E")}
+                title="გამხსნელი ბრჭყალი"
+                aria-label="დაამატე გამხსნელი ბრჭყალი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                „
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd("\u201C")}
+                title="დამხურავი ბრჭყალი"
+                aria-label="დაამატე დამხურავი ბრჭყალი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                “
+              </button>
+              <button
+                className="sign-btn"
+                onClick={() => handleCharacterAdd(":")}
+                title="ორწერტილი"
+                aria-label="დაამატე ორწერტილი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                :
+              </button>
             </div>
           </div>
-
-          {/* ასოების ზოლი */}
-          {letters && letters.length > 0 && (
-            <div className="letters-row">
-              {letters.map((letter, index) => (
-                <button
-                  key={`${letter}-${index}`}
-                  className="letter-btn"
-                  onClick={() => {
-                    handleCharacterAdd(letter);
-                    playLetterSound(letter);
-                  }}
-                  title={`დაამატე ასო "${letter}" წინადადებაში`}
-                  aria-label={`დაამატე ასო ${letter}`}
-                >
-                  {letter}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

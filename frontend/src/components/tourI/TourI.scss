@@ -210,6 +210,26 @@
   margin-bottom: 6px;
 }
 
+.story-card-mini-positions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.story-position-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1565c0;
+  font-weight: 700;
+  font-size: 12px;
+}
+
 .story-card-mini-title {
   font-weight: 600;
   font-size: 14px;

@@ -430,25 +430,21 @@ $controls-column-width: 70px;
 
     .letters-signs-row {
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
       gap: 10px;
       margin-bottom: 16px;
 
       .signs-drawer {
         display: flex;
-        align-items: stretch;
-        flex: 0 0 auto;
-        width: 0;
-        min-width: 0;
+        width: 100%;
         overflow: hidden;
-        transition: width 0.25s ease;
+        max-height: 0;
+        transition: max-height 0.25s ease;
 
         .signs {
           box-sizing: border-box;
-          width: $controls-column-width;
+          width: 100%;
           opacity: 0;
-          transform: translateX(-100%);
-          transform-origin: left center;
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
@@ -461,7 +457,7 @@ $controls-column-width: 70px;
           background: linear-gradient(135deg, #eacba0, #e2bf8e);
           overflow: hidden;
           pointer-events: none;
-          transition: transform 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+          transition: opacity 0.2s ease, padding 0.25s ease;
 
           .sign-btn {
             width: auto;
@@ -502,19 +498,16 @@ $controls-column-width: 70px;
         }
 
         &.open {
-          width: $controls-column-width;
-          min-width: $controls-column-width;
+          max-height: 200px;
 
           .signs {
-            width: $controls-column-width;
+            width: 100%;
             opacity: 1;
-            transform: translateX(0);
             padding: 10px;
             border-width: 3px;
             pointer-events: auto;
 
             @include desktop {
-              width: $controls-column-width;
               padding: 12px;
             }
           }

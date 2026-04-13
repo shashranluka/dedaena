@@ -17,6 +17,12 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from app.core.audit import log_audit_event
 
+def split_text_into_paragraphs(text: str) -> List[str]:
+    """ტექსტის აბზაცებად დაყოფა (ფრონტენდის ლოგიკის იდენტური)"""
+    if not text or not text.strip():
+        return []
+    paragraphs = re.split(r'\n+', text.strip())
+    return [p.strip() for p in paragraphs if p.strip()]
 
 def split_story_into_sentences(story_text: str) -> list:
     """ისტორიის ტექსტის წინადადებებად დაშლა (ფრონტენდის ლოგიკის იდენტური)"""
@@ -524,9 +530,9 @@ async def create_story(
         ).fetchone()
         story = dict(result._mapping)
 
-        # 2. ტექსტის წინადადებებად დაშლა და sentences ცხრილში ჩასმა
-        sentences = split_story_into_sentences(request.story.strip())
-        sentence_ids = insert_sentences_for_story(db, sentences, current_user["id"])
+        # 2. ტექსტის აბზაცებად დაშლა და sentences ცხრილში ჩასმა
+        paragraphs = split_text_into_paragraphs(request.story.strip())
+        sentence_ids = insert_sentences_for_story(db, paragraphs, current_user["id"])
 
         # 3. sentences_ids განახლება stories ცხრილში
         if sentence_ids:
@@ -537,7 +543,7 @@ async def create_story(
             story["sentences_ids"] = sentence_ids
 
         # 4. წინადადებების მინიჭება შესაბამის ტურებს gogebashvili ცხრილში
-        assign_sentences_to_tours(db, sentence_ids, sentences)
+        assign_sentences_to_tours(db, sentence_ids, paragraphs)
 
         db.commit()
 
@@ -596,11 +602,10 @@ async def update_story(
             old_sentence_ids = old_data.get("sentences_ids") or []
             remove_sentences_from_tours(db, old_sentence_ids)
             delete_sentences_by_ids(db, old_sentence_ids)
-
-            new_sentences = split_story_into_sentences(request.story.strip())
-            new_sentence_ids = insert_sentences_for_story(db, new_sentences, current_user["id"])
+            new_paragraphs = split_text_into_paragraphs(request.story.strip())
+            new_sentence_ids = insert_sentences_for_story(db, new_paragraphs, current_user["id"])
             fields_to_update["sentences_ids"] = new_sentence_ids
-            assign_sentences_to_tours(db, new_sentence_ids, new_sentences)
+            assign_sentences_to_tours(db, new_sentence_ids, new_paragraphs)
 
         fields_to_update["updated_by"] = current_user["id"]
 

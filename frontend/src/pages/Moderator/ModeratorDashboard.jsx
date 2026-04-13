@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useReducer } from "react";
 import { getCurrentUser, getToken } from "../../services/auth";
 import api from "../../services/api";
+import { normalizeWord, buildWordsMap, detectWordTour as _detectWordTour, analyzeSentence as _analyzeSentence, detectTourForText, splitTextToParagraphs } from "../../utils/textAnalysis";
 import "./ModeratorDashboard.scss";
 import { Navigate } from "react-router-dom";
 
@@ -17,11 +18,7 @@ const showErrorMessage = (error) => {
   alert(`❌ შეცდომა: ${message}`);
 };
 
-// ✅ NEW: სიტყვის ნორმალიზაცია (პუნქტუაციის წაშლა)
-const normalizeWord = (word) => {
-  if (typeof word !== "string") return "";
-  return word.replace(/[.,!?;:()"""''«»—\-]/g, '').toLowerCase().trim();
-};
+
 
 // function arrayReducer(state, action) {
 
@@ -143,57 +140,17 @@ const ModeratorDashboard = () => {
   }, [fetchData]);
 
   // ✅ NEW: ყველა სიტყვის ბაზა (ყველა ტურიდან)
-  const allWordsMap = useMemo(() => {
-    const wordsMap = new Map(); // key: normalized word, value: { tours: Set, original: string }
-    dedaenaData.forEach(tour => {
-      (tour.words || []).forEach(word => {
-        const normalized = normalizeWord(word);
-        if (!wordsMap.has(normalized)) {
-          wordsMap.set(normalized, { tours: new Set(), original: word });
-        }
-        wordsMap.get(normalized).tours.add(tour.position);
-      });
-    });
-    return wordsMap;
-  }, [dedaenaData]);
+  const allWordsMap = useMemo(() => buildWordsMap(dedaenaData), [dedaenaData]);
 
   // ✅ NEW: სიტყვის ტურის გამოცნობა
   const detectWordTour = useCallback((word) => {
-    const normalized = normalizeWord(word);
-
-    // თუ ნორმალიზებული სიტყვა ცარიელია, ვუბრუნებთ null
-    if (!normalized) {
-      return null;
-    }
-
-    const firstLetter = normalized[0];
-
-    // ვიძებთ რომელ ტურში არის ეს სიტყვა
-    const existingTours = allWordsMap.get(normalized)?.tours || new Set();
-    // console.log(`Detecting word: "${word}" (normalized: "${normalized}") - exists in tours:`, Array.from(existingTours));
-
-    // ვიძებთ რომელ ტურს ეკუთვნის პირველი ასო
-    // const estimatedTour = dedaenaData.find(tour => tour.letter === firstLetter);
-    const estimatedTour = dedaenaData.slice().reverse().find(tour => word.includes(tour.letter));
-
-    return {
-      word: normalized, // ✅ ახლა გამოსახულია ნორმალიზებული სიტყვა
-      originalWord: word, // ✅ შენახული ორიგინალი ინფორმაციისთვის
-      normalized: normalized,
-      existsInTours: Array.from(existingTours),
-      estimatedTour: estimatedTour ? { position: estimatedTour.position, letter: estimatedTour.letter } : null
-    };
+    return _detectWordTour(word, allWordsMap, dedaenaData);
   }, [allWordsMap, dedaenaData]);
 
   // ✅ NEW: წინადადების სიტყვებად დაყოფა
   const analyzeSentence = useCallback((sentence, index, content) => {
-    // console.log("Analyzing sentence:", index, sentence, index, content);
-    if (typeof sentence !== 'string' || !sentence.trim()) return [];
-    const words = sentence.split(/\s+/).filter(w => w.length > 0);
-    return words
-      .map(word => detectWordTour(word))
-      .filter(wordInfo => wordInfo !== null); // ✅ ვფილტრავთ ცარიელ სიტყვებს
-  }, [detectWordTour]);
+    return _analyzeSentence(sentence, allWordsMap, dedaenaData);
+  }, [allWordsMap, dedaenaData]);
 
   // --- Data Processing (from ModeratorFullData) ---
   const allItems = useMemo(() => {
@@ -249,6 +206,7 @@ const ModeratorDashboard = () => {
     });
     return items.map((item) => ({ ...item, id: `${item.id}-${item.type}-${item.arrayIndex}` }));
   }, [dedaenaData]);
+
 
 
   const handleTogglePlayable = async (item) => {
@@ -390,11 +348,7 @@ const ModeratorDashboard = () => {
 
   // --- Form Handlers (from ModeratorFullData) ---
   const detectTour = (text) => {
-    if (!text || !text.trim()) { setDetectedTour(null); return; }
-    const content = text.trim();
-    const estimatedTour = dedaenaData.slice().reverse().find(tour => content.includes(tour.letter));
-    // console.log(estimatedTour, dedაenaData);
-    setDetectedTour(estimatedTour ? { position: estimatedTour.position, letter: estimatedTour.letter, confidence: content[0] === estimatedTour.letter ? 'high' : 'medium' } : null);
+    setDetectedTour(detectTourForText(text, dedaenaData));
   };
 
   const handleContentChange = (text) => {
@@ -995,17 +949,15 @@ const handleDelete = (item) => {
                     <p className="item-text">{story.story}</p>
                     <div className="story-sentences-analysis">
                       <h5 className="analysis-title">📝 წინადადებები:</h5>
-                      {(story.story || '')
-                        .split(/(?<=[.!?])\s+|\n+/)
-                        .filter(s => s.trim())
+                      {splitTextToParagraphs(story.story || '')
                         .map((sentence, sIdx) => {
-                          const tour = dedaenaData.slice().reverse().find(t => sentence.includes(t.letter));
+                          const tourInfo = detectTourForText(sentence, dedaenaData);
                           return (
                             <div key={sIdx} className="story-sentence-row">
                               <span className="sentence-text">{sentence.trim()}</span>
-                              {tour ? (
+                              {tourInfo ? (
                                 <span className="sentence-tour-badge">
-                                  {tour.letter} <small>#{tour.position}</small>
+                                  {tourInfo.letter} <small>#{tourInfo.position}</small>
                                 </span>
                               ) : (
                                 <span className="sentence-tour-badge no-tour">—</span>

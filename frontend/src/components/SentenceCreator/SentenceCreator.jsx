@@ -337,6 +337,15 @@ const SentenceCreator = ({
               </button>
               <button
                 className="sign-btn"
+                onClick={() => handleCharacterAdd("-")}
+                title="დეფისი"
+                aria-label="დაამატე დეფისი"
+                tabIndex={isSignsOpen ? 0 : -1}
+              >
+                -
+              </button>
+              <button
+                className="sign-btn"
                 onClick={() => handleCharacterAdd("\u201E")}
                 title="გამხსნელი ბრჭყალი"
                 aria-label="დაამატე გამხსნელი ბრჭყალი"

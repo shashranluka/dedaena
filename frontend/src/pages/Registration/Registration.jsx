@@ -2,10 +2,19 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Registration.scss";
 import { registerUser } from "../../services/auth";
+import SocialLogin from "../../components/SocialLogin/SocialLogin";
+import { isAuthenticated } from "../../services/auth";
+import { useEffect } from "react";
 
 function Registration() {
   const navigate = useNavigate();
   
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -266,6 +275,14 @@ function Registration() {
             </p>
           </div>
         </form>
+      <SocialLogin 
+        disabled={loading}
+        loading={loading}
+        onClick={() => {
+          // TODO: implement Google registration logic here
+          alert("Google-ით რეგისტრაცია ჯერ არ არის გააქტიურებული.");
+        }}
+      />
       </div>
     </div>
   );

@@ -145,7 +145,7 @@ function Navbar() {
                   </>
                 )}
 
-                <Link 
+                {/* <Link 
                   to="/profile" 
                   className="dropdown-item"
                   onClick={() => setShowUserMenu(false)}
@@ -167,7 +167,7 @@ function Navbar() {
                   <span>პარამეტრები</span>
                 </Link>
 
-                <div className="dropdown-divider"></div>
+                <div className="dropdown-divider"></div> */}
 
                 <button 
                   className="dropdown-item logout"

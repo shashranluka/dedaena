@@ -234,7 +234,7 @@ function Registration() {
 
           {/* Terms Agreement */}
           <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+            {/* <label className="checkbox-label">
               <input
                 type="checkbox"
                 name="agreeToTerms"
@@ -245,7 +245,7 @@ function Registration() {
               <span>
                 ვეთანხმები <Link to="/terms">წესებსა და პირობებს</Link>
               </span>
-            </label>
+            </label> */}
             {errors.agreeToTerms && (
               <span className="error-message">{errors.agreeToTerms}</span>
             )}

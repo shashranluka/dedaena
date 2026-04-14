@@ -30,8 +30,8 @@ async def register(user_data: UserRegister):
             # პაროლის ჰეშირება
             hashed_password = get_password_hash(user_data.password)
             cur.execute("""
-                INSERT INTO users (username, email, password)
-                VALUES (%s, %s, %s)
+                INSERT INTO users (username, email, password, is_active)
+                VALUES (%s, %s, %s, TRUE)
                 RETURNING id, username, email, is_admin, is_moder, created_at;
             """, (user_data.username, user_data.email, hashed_password))
             user_row = cur.fetchone()

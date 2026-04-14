@@ -98,8 +98,9 @@ function Registration() {
       };
 
       const response = await registerUser(userData);
+      console.log("Registration response:", response);
       
-      if (response.success) {
+      if (response.message) {
         // Show success message
         alert("რეგისტრაცია წარმატებით დასრულდა! გთხოვთ შეხვიდეთ სისტემაში.");
         navigate("/login");

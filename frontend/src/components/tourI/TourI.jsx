@@ -173,7 +173,7 @@ export default function TourI({
     const renderCollectedSections = () => (
         <div className="collected-sections">
             <div className="">
-                <h3 className="collected-overview">მოპოვებული</h3>
+                <h2 className="collected-overview">მოპოვებული</h2>
             </div>
             {/* სიტყვები */}
             <div className={`collected-section${openSection === 'words' ? ' open' : ''}`}>
@@ -272,22 +272,7 @@ export default function TourI({
 
     return (
         <div className="tour-i-container">
-
-            {renderCollectedSections()}
-
-            {isAuthenticated && (
-                <button
-                    className={`save-progress-btn${saveStatus ? ` ${saveStatus}` : ''}${hasUnsaved ? '' : ' disabled'}`}
-                    onClick={handleSave}
-                    disabled={saveStatus === 'saving' || !hasUnsaved}
-                >
-                    {saveStatus === 'saving' ? '💾 ინახება...' :
-                     saveStatus === 'success' ? '✅ შენახულია!' :
-                     saveStatus === 'error' ? '❌ შეცდომა' :
-                     hasUnsaved ? '💾 შენახვა' : '✅ არაფერია ახალი'}
-                </button>
-            )}
-
+            <h2>მოსაპოვებლები</h2>
             {/* ამბები/მოთხრობები და იგავები */}
             <div className="stories-sections">
                 <div className={`collected-section${openSection === 'stories' ? ' open' : ''}`}>
@@ -369,6 +354,24 @@ export default function TourI({
                     )}
                 </div>
             </div>
+
+
+            {renderCollectedSections()}
+
+            {isAuthenticated && (
+                <button
+                    className={`save-progress-btn${saveStatus ? ` ${saveStatus}` : ''}${hasUnsaved ? '' : ' disabled'}`}
+                    onClick={handleSave}
+                    disabled={saveStatus === 'saving' || !hasUnsaved}
+                >
+                    {saveStatus === 'saving' ? '💾 ინახება...' :
+                     saveStatus === 'success' ? '✅ შენახულია!' :
+                     saveStatus === 'error' ? '❌ შეცდომა' :
+                     hasUnsaved ? '💾 შენახვა' : '✅ არაფერია ახალი'}
+                </button>
+            )}
+
+            
 
             {fullscreenStory && (
                 <FullStoryGame

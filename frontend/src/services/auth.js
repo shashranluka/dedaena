@@ -17,6 +17,7 @@ export const registerUser = async (userData) => {
     });
 
     const data = await response.json();
+    console.log("Received response from registration endpoint:", data);
 
     if (!response.ok) {
       throw new Error(data.detail || "რეგისტრაცია ვერ მოხერხდა");

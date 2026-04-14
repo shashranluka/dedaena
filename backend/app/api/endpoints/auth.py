@@ -5,12 +5,21 @@ from app.config import get_db_connection
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
     """მომხმარებლის რეგისტრაცია"""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # დღიური ლიმიტი
+            cur.execute("""
+                SELECT COUNT(*) FROM users
+                WHERE created_at >= (NOW() - INTERVAL '1 day')
+            """)
+            daily_count = cur.fetchone()[0]
+            if daily_count >= 100:  # ✅ დღიური ლიმიტი 100 რეგისტრაცია
+                raise HTTPException(status_code=429, detail="დღიური რეგისტრაციების ლიმიტი ამოწურულია. სცადეთ ხვალ.")
+
             # Username და email უნიკალურობა
             cur.execute("SELECT id FROM users WHERE username = %s", (user_data.username,))
             if cur.fetchone():
@@ -27,14 +36,7 @@ async def register(user_data: UserRegister):
             """, (user_data.username, user_data.email, hashed_password))
             user_row = cur.fetchone()
             conn.commit()
-            return UserResponse(
-                id=user_row[0],
-                username=user_row[1],
-                email=user_row[2],
-                is_admin=user_row[3],
-                is_moder=user_row[4],
-                created_at=user_row[5]
-            )
+            return {"message": "რეგისტრაცია წარმატებით დასრულდა!"}
     except HTTPException:
         raise
     except Exception:

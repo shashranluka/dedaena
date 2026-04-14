@@ -210,11 +210,11 @@ $controls-column-width: 70px;
       position: relative;
       box-shadow: 0 4px 16px rgba(33, 150, 243, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.8);
       transition: all 0.3s ease;
+      margin-bottom: 20px;
 
       @include tablet {
         padding: 28px;
         min-height: 110px;
-        margin-bottom: 20px;
       }
 
       @include desktop {

@@ -304,7 +304,7 @@ function GameDedaena() {
     };
 
     if (userSentence.length === 0) {
-      setSentenceMessage("შეადგინე წინადადება!");
+      setSentenceMessage("შეადგინე ტექსტი!");
       setSentenceMessageType("warning");
       setSentenceMessageKey(Date.now());
       playSound('warning');
@@ -330,12 +330,12 @@ function GameDedaena() {
           [position]: [...(prev[position] || []), matchedItem.id]
         }));
       }
-      setSentenceMessage("სწორი წინადადება!");
+      setSentenceMessage("სწორი ტექსტი!");
       setSentenceMessageType("success");
       setSentenceMessageKey(Date.now());
       playSound('success');
     } else if (currentSentences.some(s => s.toLowerCase() === normalizedUserSentence)) {
-      setSentenceMessage("ეს წინადადება უკვე შედგენილია!");
+      setSentenceMessage("ეს ტექსტი უკვე შედგენილია!");
       setSentenceMessageType("repeated");
       setSentenceMessageKey(Date.now());
       playSound('repeated');
@@ -438,7 +438,7 @@ function GameDedaena() {
             onChange={(e) => setCompositionType(e.target.value)}
           >
             <option value="words">სიტყვების შედგენა</option>
-            <option value="sentences">წინადადებების შედგენა</option>
+            <option value="sentences">ტექსტების შედგენა</option>
           </select>
           {/* <label htmlFor="composition-select">შედგენა</label> */}
         </div>
@@ -448,7 +448,7 @@ function GameDedaena() {
           className="composition-list-btn"
           onClick={() => setActiveView(compositionType === 'words' ? 'words' : 'showSentences')}
         >
-          {compositionType === 'words' ? 'სიტყვების' : 'წინადადებების'} სია
+          {compositionType === 'words' ? 'სიტყვების' : 'ტექსტების'} სია
         </button>
       </div>
 
@@ -503,7 +503,7 @@ function GameDedaena() {
                 {showStats && (
                   <span 
                     className={`letter-stat ${isStatsComplete ? 'completed' : 'not-completed'}`}
-                    title={`ასო "${tour.letter}" გამოყენებულია ${letterStats}-ჯერ წინადადებებში`}
+                    title={`ასო "${tour.letter}" გამოყენებულია ${letterStats}-ჯერ ტექსტებში`}
                     aria-label={`${letterStats} გამოყენება`}
                   >
                     {letterStats}
@@ -709,9 +709,9 @@ function GameDedaena() {
       {/* Progress indicator when position is not completed */}
       {!isCurrentPositionCompleted && (
         <div className="progress-indicator">
-          <div className="progress-text">
+          {/* <div className="progress-text">
             გასაღების მოსაპოვებლად შეადგინე ყველა სიტყვა და წინადადება
-          </div>
+          </div> */}
           <div className="progress-bars">
             <div className="progress-bar">
               <span className="progress-label">სიტყვები:</span>
@@ -725,7 +725,7 @@ function GameDedaena() {
             </div>
 
             <div className="progress-bar">
-              <span className="progress-label">წინადადებები:</span>
+              <span className="progress-label">ტექსტები:</span>
               <div className="progress-track">
                 <div
                   className="progress-fill sentences"

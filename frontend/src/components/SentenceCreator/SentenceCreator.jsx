@@ -218,14 +218,14 @@ const SentenceCreator = ({
       {/* ჰედერი - სათაური */}
       {/* <div className="create-sentence-header">
         <span>
-          შექმენი წინადადება ({foundSentences.length}/{totalSentences})
+          შექმენი ტექსტი ({foundSentences.length}/{totalSentences})
         </span>
       </div> */}
 
 
       {/* მთავარი სექცია */}
       <div className="sentence-section">
-        {/* წინადადების კონსტრუქტორი */}
+        {/* ტექსტის კონსტრუქტორი */}
         <div className="sentence-builder">
           {userSentence.length > 0 ? (
             <div className="sentence-words">
@@ -237,7 +237,7 @@ const SentenceCreator = ({
             </div>
           ) : (
             <div className="sentence-placeholder">
-              წინადადების შესადგენად დააჭირე ასოებისა და სასვენი ნიშნების ბარათებს.
+              ტექსტის შესადგენად დააჭირე ასოებისა და სასვენი ნიშნების ბარათებს.
             </div>
           )}
           {/* შეტყობინებების overlay */}
@@ -265,7 +265,7 @@ const SentenceCreator = ({
                     handleCharacterAdd(letter);
                     playLetterSound(letter);
                   }}
-                  title={`დაამატე ასო "${letter}" წინადადებაში`}
+                  title={`დაამატე ასო "${letter}" ტექსტში`}
                   aria-label={`დაამატე ასო ${letter}`}
                 >
                   {letter}
@@ -406,7 +406,7 @@ const SentenceCreator = ({
                 className="check-sentence-btn"
                 onClick={onCheck}
                 disabled={isInputEmpty}
-                aria-label="შეამოწმე წინადადება"
+                aria-label="შეამოწმე ტექსტი"
               >
                 ✓
               </button>

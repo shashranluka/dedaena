@@ -272,7 +272,7 @@ export default function TourI({
 
     return (
         <div className="tour-i-container">
-            <h2>მოსაპოვებლები</h2>
+            <h2>მოსაპოვებელი</h2>
             {/* ამბები/მოთხრობები და იგავები */}
             <div className="stories-sections">
                 <div className={`collected-section${openSection === 'stories' ? ' open' : ''}`}>

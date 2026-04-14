@@ -79,17 +79,21 @@
         background: transparent;
         color: #fff;
         transition: all 0.2s;
-        &:hover {
+        text-decoration: none;
+        &:hover, &:focus {
           background: #fff;
           color: #667eea;
+          text-decoration: none;
         }
       }
       .register-btn {
         color: #667eea;
         background: #fff;
-        &:hover {
+        text-decoration: none;
+        &:hover, &:focus {
           background: transparent;
           color: #fff;
+          text-decoration: none;
         }
       }
     }

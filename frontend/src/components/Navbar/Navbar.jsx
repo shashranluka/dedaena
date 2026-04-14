@@ -184,12 +184,12 @@ function Navbar() {
         ) : (
           // Not logged in
           <div className="auth-buttons">
-            {/* <Link to="/login" className="login-btn">
+            <Link to="/login" className="login-btn">
               შესვლა
-            </Link> */}
-            {/* <Link to="/registration" className="register-btn">
-              რეგისტრაცია
-            </Link> */}
+            </Link>
+            <Link to="/registration" className="register-btn">
+              შექმნა
+            </Link>
           </div>
         )}
       </div>

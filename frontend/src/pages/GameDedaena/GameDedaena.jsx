@@ -27,7 +27,7 @@ function GameDedaena() {
   const [sentenceMessageType, setSentenceMessageType] = useState("success"); // ✅ ახალი state
   const [activeView, setActiveView] = useState('sentence');
   const [compositionType, setCompositionType] = useState('sentences');
-  const [position, setPosition] = useState(2);
+  const [position, setPosition] = useState(1);
   const [werili, setWerili] = useState();
   const [showGift, setShowGift] = useState(false);
   const [proverbIndex, setProverbIndex] = useState(0);
